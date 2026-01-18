@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import '../styles/products-page.css';
 
 const PRODUCTS = [
-  { name: 'Droned Vape', id: 'TUX001234', supplier: 'REMA0123', category: 'T-Shirt', price: 4500, stock: 12000, },
-  { name: 'Crosscut E-Cig', id: 'TUX001234', supplier: 'REMA0123', category: 'Shirt', price: 450, stock: 12000, },
-  { name: 'Cultivate', id: 'TUX001234', supplier: 'REMA0123', category: 'Shorts', price: 4500, stock: 12000, },
-  { name: 'Demi High', id: 'TUX001234', supplier: 'REMA0123', category: 'Pants', price: 4500, stock: 12000, }
+  { name: 'Shirt', id: 'TUX001234', supplier: 'REMA0123', category: 'T-Shirt', price: 4500, stock: 12000, },
+  { name: 'T-Shirt', id: 'TUX001234', supplier: 'REMA0123', category: 'Shirt', price: 450, stock: 12000, },
+  { name: 'Short Pants', id: 'TUX001234', supplier: 'REMA0123', category: 'Shorts', price: 4500, stock: 12000, },
+  { name: 'Jeans', id: 'TUX001234', supplier: 'REMA0123', category: 'Pants', price: 4500, stock: 12000, }
 ];
 
 export default function ProductsPage() {

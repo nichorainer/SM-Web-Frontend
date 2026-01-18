@@ -136,9 +136,10 @@ export default function Header() {
               title={user ? user.name : 'User'}
             >
               <Avatar
-                size="sm"
                 name={user ? user.name : 'Guest'}
                 src={avatarSrc}
+                boxSize="40px"
+                style={{ objectFit: 'cover'}}
               />
               <div className="profile-info">
                 <div className="profile-name">{user ? user.name : 'Guest'}</div>

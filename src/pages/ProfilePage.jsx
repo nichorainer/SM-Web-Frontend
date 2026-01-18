@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Avatar } from '@chakra-ui/react';
 import { getUser, isAuthenticated } from '../utils/auth';
 import '../styles/profile-page.css';
+import EditProfileModal from '../components/EditProfileModal';
 
 const AVATAR_STORAGE_KEY = 'sm_user_avatar_base64';
 const USER_STORAGE_KEY = 'sm_user';
@@ -56,8 +57,6 @@ export default function ProfilePage() {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
-
-  const handleEditToggle = () => setEditing((s) => !s);
 
   const handleSave = (e) => {
     e.preventDefault();
@@ -129,16 +128,29 @@ export default function ProfilePage() {
     } catch {}
   }
 
+  // edit profile button
+  const [modalOpen, setModalOpen] = useState(false);
+
+  function handleEditToggle() {
+    setModalOpen(true);
+  }
+
+  function handleModalClose() {
+    setModalOpen(false);
+  }
+
+  function handleModalSave() {
+    // reuse your existing save logic
+    handleSave();
+    setModalOpen(false);
+  }
+
   return (
     <div className="profile-page">
       <div className="profile-header">
         <div>
           <h2 className="page-title">Profile</h2>
           <p className="page-sub">Manage your personal information</p>
-        </div>
-
-        <div className="profile-header-actions">
-          <Avatar size="lg" name={form.fullName || 'User'} src={avatarSrc} />
         </div>
       </div>
 
@@ -153,9 +165,28 @@ export default function ProfilePage() {
             <div className="email">{form.email || '—'}</div>
 
             <div style={{ marginTop: 12 }}>
-              <button type="button" className="btn-ghost" onClick={triggerFileSelect}>Change avatar</button>
-              <button type="button" className="btn-ghost" onClick={removeAvatar} style={{ marginLeft: 8 }}>Remove avatar</button>
-              <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFile} />
+              <button
+                type="button" 
+                className="btn-ghost" 
+                onClick={triggerFileSelect}
+              >
+                Change avatar
+              </button>
+              <button 
+                type="button" 
+                className="btn-ghost" 
+                onClick={removeAvatar} 
+                style={{ marginLeft: 8 }}
+              >
+                Remove avatar
+              </button>
+              <input
+                ref={fileRef}
+                type="file" 
+                accept="image/*" 
+                style={{ display: 'none' }} 
+                onChange={handleFile} 
+              />
               {savingAvatar && <div className="muted" style={{ marginTop: 8 }}>Saving avatar…</div>}
             </div>
           </div>
@@ -231,8 +262,9 @@ export default function ProfilePage() {
           <div className="form-actions">
             {!editing ? (
               <button type="button" className="btn-primary" onClick={handleEditToggle}>
-                Edit
+                Edit Profile
               </button>
+              
             ) : (
               <>
                 <button type="submit" className="btn-primary">Save</button>
@@ -243,25 +275,6 @@ export default function ProfilePage() {
         </form>
       </div>
 
-      <section className="emails-section">
-        <div className="emails-header">
-          <h4>My Email Address</h4>
-          <button className="btn-add">+ Add Email Address</button>
-        </div>
-
-        <div className="email-list">
-          <div className="email-item">
-            <div className="email-left">
-              <div className="email-address">{form.email || 'no-email@example.com'}</div>
-              <div className="email-meta muted">1 month ago</div>
-            </div>
-            <div className="email-actions">
-              <button className="btn-ghost">Make Primary</button>
-              <button className="btn-danger">Remove</button>
-            </div>
-          </div>
-        </div>
-      </section>
     </div>
   );
 }
