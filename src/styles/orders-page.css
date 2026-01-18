@@ -1,0 +1,18 @@
+.orders-page { display:flex; flex-direction:column; gap:16px; }
+.page-top { display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap; }
+.title-group { display:flex; flex-direction:column; }
+.page-title { margin:0; font-size:20px; font-weight:700; }
+.page-sub { margin:4px 0 0; color:var(--muted); font-size:13px; }
+
+.actions-group { display:flex; gap:10px; align-items:center; }
+.control-input { padding:8px 12px; border-radius:8px; border:1px solid #e6e9ef; min-width:220px; }
+.control-select { padding:8px 10px; border-radius:8px; border:1px solid #e6e9ef; background:white; }
+.btn { padding:8px 12px; border-radius:8px; cursor:pointer; border:0; }
+.btn-outline { background:transparent; border:1px solid #e6e9ef; color:var(--text); }
+.btn-primary { background:var(--accent); color:white; box-shadow:0 6px 18px rgba(79,70,229,0.12); }
+
+.orders-card { background:var(--card); border-radius:12px; padding:12px; box-shadow:0 6px 20px rgba(15,23,42,0.06); }
+@media (max-width: 900px) {
+  .actions-group { width:100%; justify-content:flex-start; flex-wrap:wrap; }
+  .control-input { min-width:160px; }
+}

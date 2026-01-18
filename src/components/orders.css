@@ -1,0 +1,5 @@
+.orders-table thead th {
+  text-transform: uppercase;
+  letter-spacing: 0.02em; 
+  font-weight: 600; 
+}
