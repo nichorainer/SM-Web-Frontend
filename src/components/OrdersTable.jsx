@@ -2,11 +2,11 @@ import React, { useMemo } from 'react';
 import '../styles/orders.css';
 
 const SAMPLE_ORDERS = [
-  { id: '#000005', date: '05/15/2025', customer: 'Jason', platform: 'Tokipedia', destination: 'Jakarta', items: 1, status: 'Completed' },
+  { id: '#000005', date: '05/15/2025', customer: 'Jennifer', platform: 'Tokipedia', destination: 'Jakarta', items: 1, status: 'Completed' },
   { id: '#000004', date: '04/30/2025', customer: 'Michelle', platform: 'Shoopa', destination: 'Jakarta', items: 2, status: 'Pending' },
   { id: '#000003', date: '02/16/2025', customer: 'Nixon', platform: 'Lazado', destination: 'Bandung', items: 3, status: 'Completed' },
   { id: '#000002', date: '02/03/2025', customer: 'Owen', platform: 'Tokipedia', destination: 'Medan', items: 2, status: 'Pending' },
-  { id: '#000001', date: '01/20/2025', customer: 'Kay', platform: 'Tokipedia', destination: 'Surabaya', items: 5, status: 'Completed' },
+  { id: '#000001', date: '01/20/2025', customer: 'Calvin', platform: 'Tokipedia', destination: 'Surabaya', items: 5, status: 'Completed' },
 ];
 
 export default function OrdersTable({ search = '', platform = 'all', status = 'all' }) {
