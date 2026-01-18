@@ -7,18 +7,18 @@ export default function ProductsPage() {
     {
       name: 'Fred Perry',
       productId: 'TUX001234',
-      supplierId: 'REMA0123',
+      supplierName: 'Company A',
       category: 'T-Shirt',
-      price: 4500,
-      stock: 12000,
+      price: 1500,
+      stock: 24,
     },
     {
       name: 'New Jeans',
       productId: 'TUX001235',
-      supplierId: 'REMA0123',
+      supplierName: 'Seller B',
       category: 'Pants',
-      price: 5500,
-      stock: 8000,
+      price: 2500,
+      stock: 12,
     },
   ]);
 
@@ -79,10 +79,10 @@ export default function ProductsPage() {
           <tr>
             <th>Product Name</th>
             <th>Product ID</th>
-            <th>Supplier ID</th>
+            <th>Supplier Name</th>
             <th>Category</th>
             <th>Price</th>
-            <th>Stock Level</th>
+            <th>Stock</th>
           </tr>
         </thead>
         <tbody>
@@ -91,9 +91,9 @@ export default function ProductsPage() {
               <tr key={p.productId}>
                 <td>{p.name}</td>
                 <td>{p.productId}</td>
-                <td>{p.supplierId}</td>
+                <td>{p.supplierName}</td>
                 <td>{p.category}</td>
-                <td>${p.price}</td>
+                <td>IDR {p.price}K</td>
                 <td>{p.stock}</td>
               </tr>
             ))

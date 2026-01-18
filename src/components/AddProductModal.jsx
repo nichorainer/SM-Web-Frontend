@@ -5,7 +5,7 @@ export default function AddProductModal({ isOpen, onClose, onSave }) {
   const [form, setForm] = useState({
     name: '',
     productId: '',
-    supplierId: '',
+    supplierName: '',
     category: '',
     price: '',
     stock: '',
@@ -35,8 +35,8 @@ export default function AddProductModal({ isOpen, onClose, onSave }) {
           <label>Product ID</label>
           <input name="productId" value={form.productId} onChange={handleChange} />
 
-          <label>Supplier ID</label>
-          <input name="supplierId" value={form.supplierId} onChange={handleChange} />
+          <label>Supplier Name</label>
+          <input name="supplierName" value={form.supplierName} onChange={handleChange} />
 
           <label>Category</label>
           <input name="category" value={form.category} onChange={handleChange} />
@@ -44,7 +44,7 @@ export default function AddProductModal({ isOpen, onClose, onSave }) {
           <label>Price</label>
           <input name="price" value={form.price} onChange={handleChange} type="number" />
 
-          <label>Stock Level</label>
+          <label>Stock</label>
           <input name="stock" value={form.stock} onChange={handleChange} type="number" />
 
           <div className="modal-actions">
