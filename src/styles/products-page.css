@@ -1,11 +1,21 @@
 /* Page container */
 .products-page {
+  height: 100vh;              /* full viewport height */
+  overflow-y: auto;           /* scroll only if needed */
+  overflow-x: hidden;         /* prevent horizontal scroll */
   padding: 24px;
   background-color: #f9f9f9;
-  min-height: 100vh;
   font-family: 'Segoe UI', sans-serif;
+  box-sizing: border-box;
 }
 
+/* Prevent body scroll */
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;           /* prevent body scroll */
+  height: 100vh;
+}
 /* Header */
 .page-header {
   margin-bottom: 16px;
@@ -24,7 +34,7 @@
   margin-top: 4px;
 }
 
-/* Actions row */
+/* Actions row: search+reset left, add button right */
 .page-actions {
   display: flex;
   justify-content: space-between;
@@ -44,7 +54,9 @@
   border: 1px solid #ccc;
   border-radius: 6px;
   font-size: 0.95rem;
-  width: 220px;
+  width: 240px;
+  background: #fff;
+  color: #333;
 }
 
 /* Buttons */
@@ -62,19 +74,28 @@
   background-color: #553c9a;
 }
 
-.btn-ghost {
-  background: transparent;
-  border: 1px solid #ccc;
+/* Subtle button (used for Reset) */
+.btn-subtle {
+  background-color: transparent;   /* no fill */
+  color: #555;                     /* softer text color */
+  border: 1px solid #ddd;          /* light border */
   padding: 8px 16px;
   border-radius: 6px;
   font-size: 0.95rem;
   cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-.btn-ghost:hover {
-  background-color: #f0f0f0;
+.btn-subtle:hover {
+  background-color: #f3f3f3;       /* light gray hover */
+  color: #333;                     /* slightly darker text */
 }
-
+/* Specific Reset button tweaks */
+.btn-reset {
+  min-width: 72px;
+  font-weight: 500;
+  color: #ffffff;
+}
 /* Table */
 .products-table {
   width: 100%;

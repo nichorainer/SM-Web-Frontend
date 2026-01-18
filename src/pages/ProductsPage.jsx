@@ -66,9 +66,7 @@ export default function ProductsPage() {
             onChange={handleSearchChange}
             className="search-input"
           />
-          <button className="btn-ghost" onClick={handleResetSearch}>
-            Reset
-          </button>
+          <button type="button" className="btn btn-subtle" onClick={handleResetSearch}>Reset</button>
         </div>
 
         <button className="btn-primary" onClick={handleAddProductClick}>

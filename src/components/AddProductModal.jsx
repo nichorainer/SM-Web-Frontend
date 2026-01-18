@@ -49,7 +49,7 @@ export default function AddProductModal({ isOpen, onClose, onSave }) {
 
           <div className="modal-actions">
             <button type="submit" className="btn-primary">Save</button>
-            <button type="button" className="btn-ghost" onClick={onClose}>Cancel</button>
+            <button type="button" className="btn-subtle" onClick={onClose}>Cancel</button>
           </div>
         </form>
       </div>

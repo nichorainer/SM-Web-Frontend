@@ -29,7 +29,7 @@ export default function EditProfileModal({ isOpen, onClose, form, onChange, onSa
 
           <div className="modal-actions">
             <button className="btn-primary" onClick={onSave}>Save</button>
-            <button className="btn-ghost" onClick={onClose}>Cancel</button>
+            <button className="btn-subtle" onClick={onClose}>Cancel</button>
           </div>
         </div>
       </div>

@@ -59,14 +59,19 @@
   background-color: #553c9a;
 }
 
-.btn-ghost {
-  background: transparent;
-  border: 1px solid #ccc;
+/* Subtle button (used for Cancel) */
+.btn-subtle {
+  background-color: transparent;   /* no fill */
+  color: #555;                     /* softer text color */
+  border: 1px solid #ddd;          /* light border */
   padding: 8px 16px;
   border-radius: 6px;
+  font-size: 0.95rem;
   cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-.btn-ghost:hover {
-  background: #f5f5f5;
+.btn-subtle:hover {
+  background-color: #f3f3f3;       /* light gray hover */
+  color: #333;                     /* slightly darker text */
 }
