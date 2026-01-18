@@ -126,7 +126,11 @@ export default function OrdersPage() {
       </div>
 
       <div className="orders-card">
-        <OrdersTable search={search} platform={platform} status={status} />
+        <OrdersTable 
+          search={search} 
+          platform={platform} 
+          status={status} 
+        />
       </div>
       {showCreate && (
         <div className="order-modal" role="dialog" aria-modal="true" aria-label="Create new order">

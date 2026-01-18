@@ -9,9 +9,25 @@ const SAMPLE_ORDERS = [
   { id: '#000001', date: '01/20/2025', customer: 'Calvin', platform: 'Tokipedia', destination: 'Surabaya', items: 5, status: 'Completed' },
 ];
 
-export default function OrdersTable({ search = '', platform = 'all', status = 'all' }) {
+// export default function OrdersTable({ search = '', platform = 'all', status = 'all' }) {
+//   const filtered = useMemo(() => {
+//     return SAMPLE_ORDERS.filter(o => {
+//       if (platform !== 'all' && o.platform.toLowerCase() !== platform.toLowerCase()) return false;
+//       if (status !== 'all' && o.status.toLowerCase() !== status.toLowerCase()) return false;
+//       if (!search) return true;
+//       const q = search.toLowerCase();
+//       return (
+//         o.id.toLowerCase().includes(q) ||
+//         o.customer.toLowerCase().includes(q) ||
+//         o.destination.toLowerCase().includes(q) ||
+//         o.platform.toLowerCase().includes(q)
+//       );
+//     });
+//   }, [search, platform, status]);
+
+export default function OrdersTable({ orders = [], search = '', platform = 'all', status = 'all' }) {
   const filtered = useMemo(() => {
-    return SAMPLE_ORDERS.filter(o => {
+    return orders.filter(o => {
       if (platform !== 'all' && o.platform.toLowerCase() !== platform.toLowerCase()) return false;
       if (status !== 'all' && o.status.toLowerCase() !== status.toLowerCase()) return false;
       if (!search) return true;
@@ -23,7 +39,7 @@ export default function OrdersTable({ search = '', platform = 'all', status = 'a
         o.platform.toLowerCase().includes(q)
       );
     });
-  }, [search, platform, status]);
+  }, [orders, search, platform, status]);
 
   return (
     <div className="card">
