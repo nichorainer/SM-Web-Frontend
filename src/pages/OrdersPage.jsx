@@ -201,9 +201,11 @@ export default function OrdersPage() {
                   />
                 </div>
 
-                <button className="btn btn-primary" type="submit" disabled={saving}>
-                  {saving ? 'Saving...' : 'Save Order'}
-                </button>
+                <div className="form-actions">
+                  <button className="btn btn-primary" type="submit" disabled={saving}>
+                    {saving ? 'Saving...' : 'Save Order'}
+                  </button>
+                </div>
               </form>
             </div>
           </div>

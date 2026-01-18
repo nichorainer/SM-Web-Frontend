@@ -1,4 +1,9 @@
-.orders-page { display:flex; flex-direction:column; gap:16px; }
+.orders-page { 
+  display:flex; 
+  flex-direction:column; 
+  gap:16px; 
+}
+
 .page-top { display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap; }
 .title-group { display:flex; flex-direction:column; }
 .page-title { margin:0; font-size:20px; font-weight:700; }
@@ -32,7 +37,7 @@
   background: #fff;
   border-radius: 12px;
   padding: 20px;
-  width: 420px;
+  width: 480px;
   max-width: 92%;
   box-shadow: 0 8px 24px rgba(0,0,0,0.18);
 }
@@ -61,4 +66,10 @@
   border: 0;
   font-size: 18px;
   cursor: pointer;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
 }
