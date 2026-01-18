@@ -19,9 +19,10 @@ function fileToBase64(file) {
 
 export default function ProfilePage() {
   const navigate = useNavigate();
-  const user = isAuthenticated() ? getUser() : { name: 'Guest', email: '', username: '', role: 'staff' };
+  const user = isAuthenticated()
+    ? getUser()
+    : { name: 'Guest', email: '', username: '', role: 'staff' };
 
-  const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({
     fullName: user.name || '',
     username: user.username || '',
@@ -32,7 +33,11 @@ export default function ProfilePage() {
 
   const [avatarSrc, setAvatarSrc] = useState(() => {
     try {
-      return localStorage.getItem(AVATAR_STORAGE_KEY) || user?.avatarUrl || '/images/sengun_adebayo.jpg';
+      return (
+        localStorage.getItem(AVATAR_STORAGE_KEY) ||
+        user?.avatarUrl ||
+        '/images/sengun_adebayo.jpg'
+      );
     } catch {
       return user?.avatarUrl || '/images/sengun_adebayo.jpg';
     }
@@ -59,7 +64,7 @@ export default function ProfilePage() {
   };
 
   const handleSave = (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     try {
       const raw = localStorage.getItem(USER_STORAGE_KEY);
       const u = raw ? JSON.parse(raw) : {};
@@ -67,15 +72,13 @@ export default function ProfilePage() {
       u.username = form.username;
       u.email = form.email;
       if (form.password) {
-        // in demo we don't store password; in real app call API
+        // demo only: password not stored
       }
-      // keep avatarUrl if present
       if (!u.avatarUrl && avatarSrc) u.avatarUrl = avatarSrc;
       localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(u));
     } catch (err) {
       console.error('failed to save profile to localStorage', err);
     }
-    setEditing(false);
   };
 
   async function handleFile(e) {
@@ -85,7 +88,6 @@ export default function ProfilePage() {
     try {
       const base64 = await fileToBase64(file);
       localStorage.setItem(AVATAR_STORAGE_KEY, base64);
-      // update user object as well for getUser()
       try {
         const raw = localStorage.getItem(USER_STORAGE_KEY);
         const u = raw ? JSON.parse(raw) : {};
@@ -95,10 +97,7 @@ export default function ProfilePage() {
         console.warn('failed to update user object in storage', err);
       }
       setAvatarSrc(base64);
-      // notify other components (Header) to update immediately
-      try {
-        window.dispatchEvent(new CustomEvent('avatar-updated', { detail: base64 }));
-      } catch {}
+      window.dispatchEvent(new CustomEvent('avatar-updated', { detail: base64 }));
     } catch (err) {
       console.error('failed to read file', err);
     } finally {
@@ -123,24 +122,18 @@ export default function ProfilePage() {
     } catch {}
     const fallback = '/images/sengun_adebayo.jpg';
     setAvatarSrc(fallback);
-    try {
-      window.dispatchEvent(new CustomEvent('avatar-updated', { detail: fallback }));
-    } catch {}
+    window.dispatchEvent(new CustomEvent('avatar-updated', { detail: fallback }));
   }
 
-  // edit profile button
+  // modal state
   const [modalOpen, setModalOpen] = useState(false);
-
   function handleEditToggle() {
     setModalOpen(true);
   }
-
   function handleModalClose() {
     setModalOpen(false);
   }
-
   function handleModalSave() {
-    // reuse your existing save logic
     handleSave();
     setModalOpen(false);
   }
@@ -157,7 +150,7 @@ export default function ProfilePage() {
       <div className="profile-card">
         <div className="profile-left">
           <div className="avatar-large">
-            <Avatar size="2xl" name={form.fullName || 'User'} src={avatarSrc} />
+            <Avatar boxSize="96px" name={form.fullName || 'User'} src={avatarSrc} />
           </div>
 
           <div className="basic-info">
@@ -165,29 +158,29 @@ export default function ProfilePage() {
             <div className="email">{form.email || '—'}</div>
 
             <div style={{ marginTop: 12 }}>
-              <button
-                type="button" 
-                className="btn-ghost" 
-                onClick={triggerFileSelect}
-              >
+              <button type="button" className="btn-ghost" onClick={triggerFileSelect}>
                 Change avatar
               </button>
-              <button 
-                type="button" 
-                className="btn-ghost" 
-                onClick={removeAvatar} 
+              <button
+                type="button"
+                className="btn-ghost"
+                onClick={removeAvatar}
                 style={{ marginLeft: 8 }}
               >
                 Remove avatar
               </button>
               <input
                 ref={fileRef}
-                type="file" 
-                accept="image/*" 
-                style={{ display: 'none' }} 
-                onChange={handleFile} 
+                type="file"
+                accept="image/*"
+                style={{ display: 'none' }}
+                onChange={handleFile}
               />
-              {savingAvatar && <div className="muted" style={{ marginTop: 8 }}>Saving avatar…</div>}
+              {savingAvatar && (
+                <div className="muted" style={{ marginTop: 8 }}>
+                  Saving avatar…
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -199,7 +192,6 @@ export default function ProfilePage() {
               name="fullName"
               value={form.fullName}
               onChange={handleChange}
-              disabled={!editing}
               placeholder="Full name"
             />
           </div>
@@ -210,7 +202,6 @@ export default function ProfilePage() {
               name="username"
               value={form.username}
               onChange={handleChange}
-              disabled={!editing}
               placeholder="Username"
             />
           </div>
@@ -221,7 +212,6 @@ export default function ProfilePage() {
               name="email"
               value={form.email}
               onChange={handleChange}
-              disabled={!editing}
               placeholder="you@example.com"
               type="email"
             />
@@ -233,8 +223,7 @@ export default function ProfilePage() {
               name="password"
               value={form.password}
               onChange={handleChange}
-              disabled={!editing}
-              placeholder={editing ? 'Enter new password' : '••••••••'}
+              placeholder="••••••••"
               type="password"
               autoComplete="new-password"
             />
@@ -246,12 +235,11 @@ export default function ProfilePage() {
               name="role"
               value={form.role}
               onChange={handleChange}
-              disabled={!editing || !isAdmin}
+              disabled={!isAdmin}
             >
               <option value="staff">Staff</option>
               <option value="admin">Admin</option>
             </select>
-
             {!isAdmin && (
               <div className="muted small">
                 Role is set to <strong>staff</strong>. Only admins can change this.
@@ -260,21 +248,23 @@ export default function ProfilePage() {
           </div>
 
           <div className="form-actions">
-            {!editing ? (
-              <button type="button" className="btn-primary" onClick={handleEditToggle}>
-                Edit Profile
-              </button>
-              
-            ) : (
-              <>
-                <button type="submit" className="btn-primary">Save</button>
-                <button type="button" className="btn-ghost" onClick={handleEditToggle}>Cancel</button>
-              </>
-            )}
+            <button type="button" className="btn-primary" onClick={handleEditToggle}>
+              Edit Profile
+            </button>
           </div>
         </form>
       </div>
 
+      {/* Edit Profile Modal */}
+      {modalOpen && (
+        <EditProfileModal
+          isOpen={modalOpen}
+          onClose={handleModalClose}
+          onSave={handleModalSave}
+          form={form}
+          onChange={handleChange}
+        />
+      )}
     </div>
   );
 }
