@@ -3,9 +3,7 @@ import { Avatar } from '@chakra-ui/react';
 import { getUser, isAuthenticated } from '../utils/auth';
 import '../styles/admin-page.css';
 
-/**
- * AdminPage (offline / no API)
- */
+/* AdminPage (offline / no API) */
 
 const MOCK_STAFF = [
   {
