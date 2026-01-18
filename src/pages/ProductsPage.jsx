@@ -1,5 +1,28 @@
 import React, { useState } from 'react';
 import '../styles/products-page.css';
+import AddProductModal from '../components/AddProductModal';
+
+// Add Product Modal
+const [modalOpen, setModalOpen] = useState(false);
+
+function handleAddProductClick() {
+  setModalOpen(true);
+}
+
+function handleModalClose() {
+  setModalOpen(false);
+}
+
+function handleModalSave(newProduct) {
+  console.log('New product added:', newProduct); // sample only
+  setModalOpen(false);
+}
+
+// function handleModalSave(newProduct) {
+//   console.log('New product added:', newProduct);
+//   // TODO: send to backend or update local state
+//   setModalOpen(false);
+// }
 
 const PRODUCTS = [
   { name: 'Shirt', id: 'TUX001234', supplier: 'REMA0123', category: 'T-Shirt', price: 4500, stock: 12000, },
@@ -33,7 +56,13 @@ export default function ProductsPage() {
             aria-label="Search products"
           />
           <button className="btn btn-outline" onClick={() => setSearch('')}>Reset</button>
-          <button className="btn btn-primary">Add New Product</button>
+          {modalOpen && (
+            <AddProductModal
+              isOpen={modalOpen}
+              onClose={handleModalClose}
+              onSave={handleModalSave}
+            />
+          )}
         </div>
       </div>
 
