@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getUser, logoutUser, isAuthenticated } from '../utils/auth';
 import { Avatar } from '@chakra-ui/react';
-import './header.css';
+import '../styles/header.css';
 
 const AVATAR_STORAGE_KEY = 'sm_user_avatar_base64';
 

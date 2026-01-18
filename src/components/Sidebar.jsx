@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { logoutUser, getUser, isAuthenticated } from '../utils/auth';
-import './sidebar.css';
+import '../styles/sidebar.css';
 
 export default function Sidebar() {
   const navigate = useNavigate();

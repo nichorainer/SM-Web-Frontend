@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import './orders.css';
+import '../styles/orders.css';
 
 const SAMPLE_ORDERS = [
   { id: '#000005', date: '05/15/2025', customer: 'Jason', platform: 'Tokipedia', destination: 'Jakarta', items: 1, status: 'Completed' },

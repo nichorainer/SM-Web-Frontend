@@ -1,6 +1,6 @@
 import React from 'react';
 import { Avatar } from '@chakra-ui/react';
-import './edit-profile-modal.css'; // optional custom styling
+import '../styles/edit-profile-modal.css';
 
 export default function EditProfileModal({ isOpen, onClose, form, onChange, onSave }) {
   if (!isOpen) return null;
