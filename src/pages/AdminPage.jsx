@@ -156,7 +156,7 @@ export default function AdminPage() {
                     <th>Email</th>
                     <th>Role</th>
                     <th>Permissions</th>
-                    <th>Actions</th>
+                    <th>Edit</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -177,7 +177,7 @@ export default function AdminPage() {
                         </div>
                       </td>
                       <td>
-                        <button className="btn-ghost" onClick={() => openEdit(s.id)}>Edit</button>
+                        <button className="btn-subtle" onClick={() => openEdit(s.id)}>Edit</button>
                       </td>
                     </tr>
                   ))}
@@ -247,8 +247,8 @@ export default function AdminPage() {
                   value={selected.role}
                   onChange={(e) => changeRole(selected.id, e.target.value)}
                 >
-                  <option value="staff">Staff</option>
-                  <option value="admin">Admin</option>
+                  <option value="staff">Staff 1</option>
+                  <option value="admin">Staff 2</option>
                 </select>
 
                 <label style={{ marginTop: 12 }}>Permissions</label>

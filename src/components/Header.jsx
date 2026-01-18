@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { IoNotificationsOutline } from "react-icons/io5";
 import '../styles/header.css';
 
 const AVATAR_STORAGE_KEY = 'user-avatar';
@@ -63,20 +64,12 @@ export default function Header() {
 
       <div className="header-right">
         {/* Notification button */}
-        <button
-          className="notification-btn"
-          onClick={() => setNotifOpen(!notifOpen)}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            fill="currentColor"
-            viewBox="0 0 24 24"
+          <button
+            className="notification-btn"
+            onClick={() => setNotifOpen(!notifOpen)}
           >
-            <path d="M12 24c1.104 0 2-.9 2-2h-4c0 1.1.896 2 2 2zm6.364-6c-.828 0-1.5-.672-1.5-1.5V11c0-3.084-1.729-5.64-4.364-6.708V4c0-.828-.672-1.5-1.5-1.5S9.5 3.172 9.5 4v.292C6.865 5.36 5.136 7.916 5.136 11v5.5c0 .828-.672 1.5-1.5 1.5H3v2h18v-2h-2.636z" />
-          </svg>
-        </button>
+            <IoNotificationsOutline size={22} />
+          </button>
 
         {notifOpen && (
           <div className="notif-menu" role="menu" aria-label="Notifications menu">
