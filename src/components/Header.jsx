@@ -9,8 +9,26 @@ export default function Header() {
   const [avatarSrc, setAvatarSrc] = useState('/images/sample-avatar.jpg'); // default sample image
   const [open, setOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
+  const profileRef = useRef(null);
+  const notifRef = useRef(null);
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
+
+  // Detect klik area lain menutup popup
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (profileRef.current && !profileRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+      if (notifRef.current && !notifRef.current.contains(e.target)) {
+        setNotifOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   // Load avatar from localStorage if available
   useEffect(() => {
@@ -57,6 +75,9 @@ export default function Header() {
     navigate('/login');
   }
 
+  // Notification count
+  const [notifCount, setNotifCount] = useState(0); // default 0, bisa diisi dari API nanti
+
   return (
     <header className="header">
       <div className="header-left">
@@ -64,59 +85,65 @@ export default function Header() {
 
       <div className="header-right">
         {/* Notification button */}
+        <div ref={notifRef} className="notification-container">
           <button
             className="notification-btn"
             onClick={() => setNotifOpen(!notifOpen)}
           >
             <IoNotificationsOutline size={22} />
+            {notifCount > 0 && (
+              <span className="notif-badge">{notifCount}</span>
+            )}
           </button>
-
-        {notifOpen && (
-          <div className="notif-menu" role="menu" aria-label="Notifications menu">
-            <div className="notif-item muted">No new notifications right now</div>
-          </div>
-        )}
-
-        {/* Profile dropdown */}
-        <div className="profile">
-          <button
-            className="profile-btn"
-            onClick={() => setOpen(!open)}
-          >
-            <img src={avatarSrc} alt="User Avatar" className="avatar" />
-            <div className="profile-info">
-              <span className="profile-name">Nicholas Rainer</span>
-              <span className="profile-role">Admin</span>
-            </div>
-          </button>
-
-          {open && (
-            <div className="profile-menu" role="menu">
-              <button
-                className="menu-item"
-                onClick={() => {
-                  setOpen(false);
-                  navigate('/profile');
-                }}
-              >
-                Profile
-              </button>
-
-              <button
-                className="menu-item"
-                onClick={() => {
-                  setOpen(false);
-                  triggerFileSelect();
-                }}
-              >
-                Change avatar
-              </button>
-
-              <button className="menu-item" onClick={handleLogout}>
-                Logout
-              </button>
+          {notifOpen && (
+            <div className="notif-menu" role="menu" aria-label="Notifications menu">
+              <div className="notif-item muted">No new notifications right now</div>
             </div>
           )}
+        </div>
+
+        {/* Profile dropdown */}
+        <div className="profile" ref={profileRef}>
+          <div className="profile">
+            <button
+              className="profile-btn"
+              onClick={() => setOpen(!open)}
+            >
+              <img src={avatarSrc} alt="User Avatar" className="avatar" />
+              <div className="profile-info">
+                <span className="profile-name">Nicholas Rainer</span>
+                <span className="profile-role">Admin</span>
+              </div>
+            </button>
+
+            {open && (
+              <div className="profile-menu" role="menu">
+                <button
+                  className="menu-item"
+                  onClick={() => {
+                    setOpen(false);
+                    navigate('/profile');
+                  }}
+                >
+                  Profile
+                </button>
+
+                <button
+                  className="menu-item"
+                  onClick={() => {
+                    setOpen(false);
+                    triggerFileSelect();
+                  }}
+                >
+                  Change avatar
+                </button>
+
+                <button className="menu-item" onClick={handleLogout}>
+                  Logout
+                </button>
+              </div>
+            )}
+          </div>
 
           <input
             type="file"

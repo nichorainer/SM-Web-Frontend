@@ -2,9 +2,9 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Avatar } from '@chakra-ui/react';
 import { getUser, isAuthenticated } from '../utils/auth';
 import '../styles/admin-page.css';
+import { Navigate } from 'react-router-dom';
 
 /* AdminPage (offline / no API) */
-
 const MOCK_STAFF = [
   {
     id: 'u1',
@@ -81,9 +81,38 @@ export default function AdminPage() {
     setQ(e.target.value);
   }
 
+  // function handleSave() {
+  //   if (!selectedId) return;
+  //   setSaving(true);
+
+  //   setTimeout(() => {
+  //     setStaff((prev) =>
+  //       prev.map((s) =>
+  //         s.id === selectedId ? { ...s, role: editRole, permissions: editPerms } : s
+  //       )
+  //     );
+
+  //     setLogs((prev) => [
+  //       {
+  //         id: Date.now(),
+  //         user: selectedId,
+  //         action: 'Role & permissions updated',
+  //         detail: `${editRole} | ${Object.entries(editPerms)
+  //           .map(([key, val]) => `${key}=${val}`)
+  //           .join(', ')}`,
+  //         timestamp: new Date().toISOString(),
+  //       },
+  //       ...prev,
+  //     ]);
+  //     setSaving(false);
+  //     Navigate('/admin');
+  //   }, 100);
+  // }
+
   function openEdit(id) {
     setSelectedId(id);
   }
+
   function closeEdit() {
     setSelectedId(null);
   }
@@ -228,7 +257,6 @@ export default function AdminPage() {
           <div className="drawer-card">
             <div className="drawer-head">
               <h4>Edit Staff</h4>
-              <button className="btn-close" onClick={closeEdit}>×</button>
             </div>
 
             <div className="drawer-body">
@@ -267,7 +295,13 @@ export default function AdminPage() {
 
                 <div style={{ marginTop: 12, display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
                   <button className="btn-ghost" onClick={closeEdit}>Close</button>
-                  <button className="btn-primary" disabled={saving}>{saving ? 'Saving...' : 'Save'}</button>
+                  <button 
+                    className="btn-primary" 
+                    disabled={saving}
+                    onClick={closeEdit}
+                    >
+                      {saving ? 'Saving...' : 'Close'}
+                    </button>
                 </div>
               </div>
             </div>

@@ -1,11 +1,12 @@
 /* Layout */
 .admin-page {
-  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-  color: #111827;
-  padding: 20px;
-  background: #f7fafc;
-  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  height: 100vh; /* pastikan tinggi penuh layar */
+  overflow-y: auto; /* aktifkan scroll vertikal */
+  padding: 16px 24px 32px;
   box-sizing: border-box;
+  border-bottom: 1px solid #e6e9ef;
 }
 
 /* Header */
@@ -15,16 +16,19 @@
   align-items: center;
   margin-bottom: 18px;
 }
+
 .admin-title {
   margin: 0;
   font-size: 20px;
   letter-spacing: -0.2px;
 }
+
 .admin-sub {
   margin: 2px 0 0;
   color: #6b7280;
   font-size: 13px;
 }
+
 .admin-user {
   display: flex;
   align-items: center;
@@ -54,10 +58,12 @@
   align-items: center;
   margin-bottom: 12px;
 }
+
 .section-head h3 {
   margin: 0;
   font-size: 16px;
 }
+
 .section-actions {
   display: flex;
   gap: 8px;
@@ -79,11 +85,13 @@
   overflow: auto;
   max-height: 520px;
 }
+
 .staff-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
 }
+
 .staff-table thead th {
   text-align: left;
   padding: 10px 8px;
@@ -91,16 +99,19 @@
   color: #374151;
   border-bottom: 1px solid #eef2f6;
 }
+
 .staff-table tbody td {
   padding: 10px 8px;
   vertical-align: middle;
   border-bottom: 1px solid #f3f6f9;
 }
+
 .staff-cell {
   display: flex;
   align-items: center;
   gap: 10px;
 }
+
 .staff-name {
   font-weight: 600;
 }
@@ -111,6 +122,7 @@
   gap: 6px;
   flex-wrap: wrap;
 }
+
 .perm-pill {
   padding: 4px 8px;
   border-radius: 999px;
@@ -119,11 +131,13 @@
   background: #f3f4f6;
   border: 1px solid #e5e7eb;
 }
+
 .perm-pill.on {
   background: #e6fffa;
   color: #065f46;
   border-color: #bdeedd;
 }
+
 .perm-pill.off {
   opacity: 0.6;
 }
@@ -199,6 +213,7 @@
   border: 1px solid #e6edf3;
   overflow: hidden;
 }
+
 .drawer-head {
   display: flex;
   justify-content: space-between;
@@ -206,14 +221,9 @@
   padding: 12px 16px;
   border-bottom: 1px solid #f3f6f9;
 }
+
 .drawer-body {
   padding: 16px;
-}
-.btn-close {
-  background: transparent;
-  border: none;
-  font-size: 20px;
-  cursor: pointer;
 }
 
 /* Edit form */
@@ -222,16 +232,18 @@
   align-items: center;
   margin-bottom: 12px;
 }
+
 .edit-form label {
   display: block;
   font-size: 13px;
-  margin-bottom: 6px;
+  margin-bottom: 12px;
   color: #374151;
 }
+
 .edit-form select {
   width: 100%;
   padding: 8px;
-  border-radius: 6px;
+  border-radius: 12px;
   border: 1px solid #d1d5db;
   background: #fff;
 }
@@ -243,6 +255,7 @@
   gap: 8px;
   margin-top: 8px;
 }
+
 .perm-toggle {
   display: flex;
   align-items: center;
