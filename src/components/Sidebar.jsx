@@ -30,7 +30,12 @@ export default function Sidebar() {
 
       {isAuthenticated() && (
         <div className="sidebar-footer">
-          <button className="logout-btn" onClick={handleLogout}>Logout</button>
+          <button 
+            className="logout-btn" 
+            onClick={handleLogout}
+          >
+            Logout
+          </button>
         </div>
       )}
     </aside>
