@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Avatar } from '@chakra-ui/react';
 import { getUser, isAuthenticated } from '../utils/auth';
 import '../styles/admin-page.css';
-import { Navigate } from 'react-router-dom';
 
 /* AdminPage (offline / no API) */
 const MOCK_STAFF = [
@@ -37,8 +36,8 @@ const MOCK_STAFF = [
 
 const MOCK_LOGS = [
   { id: 'l1', action: 'User created', detail: 'Budi Pratama created', when: '2026-01-10 09:12' },
-  { id: 'l2', action: 'Role changed', detail: 'Ayu -> admin', when: '2026-01-11 14:03' },
-  { id: 'l3', action: 'Permission toggled', detail: 'Citra: orders=true', when: '2026-01-12 08:22' },
+  { id: 'l2', action: 'Role changed', detail: 'Role Ayu changed into admin', when: '2026-01-11 14:03' },
+  { id: 'l3', action: 'Permission toggled', detail: 'Citra edit order permission enabled', when: '2026-01-12 08:22' },
 ];
 
 export default function AdminPage() {
