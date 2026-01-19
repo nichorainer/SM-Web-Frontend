@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import OrdersTable from '../components/OrdersTable.jsx';
 import '../styles/orders-page.css';
 
 export default function OrdersPage() {
+  const [orders, setOrders] = useState([]);
   const [search, setSearch] = useState('');
   const [platform, setPlatform] = useState('all');
   const [status, setStatus] = useState('all');
@@ -18,8 +19,16 @@ export default function OrdersPage() {
     destination: '',
     items: 1,
     status: 'Pending',
-    date: new Date().toLocaleDateString(), // default today
+    date: new Date().toISOString().slice(0, 10), // default today (YYYY-MM-DD)
   });
+
+  // Fetch orders from backend
+  useEffect(() => {
+    fetch('http://localhost:8080/orders')
+      .then(res => res.json())
+      .then(data => setOrders(data))
+      .catch(err => console.error('Error fetching orders:', err));
+  }, []);
 
   const resetFilters = () => {
     setSearch('');
@@ -31,46 +40,40 @@ export default function OrdersPage() {
     setNewOrder(prev => ({ ...prev, [field]: value }));
   }
 
-  // Generate next Order ID in format #000006 (sample)
-  function generateOrderId() {
-    const base = Math.floor(Math.random() * 900000) + 100000; // sample generator
-    return `#${String(base).padStart(6, '0')}`;
-  }
-
-  // Save handler: simpan, tutup modal, dan refresh table
+  // Save handler: send to backend and refresh table
   function handleCreateOrder(e) {
     e.preventDefault();
     setSaving(true);
 
-    setTimeout(() => {
-      const order = {
-        id: generateOrderId(),
-        date: newOrder.date,
-        customer: newOrder.customer,
-        platform: newOrder.platform,
-        destination: newOrder.destination,
-        items: Number(newOrder.items),
-        status: newOrder.status,
-      };
+    const orderPayload = {
+      customer: newOrder.customer,
+      platform: newOrder.platform,
+      destination: newOrder.destination,
+      items: Number(newOrder.items),
+      status: newOrder.status,
+      date: newOrder.date,
+    };
 
-      // Opsi A: kirim ke OrdersTable via CustomEvent (tidak perlu ubah props)
-      window.dispatchEvent(new CustomEvent('orders:add', { detail: order }));
-
-      // Opsi B (jika kamu nanti ubah OrdersTable): pass prop onAddOrder dan panggil di sini
-
-      setSaving(false);
-      setShowCreate(false);
-
-      // Optional: reset form
-      setNewOrder({
-        customer: '',
-        platform: 'Tokipedia',
-        destination: '',
-        items: 1,
-        status: 'Pending',
-        date: new Date().toLocaleDateString(),
-      });
-    }, 600);
+    fetch('http://localhost:8080/orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(orderPayload),
+    })
+      .then(res => res.json())
+      .then(createdOrder => {
+        setOrders(prev => [...prev, createdOrder]); // update local state
+        setShowCreate(false);
+        setNewOrder({
+          customer: '',
+          platform: 'Tokipedia',
+          destination: '',
+          items: 1,
+          status: 'Pending',
+          date: new Date().toISOString().slice(0, 10),
+        });
+      })
+      .catch(err => console.error('Error creating order:', err))
+      .finally(() => setSaving(false));
   }
 
   return (
@@ -127,11 +130,13 @@ export default function OrdersPage() {
 
       <div className="orders-card">
         <OrdersTable 
+          orders={orders}
           search={search} 
           platform={platform} 
           status={status} 
         />
       </div>
+
       {showCreate && (
         <div className="order-modal" role="dialog" aria-modal="true" aria-label="Create new order">
           <div className="modal-card">
@@ -200,7 +205,7 @@ export default function OrdersPage() {
                   <label>Date</label>
                   <input
                     type="date"
-                    value={new Date(newOrder.date).toISOString().slice(0, 10)}
+                    value={newOrder.date}
                     onChange={e => updateField('date', e.target.value)}
                   />
                 </div>
