@@ -47,17 +47,11 @@ export default function ProductsPage() {
   }
 
   // Filter search berdasarkan semua kolom
-  const filteredProducts = products.filter(p => {
-    const q = searchTerm.toLowerCase();
-    return (
-      p.name.toLowerCase().includes(q) ||
-      p.productId.toLowerCase().includes(q) ||
-      p.supplierName.toLowerCase().includes(q) ||
-      p.category.toLowerCase().includes(q) ||
-      String(p.price).toLowerCase().includes(q) ||
-      String(p.stock).toLowerCase().includes(q)
-    );
-  });
+  const q = searchTerm.toLowerCase();
+  const filteredProducts = products.filter(p =>
+    [p.name, p.productId, p.supplierName, p.category, String(p.price), String(p.stock)]
+      .some(field => field.toLowerCase().includes(q))
+  );
 
   return (
     <div className="products-page">

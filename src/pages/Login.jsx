@@ -22,7 +22,7 @@ export default function LoginPage() {
     setTimeout(() => {
       loginUser({ name: email.split('@')[0], email });
       setSubmitting(false);
-      navigate('/', { replace: true });
+      navigate('/home', { replace: true });
     }, 700);
   };
 

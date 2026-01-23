@@ -8,7 +8,8 @@
   border-radius: 0;
   display:flex;
   flex-direction:column;
-  justify-content:space-between;
+  justify-content:flex-start;
+  align-items: stretch;
   gap:18px;
   box-shadow:0 10px 30px rgba(2,6,23,0.35);
   overflow:hidden;
@@ -20,13 +21,12 @@
   gap:18px;
 }
 
-.brand,
 .sidebar-brand {
   display:flex;
   align-items:center;
   gap:12px;
 }
-.logo,
+
 .sidebar-logo {
   width:44px;
   height:44px;
@@ -39,18 +39,19 @@
   color:white;
   flex-shrink:0;
 }
+
 .brand-text {
   font-weight:700;
   color: #e6eef8;
 }
 
-.nav,
 .sidebar-nav {
   display:flex;
   flex-direction:column;
   gap:8px;
   margin-top:6px;
 }
+
 .nav-item {
   display:block;
   text-decoration:none;
@@ -63,9 +64,11 @@
   cursor:pointer;
   font-size:14px;
 }
+
 .nav-item:hover {
   background: rgba(255,255,255,0.03);
 }
+
 .nav-item.active {
   background:rgba(255,255,255,0.06);
   font-weight:600;
@@ -80,28 +83,6 @@
   justify-content:center;
   margin-right:8px;
   color:inherit;
-}
-
-.sidebar-footer {
-  margin-top:auto;
-  color:rgba(255,255,255,0.6);
-  font-size:12px;
-  display:flex;
-  flex-direction:column;
-  gap:8px;
-  padding-top:8px;
-  border-top:1px solid rgba(255,255,255,0.03);
-}
-
-.logout-btn {
-  padding: 4px 8px;       
-  font-size: 14px;        
-  border-radius: 6px;     
-  border: 0;
-  background: rgb(80, 4, 84);
-  color: #fff;
-  cursor: pointer;
-  text-align: center;
 }
 
 @media (max-width: 900px) {

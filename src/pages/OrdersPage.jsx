@@ -127,9 +127,10 @@ export default function OrdersPage() {
 
       <div className="orders-card">
         <OrdersTable 
-          search={search} 
-          platform={platform} 
-          status={status} 
+          orders={orders}
+          search={search}
+          platform={platform}
+          status={status}
         />
       </div>
       {showCreate && (

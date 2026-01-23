@@ -23,7 +23,7 @@ export default function RegisterPage() {
     setTimeout(() => {
       registerUser({ name, email, password });
       setSubmitting(false);
-      navigate('/', { replace: true });
+      navigate('/login', { replace: true });
     }, 800);
   };
 

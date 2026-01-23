@@ -20,8 +20,8 @@ function RequireAuth({ children }) {
 export default function Router() {
   return (
     <Routes>
+      <Route path="/" element={<RegisterPage />} />
       <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
 
       <Route
         path="/"
@@ -31,7 +31,8 @@ export default function Router() {
           </RequireAuth>
         }
       >
-        <Route index element={<HomePage />} />
+        {/* <Route index element={<HomePage />} /> */}
+        <Route path="home" element={<HomePage />} />
         <Route path="orders" element={<OrdersPage />} />
         <Route path="products" element={<ProductsPage />} />
         <Route path="profile" element={<ProfilePage />} />
