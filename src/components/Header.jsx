@@ -15,21 +15,6 @@ export default function Header() {
   const navigate = useNavigate();
 
   // Detect klik area lain menutup popup
-  // useEffect(() => {
-  //   function handleClickOutside(e) {
-  //     if (profileRef.current && !profileRef.current.contains(e.target)) {
-  //       setOpen(false);
-  //     }
-  //     if (notifRef.current && !notifRef.current.contains(e.target)) {
-  //       setNotifOpen(false);
-  //     }
-  //   }
-  //   document.addEventListener("mousedown", handleClickOutside);
-  //   return () => {
-  //     document.removeEventListener("mousedown", handleClickOutside);
-  //   };
-  // }, []);
-
   useEffect(() => {
     function onDocClick(e) {
       if (profileRef.current && !profileRef.current.contains(e.target)) setOpen(false);
