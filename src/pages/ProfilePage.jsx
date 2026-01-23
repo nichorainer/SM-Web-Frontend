@@ -21,10 +21,14 @@ export default function ProfilePage() {
   const navigate = useNavigate();
   const user = isAuthenticated()
     ? getUser()
-    : { name: 'Guest', email: '', username: '', role: 'staff' };
+    : {
+      full_name: '', 
+      email: '', 
+      username: '', 
+      role: 'staff' };
 
   const [form, setForm] = useState({
-    fullName: user.name || '',
+    fullName: user.full_name || '',
     username: user.username || '',
     email: user.email || '',
     password: '',
@@ -36,10 +40,11 @@ export default function ProfilePage() {
       return (
         localStorage.getItem(AVATAR_STORAGE_KEY) ||
         user?.avatarUrl ||
-        '/images/sengun_adebayo.jpg'
+        null
       );
     } catch {
-      return user?.avatarUrl || '/images/sengun_adebayo.jpg';
+      return user?.avatarUrl || 
+      null;
     }
   });
 
@@ -52,9 +57,9 @@ export default function ProfilePage() {
       const stored = localStorage.getItem(AVATAR_STORAGE_KEY);
       if (stored) setAvatarSrc(stored);
       else if (user?.avatarUrl) setAvatarSrc(user.avatarUrl);
-      else setAvatarSrc('/images/sengun_adebayo.jpg');
+      else setAvatarSrc(null);
     } catch {
-      setAvatarSrc(user?.avatarUrl || '/images/sengun_adebayo.jpg');
+      setAvatarSrc(user?.avatarUrl || null);
     }
   }, [user]);
 
@@ -156,14 +161,19 @@ export default function ProfilePage() {
           <div className="basic-info">
             <h3 className="name">{form.fullName || '—'}</h3>
             <div className="email">{form.email || '—'}</div>
-
+            {/* Upload to change avatar */}
             <div style={{ marginTop: 12 }}>
-              <button type="button" className="btn-ghost" onClick={triggerFileSelect}>
+              <button 
+                type="button" 
+                className="btn-outline-add" 
+                onClick={triggerFileSelect}
+              >
                 Change avatar
               </button>
+              {/* Remove/delete avatar */}
               <button
                 type="button"
-                className="btn-ghost"
+                className="btn-outline-remove"
                 onClick={removeAvatar}
                 style={{ marginLeft: 8 }}
               >
@@ -192,7 +202,7 @@ export default function ProfilePage() {
               name="fullName"
               value={form.fullName}
               onChange={handleChange}
-              placeholder="Full name"
+              placeholder="Enter your full name here"
             />
           </div>
 
@@ -207,13 +217,13 @@ export default function ProfilePage() {
           </div>
 
           <div className="form-row">
-            <label>Email</label>
+            <label>E-mail</label>
             <input
               name="email"
               value={form.email}
               onChange={handleChange}
-              placeholder="you@example.com"
-              type="email"
+              placeholder="user@example.com"
+              type="Enter e-mail here"
             />
           </div>
 
@@ -223,7 +233,7 @@ export default function ProfilePage() {
               name="password"
               value={form.password}
               onChange={handleChange}
-              placeholder="••••••••"
+              placeholder="Edit password here"
               type="password"
               autoComplete="new-password"
             />

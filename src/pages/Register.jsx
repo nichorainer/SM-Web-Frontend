@@ -5,7 +5,8 @@ import '../utils/auth.css';
 
 export default function RegisterPage() {
   const navigate = useNavigate();
-  const [name, setName] = useState('');
+  const [full_name, setFullName] = useState('');
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -32,35 +33,47 @@ export default function RegisterPage() {
       <div className="auth-card">
         <h2 className="auth-title">Register</h2>
         <form onSubmit={handleSubmit} className="auth-form">
+          {/* Full Name Form */}
           <label className="field">
-            <span className="label-text">Name</span>
+            <span className="label-text"> Full Name</span>
             <input
               type="text"
               value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Your name"
+              onChange={(e) => setFullName(e.target.value)}
+              placeholder="Your full name"
               required
             />
           </label>
-
+          {/* Username Form */}
           <label className="field">
-            <span className="label-text">Email</span>
+            <span className="label-text">Username</span>
+            <input
+              type="text"
+              value={username}
+              onChange={e => setUsername(e.target.value)}
+              placeholder="Choose a username"
+              required
+            />
+          </label>
+          {/* E-mail Form */}
+          <label className="field">
+            <span className="label-text">E-mail</span>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
+              placeholder="user@example.com"
               required
             />
           </label>
-
+          {/* Password Form */}
           <label className="field">
             <span className="label-text">Password</span>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Choose a password"
+              placeholder="Enter password here"
               required
             />
           </label>

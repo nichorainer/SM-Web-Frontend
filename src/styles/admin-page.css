@@ -2,8 +2,8 @@
 .admin-page {
   display: flex;
   flex-direction: column;
-  height: 100vh; /* pastikan tinggi penuh layar */
-  overflow-y: auto; /* aktifkan scroll vertikal */
+  height: 100vh;
+  overflow-y: auto;
   padding: 16px 24px 32px;
   box-sizing: border-box;
   border-bottom: 1px solid #e6e9ef;
@@ -32,6 +32,13 @@
 .admin-user {
   display: flex;
   align-items: center;
+  gap: 8px;
+}
+
+.admin-user .chakra-avatar {
+  width: 64px !important;
+  height: 64px !important;
+  font-size: 14px !important;
 }
 
 /* Grid */

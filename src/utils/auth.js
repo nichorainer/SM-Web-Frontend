@@ -27,8 +27,12 @@ export function logoutUser() {
   localStorage.removeItem(USER_KEY);
 }
 
-export function registerUser({ name, email, password }) {
+export function registerUser({ full_name, username, email, password }) {
   // In real app, call backend to create user. Here we simulate and auto-login.
   // You could store users in localStorage for demo, but keep simple.
-  return loginUser({ name, email });
-}
+  
+  //   return loginUser({ full_name, email });
+
+  const user = { full_name, username, email, password, role: 'staff' };
+    localStorage.setItem('sm_user', JSON.stringify(user));
+  }
