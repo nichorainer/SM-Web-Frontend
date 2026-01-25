@@ -15,14 +15,19 @@ export default function RegisterPage() {
   const handleSubmit = (e) => {
     e.preventDefault();
     setError('');
-    if (!name.trim() || !email.trim() || !password) {
+    if (
+      !full_name.trim() || 
+      !username.trim || 
+      !email.trim() || 
+      !password
+    ){
       setError('All fields are required');
       return;
     }
     setSubmitting(true);
     // Simulate register (replace with API call)
     setTimeout(() => {
-      registerUser({ name, email, password });
+      registerUser({ full_name, email, password });
       setSubmitting(false);
       navigate('/login', { replace: true });
     }, 800);
@@ -38,7 +43,7 @@ export default function RegisterPage() {
             <span className="label-text"> Full Name</span>
             <input
               type="text"
-              value={name}
+              value={full_name}
               onChange={(e) => setFullName(e.target.value)}
               placeholder="Your full name"
               required

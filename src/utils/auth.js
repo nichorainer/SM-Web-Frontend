@@ -6,11 +6,14 @@ export function isAuthenticated() {
 }
 
 export function getUser() {
-  try {
-    return JSON.parse(localStorage.getItem(USER_KEY));
-  } catch {
-    return null;
-  }
+  const raw = localStorage.getItem('sm_user');
+  if (!raw) return null;
+
+  const user = JSON.parse(raw);
+  return {
+    ...user,
+    avatarUrl: localStorage.getItem('sm_avatar') || user.avatarUrl || null
+  };
 }
 
 export function loginUser({ name, email }) {
@@ -28,11 +31,13 @@ export function logoutUser() {
 }
 
 export function registerUser({ full_name, username, email, password }) {
-  // In real app, call backend to create user. Here we simulate and auto-login.
-  // You could store users in localStorage for demo, but keep simple.
-  
-  //   return loginUser({ full_name, email });
-
-  const user = { full_name, username, email, password, role: 'staff' };
+  const user = { 
+    full_name, 
+    username, 
+    email, 
+    password, 
+    role: 'staff',
+    avatarUrl: null 
+  };
     localStorage.setItem('sm_user', JSON.stringify(user));
   }

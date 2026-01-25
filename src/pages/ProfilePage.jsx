@@ -5,7 +5,6 @@ import { getUser, isAuthenticated } from '../utils/auth';
 import '../styles/profile-page.css';
 import EditProfileModal from '../components/EditProfileModal';
 
-const AVATAR_STORAGE_KEY = 'sm_user_avatar_base64';
 const USER_STORAGE_KEY = 'sm_user';
 
 function fileToBase64(file) {
@@ -25,7 +24,8 @@ export default function ProfilePage() {
       full_name: '', 
       email: '', 
       username: '', 
-      role: 'staff' };
+      role: 'staff',
+    };
 
   const [form, setForm] = useState({
     fullName: user.full_name || '',
@@ -35,32 +35,16 @@ export default function ProfilePage() {
     role: user.role || 'staff',
   });
 
-  const [avatarSrc, setAvatarSrc] = useState(() => {
-    try {
-      return (
-        localStorage.getItem(AVATAR_STORAGE_KEY) ||
-        user?.avatarUrl ||
-        null
-      );
-    } catch {
-      return user?.avatarUrl || 
-      null;
-    }
-  });
+  // Avatar sync langsung dari getUser
+ const [avatarSrc, setAvatarSrc] = useState(user?.avatarUrl || null);
 
   const fileRef = useRef(null);
   const isAdmin = user?.role === 'admin';
   const [savingAvatar, setSavingAvatar] = useState(false);
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(AVATAR_STORAGE_KEY);
-      if (stored) setAvatarSrc(stored);
-      else if (user?.avatarUrl) setAvatarSrc(user.avatarUrl);
-      else setAvatarSrc(null);
-    } catch {
-      setAvatarSrc(user?.avatarUrl || null);
-    }
+    // setiap kali user berubah, sync avatar
+    setAvatarSrc(user?.avatarUrl || null);
   }, [user]);
 
   const handleChange = (e) => {
@@ -79,28 +63,26 @@ export default function ProfilePage() {
       if (form.password) {
         // demo only: password not stored
       }
-      if (!u.avatarUrl && avatarSrc) u.avatarUrl = avatarSrc;
+      if (avatarSrc) u.avatarUrl = avatarSrc;
       localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(u));
     } catch (err) {
       console.error('failed to save profile to localStorage', err);
     }
   };
 
+  // Handle upload avatar
   async function handleFile(e) {
     const file = e.target.files?.[0];
     if (!file) return;
     setSavingAvatar(true);
     try {
       const base64 = await fileToBase64(file);
-      localStorage.setItem(AVATAR_STORAGE_KEY, base64);
-      try {
-        const raw = localStorage.getItem(USER_STORAGE_KEY);
-        const u = raw ? JSON.parse(raw) : {};
-        u.avatarUrl = base64;
-        localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(u));
-      } catch (err) {
-        console.warn('failed to update user object in storage', err);
-      }
+      // simpan avatar ke user object
+      const raw = localStorage.getItem(USER_STORAGE_KEY);
+      const u = raw ? JSON.parse(raw) : {};
+      u.avatarUrl = base64;
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(u));
+
       setAvatarSrc(base64);
       window.dispatchEvent(new CustomEvent('avatar-updated', { detail: base64 }));
     } catch (err) {
@@ -115,8 +97,8 @@ export default function ProfilePage() {
     fileRef.current?.click();
   }
 
+  // Untuk remove avatar
   function removeAvatar() {
-    localStorage.removeItem(AVATAR_STORAGE_KEY);
     try {
       const raw = localStorage.getItem(USER_STORAGE_KEY);
       if (raw) {
@@ -125,23 +107,15 @@ export default function ProfilePage() {
         localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(u));
       }
     } catch {}
-    const fallback = '/images/sengun_adebayo.jpg';
-    setAvatarSrc(fallback);
-    window.dispatchEvent(new CustomEvent('avatar-updated', { detail: fallback }));
+    setAvatarSrc(null);
+    window.dispatchEvent(new CustomEvent('avatar-updated', { detail: null }));
   }
 
   // modal state
   const [modalOpen, setModalOpen] = useState(false);
-  function handleEditToggle() {
-    setModalOpen(true);
-  }
-  function handleModalClose() {
-    setModalOpen(false);
-  }
-  function handleModalSave() {
-    handleSave();
-    setModalOpen(false);
-  }
+  function handleEditToggle() { setModalOpen(true); }
+  function handleModalClose() { setModalOpen(false); }
+  function handleModalSave() { handleSave(); setModalOpen(false); }
 
   return (
     <div className="profile-page">
@@ -200,7 +174,7 @@ export default function ProfilePage() {
             <label>Full Name</label>
             <input
               name="fullName"
-              value={form.fullName}
+              value={user.fullName}
               onChange={handleChange}
               placeholder="Enter your full name here"
             />
@@ -210,7 +184,7 @@ export default function ProfilePage() {
             <label>Username</label>
             <input
               name="username"
-              value={form.username}
+              value={user.username}
               onChange={handleChange}
               placeholder="Username"
             />
@@ -233,7 +207,7 @@ export default function ProfilePage() {
               name="password"
               value={form.password}
               onChange={handleChange}
-              placeholder="Edit password here"
+              placeholder="********"
               type="password"
               autoComplete="new-password"
             />
