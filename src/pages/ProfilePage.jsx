@@ -21,9 +21,10 @@ export default function ProfilePage() {
   const user = isAuthenticated()
     ? getUser()
     : {
-      full_name: '', 
-      email: '', 
+      full_name: '',
       username: '', 
+      email: '',
+      password: '', 
       role: 'staff',
     };
 

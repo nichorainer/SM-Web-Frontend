@@ -27,7 +27,7 @@ export default function RegisterPage() {
     setSubmitting(true);
     // Simulate register (replace with API call)
     setTimeout(() => {
-      registerUser({ full_name, email, password });
+      registerUser({ full_name, username, email, password });
       setSubmitting(false);
       navigate('/login', { replace: true });
     }, 800);
