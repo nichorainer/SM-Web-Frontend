@@ -28,8 +28,18 @@ export default function EditProfileModal({ isOpen, onClose, form, onChange, onSa
           <input name="password" value={form.password} onChange={onChange} type="password" />
 
           <div className="modal-actions">
-            <button className="btn-primary" onClick={onSave}>Save</button>
-            <button className="btn-subtle" onClick={onClose}>Cancel</button>
+            <button
+              className="btn-primary"
+              onClick={() => {
+                // parent will validate and call updateUser
+                onSave();
+              }}
+            >
+              Save
+            </button>
+            <button className="btn-subtle" onClick={onClose}>
+              Cancel
+            </button>
           </div>
         </div>
       </div>

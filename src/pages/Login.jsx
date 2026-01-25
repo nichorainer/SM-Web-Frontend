@@ -17,13 +17,19 @@ export default function LoginPage() {
       setError('Email and password are required');
       return;
     }
+
     setSubmitting(true);
-    // Simulate login (replace with API call)
-    setTimeout(() => {
-      loginUser({ name: email.split('@')[0], email });
-      setSubmitting(false);
+    try {
+      // call loginUser which will verify against sm_user in localStorage
+      const { token, user } = loginUser({ email, password });
+      // optionally you can store token or user somewhere else if needed
+      // navigate to home
       navigate('/home', { replace: true });
-    }, 700);
+    } catch (err) {
+      // show friendly error and re-enable button
+      setError(err?.message || 'Failed to sign in');
+      setSubmitting(false);
+    }
   };
 
   return (

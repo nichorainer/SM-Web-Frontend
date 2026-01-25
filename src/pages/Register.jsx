@@ -9,28 +9,40 @@ export default function RegisterPage() {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  function validate() {
+    if (!full_name.trim() || !username.trim() || !email.trim() || !password) {
+      setError('All fields are required');
+      return false;
+    }
+    // basic email format check
+    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRe.test(email)) {
+      setError('Please enter a valid email address');
+      return false;
+    }
+    return true;
+  }
 
   const handleSubmit = (e) => {
     e.preventDefault();
     setError('');
-    if (
-      !full_name.trim() || 
-      !username.trim || 
-      !email.trim() || 
-      !password
-    ){
-      setError('All fields are required');
-      return;
-    }
+    if (!validate()) return;
+
     setSubmitting(true);
-    // Simulate register (replace with API call)
-    setTimeout(() => {
+    try {
+      // Save initial user to localStorage
       registerUser({ full_name, username, email, password });
-      setSubmitting(false);
+      // navigate to login (replace so back doesn't return to register)
       navigate('/login', { replace: true });
-    }, 800);
+    } catch (err) {
+      console.error('register error', err);
+      setError('Failed to register');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (

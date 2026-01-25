@@ -18,73 +18,81 @@ function fileToBase64(file) {
 
 export default function ProfilePage() {
   const navigate = useNavigate();
-  const user = isAuthenticated()
-    ? getUser()
-    : {
-      full_name: '',
-      username: '', 
-      email: '',
-      password: '', 
-      role: 'staff',
-    };
+  const user = isAuthenticated() ? getUser() : null;
 
   const [form, setForm] = useState({
-    fullName: user.full_name || '',
-    username: user.username || '',
-    email: user.email || '',
-    password: user.password || '',
-    role: user.role || 'staff',
+    fullName: user?.full_name || '',
+    username: user?.username || '',
+    email: user?.email || '',
+    password: user?.password || '',
+    role: user?.role || 'staff',
+    avatarUrl: user?.avatarUrl || null,
   });
 
-
   // Avatar sync langsung dari getUser
- const [avatarSrc, setAvatarSrc] = useState(user?.avatarUrl || null);
-
+  const [avatarSrc, setAvatarSrc] = useState(user?.avatarUrl || null);
   const fileRef = useRef(null);
   const isAdmin = user?.role === 'admin';
   const [savingAvatar, setSavingAvatar] = useState(false);
 
+  // Keep form in sync if user object changes externally
   useEffect(() => {
-    // setiap kali user berubah, sync avatar
-    setAvatarSrc(user?.avatarUrl || null);
-  }, [user]);
+    const u = getUser();
+    setForm((prev) => ({
+      ...prev,
+      fullName: u?.full_name || prev.fullName,
+      username: u?.username || prev.username,
+      email: u?.email || prev.email,
+      password: u?.password || prev.password,
+      role: u?.role || prev.role,
+      avatarUrl: u?.avatarUrl || prev.avatarUrl,
+    }));
+    setAvatarSrc(u?.avatarUrl || null);
+  }, []);
+
+  // Listen for avatar-updated events (dispatched by Header or other)
+  useEffect(() => {
+    function onAvatarUpdated(e) {
+      const val = e?.detail ?? null;
+      setAvatarSrc(val);
+      setForm((prev) => ({ ...prev, avatarUrl: val }));
+    }
+    window.addEventListener('avatar-updated', onAvatarUpdated);
+    return () => window.removeEventListener('avatar-updated', onAvatarUpdated);
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  // const handleSave = (e) => {
-  //   if (e) e.preventDefault();
-  //   try {
-  //     const raw = localStorage.getItem(USER_STORAGE_KEY);
-  //     const u = raw ? JSON.parse(raw) : {};
-  //     u.full_name = form.fullName;
-  //     u.username = form.username;
-  //     u.email = form.email;
-  //     if (form.password) {
-  //       // demo only: password not stored
-  //     }
-  //     if (avatarSrc) u.avatarUrl = avatarSrc;
-  //     localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(u));
-  //   } catch (err) {
-  //     console.error('failed to save profile to localStorage', err);
-  //   }
-  // };
-
+  // Save from modal or form submit
   const handleSave = (e) => {
-    if (e) e.preventDefault();
-    try {
-      const updated = updateUser({
-        full_name: form.fullName,
-        username: form.username,
-        email: form.email,
-        password: form.password || '',   // simpan password jika ada
-        avatarUrl: avatarSrc || null,
-      });
-      console.log('User updated:', updated);
-    } catch (err) {
-      console.error('failed to save profile', err);
+    if (e && e.preventDefault) e.preventDefault();
+
+    // Basic validation
+    if (!form.fullName.trim() || !form.username.trim() || !form.email.trim()) {
+      alert('Full name, username and email are required.');
+      return;
+    }
+
+    // Update localStorage via helper
+    const updated = updateUser({
+      full_name: form.fullName,
+      username: form.username,
+      email: form.email,
+      // only set password if provided (demo)
+      ...(form.password ? { password: form.password } : {}),
+      avatarUrl: avatarSrc || null,
+      role: form.role,
+    });
+
+    if (updated) {
+      // reflect changes in local state
+      setForm((prev) => ({ ...prev, password: '' })); // clear password input
+      alert('Profile updated successfully.');
+    } else {
+      alert('Failed to update profile.');
     }
   };
 
@@ -106,14 +114,13 @@ export default function ProfilePage() {
     setSavingAvatar(true);
     try {
       const base64 = await fileToBase64(file);
-      // simpan avatar ke user object
-      const raw = localStorage.getItem(USER_STORAGE_KEY);
-      const u = raw ? JSON.parse(raw) : {};
-      u.avatarUrl = base64;
-      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(u));
-
-      setAvatarSrc(base64);
-      window.dispatchEvent(new CustomEvent('avatar-updated', { detail: base64 }));
+      // update storage
+      const updated = updateUser({ avatarUrl: base64 });
+      if (updated) {
+        setAvatarSrc(base64);
+        setForm((prev) => ({ ...prev, avatarUrl: base64 }));
+        window.dispatchEvent(new CustomEvent('avatar-updated', { detail: base64 }));
+      }
     } catch (err) {
       console.error('failed to read file', err);
     } finally {
@@ -128,23 +135,34 @@ export default function ProfilePage() {
 
   // Untuk remove avatar
   function removeAvatar() {
-    try {
-      const raw = localStorage.getItem(USER_STORAGE_KEY);
-      if (raw) {
-        const u = JSON.parse(raw);
-        delete u.avatarUrl;
-        localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(u));
-      }
-    } catch {}
+    updateUser({ avatarUrl: null });
     setAvatarSrc(null);
+    setForm((prev) => ({ ...prev, avatarUrl: null }));
     window.dispatchEvent(new CustomEvent('avatar-updated', { detail: null }));
   }
 
-  // modal state
+  // Modal state
   const [modalOpen, setModalOpen] = useState(false);
-  function handleEditToggle() { setModalOpen(true); }
-  function handleModalClose() { setModalOpen(false); }
-  function handleModalSave() { handleSave(); setModalOpen(false); }
+  function handleEditToggle() {
+    setModalOpen(true);
+  }
+  function handleModalClose() {
+    setModalOpen(false);
+  }
+  function handleModalSave() {
+    // validate then save
+    handleSave();
+    setModalOpen(false);
+  }
+
+  if (!user) {
+    // not authenticated (demo)
+    return (
+      <div className="profile-page">
+        <p>Please login to view your profile.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="profile-page">
