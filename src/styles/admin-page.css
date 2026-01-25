@@ -88,45 +88,83 @@
 }
 
 /* Staff table */
+.staff-section {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
 .staff-table-wrap {
   overflow: auto;
-  max-height: 520px;
+  max-height: calc(100vh - 320px);
 }
 
 .staff-table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0 10px;
   font-size: 14px;
 }
 
 .staff-table thead th {
-  text-align: left;
-  padding: 10px 8px;
+  text-align: center;
+  white-space: nowrap;
+  padding: 12px 18px;
   font-weight: 600;
   color: #374151;
   border-bottom: 1px solid #eef2f6;
 }
 
 .staff-table tbody td {
-  padding: 10px 8px;
+  padding: 12px 16px;
   vertical-align: middle;
   border-bottom: 1px solid #f3f6f9;
 }
 
+/* Make each row look like a soft card */
+.staff-table tbody tr {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 0 rgba(16,24,40,0.04);
+}
+
+/* Keep rounded corners visible on cells */
+.staff-table tbody tr td:first-child {
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
+}
+.staff-table tbody tr td:last-child {
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+/* Avatar + name spacing inside staff cell */
 .staff-cell {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 14px;
+}
+
+/* Slightly larger avatar for clarity */
+.staff-cell .chakra-avatar {
+  width: 44px;
+  height: 44px;
 }
 
 .staff-name {
   font-weight: 600;
 }
 
+/* Make action column narrower and centered */
+.staff-table td:last-child {
+  width: 120px;
+  text-align: center;
+}
+
 /* Permissions pills */
 .perm-list {
   display: flex;
-  gap: 6px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
@@ -271,15 +309,28 @@
 }
 
 /* Responsive */
-@media (max-width: 980px) {
+@media (max-width: 880px) {
   .admin-grid {
     grid-template-columns: 1fr;
   }
+
   .edit-drawer {
     position: fixed;
     left: 12px;
     right: 12px;
     top: 80px;
     width: auto;
+  }
+
+  .staff-table thead th,
+  .staff-table tbody td {
+    padding: 10px 12px;
+  }
+  .staff-cell .chakra-avatar {
+    width: 36px;
+    height: 36px;
+  }
+  .staff-table tbody tr {
+    border-radius: 6px;
   }
 }

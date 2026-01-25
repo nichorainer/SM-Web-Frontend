@@ -6,6 +6,8 @@ import '../styles/header.css';
 import { getUser } from '../utils/auth';
 
 const AVATAR_STORAGE_KEY = 'user-avatar';
+const AUTH_TOKEN_KEY = 'auth_token';
+const USER_STORAGE_KEY = 'sm_user';
 
 export default function Header() {
   // ambil initial user dari helper
@@ -139,10 +141,33 @@ export default function Header() {
   // Logout handle
   function handleLogout() {
     try {
+      // hapus token dan user object
       localStorage.removeItem(AUTH_TOKEN_KEY);
       localStorage.removeItem(USER_STORAGE_KEY);
-      console.log('Logging out...');
-      navigate('/login');
+
+      // hapus avatar cache jika ada
+      try { localStorage.removeItem(AVATAR_STORAGE_KEY); } catch (e) {}
+
+      // beri tahu komponen lain bahwa user sudah logout
+      window.dispatchEvent(new CustomEvent('user-logged-out'));
+
+      // reset local state jika perlu (jika ada setter di scope)
+      try {
+        setUserData(null);
+        setAvatarSrc(null);
+      } catch (e) {
+        // ignore if setters not in scope
+      }
+
+      // navigate ke login, replace agar user tidak bisa back ke halaman sebelumnya
+      navigate('/login', { replace: true });
+
+      // fallback: jika navigate tidak memaksa reload (rare), paksa redirect
+      setTimeout(() => {
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login';
+        }
+      }, 200);
     } catch (err) {
       console.warn('logout error', err);
     }
