@@ -152,9 +152,9 @@
 /* Buttons */
 /* Subtle button (used for Edit) */
 .btn-subtle {
-  background-color: transparent;   /* no fill */
-  color: #555;                     /* softer text color */
-  border: 1px solid #ddd;          /* light border */
+  background-color: transparent;  /* no fill */
+  color: #555;                  /* softer text color */
+  border: 1px solid #ddd;       /* light border */
   padding: 8px 16px;
   border-radius: 6px;
   font-size: 0.95rem;

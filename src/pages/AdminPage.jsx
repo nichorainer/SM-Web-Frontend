@@ -4,12 +4,19 @@ import { getUser, isAuthenticated } from '../utils/auth';
 import '../styles/admin-page.css';
 
 /* AdminPage (no API) */
+// helper: Capitalize first letter, lowercase sisanya
+function capitalizeRole(role) {
+  if (!role) return '';
+  return String(role).charAt(0).toUpperCase() + String(role).slice(1).toLowerCase();
+}
+
+// Mock Data
 const MOCK_STAFF = [
   {
     id: 'u1',
-    name: 'Ayu Santoso',
-    username: 'ayu.s',
-    email: 'ayu@example.com',
+    name: 'Nielson',
+    username: 'niel',
+    email: 'nielson@example.com',
     role: 'admin',
     avatarUrl: '',
     permissions: { products: true, orders: true, users: true, reports: true },
@@ -71,14 +78,15 @@ export default function AdminPage() {
     );
   }, [q, staff]);
 
-  // sync initial dan listen untuk perubahan di tab yang sama
+
+  // Sync initial and listen for the same tabs
   useEffect(() => {
-    // refresh initial
+    // Refresh initial
     const u = getUser();
     setUserData(u);
     setAvatarSrc(localStorage.getItem('user-avatar') || u?.avatarUrl || null);
 
-    // handler untuk perubahan user (nama/email/role)
+    // Handler for user change (fullname/email/role)
     function onUserUpdated(e) {
       const updated = e?.detail ?? null;
       if (updated) {
@@ -91,7 +99,7 @@ export default function AdminPage() {
       }
     }
 
-    // handler untuk perubahan avatar khusus
+    // Handler for avatar change
     function onAvatarUpdated(e) {
       const val = e?.detail ?? null;
       setAvatarSrc(val);
@@ -183,7 +191,7 @@ export default function AdminPage() {
           <Avatar name={userData?.full_name || 'User'} src={avatarSrc || undefined} boxSize="40px" />
           <div style={{ marginLeft: 8 }} className="admin-user-info">
             <div className="admin-name">{userData?.full_name || 'Guest'}</div>
-            <div className="admin-email">{userData?.email || '—'}</div>
+            <div className="admin-email">{userData?.email || null }</div>
           </div>
         </div>
       </header>
@@ -226,7 +234,7 @@ export default function AdminPage() {
                       </td>
                       <td>{s.username}</td>
                       <td>{s.email}</td>
-                      <td>{s.role}</td>
+                      <td>{capitalizeRole(s.role)}</td>
                       <td>
                         <div className="perm-list">
                           {Object.keys(s.permissions || {}).map((k) => (
@@ -304,8 +312,8 @@ export default function AdminPage() {
                   value={selected.role}
                   onChange={(e) => changeRole(selected.id, e.target.value)}
                 >
-                  <option value="staff">Staff 1</option>
-                  <option value="admin">Staff 2</option>
+                  <option value="staff">Staff</option>
+                  <option value="admin">Admin</option>
                 </select>
 
                 <label style={{ marginTop: 12 }}>Permissions</label>
