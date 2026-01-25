@@ -1,8 +1,19 @@
 const TOKEN_KEY = 'sm_auth_token';
-const USER_KEY = 'sm_user';
+const USER_STORAGE_KEY = 'sm_user';
 
 export function isAuthenticated() {
   return !!localStorage.getItem(TOKEN_KEY);
+}
+
+export function getUser() {
+  const raw = localStorage.getItem('sm_user');
+  if (!raw) return null;
+
+  const user = JSON.parse(raw);
+  return {
+    ...user,
+    avatarUrl: localStorage.getItem('sm_avatar') || user.avatarUrl || null
+  };
 }
 
 export function registerUser({ full_name, username, email, password }) {
@@ -17,15 +28,24 @@ export function registerUser({ full_name, username, email, password }) {
     localStorage.setItem('sm_user', JSON.stringify(user));
 }
 
-export function getUser() {
-  const raw = localStorage.getItem('sm_user');
-  if (!raw) return null;
+export function updateUser(updates) {
+  try {
+    const raw = localStorage.getItem(USER_STORAGE_KEY);
+    const user = raw ? JSON.parse(raw) : {};
 
-  const user = JSON.parse(raw);
-  return {
-    ...user,
-    avatarUrl: localStorage.getItem('sm_avatar') || user.avatarUrl || null
-  };
+    // merge data lama dengan data baru
+    const updatedUser = {
+      ...user,
+      ...updates,
+    };
+
+    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(updatedUser));
+    
+    return updatedUser;
+  } catch (err) {
+    console.error('Failed to update user in localStorage', err);
+    return null;
+  }
 }
 
 export function loginUser({ name, email }) {
@@ -39,5 +59,5 @@ export function loginUser({ name, email }) {
 
 export function logoutUser() {
   localStorage.removeItem(TOKEN_KEY);
-  localStorage.removeItem(USER_KEY);
+  localStorage.removeItem(USER_STORAGE_KEY);
 }

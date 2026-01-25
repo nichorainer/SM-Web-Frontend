@@ -36,6 +36,7 @@ export default function ProfilePage() {
     role: user.role || 'staff',
   });
 
+
   // Avatar sync langsung dari getUser
  const [avatarSrc, setAvatarSrc] = useState(user?.avatarUrl || null);
 
@@ -53,23 +54,50 @@ export default function ProfilePage() {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  // const handleSave = (e) => {
+  //   if (e) e.preventDefault();
+  //   try {
+  //     const raw = localStorage.getItem(USER_STORAGE_KEY);
+  //     const u = raw ? JSON.parse(raw) : {};
+  //     u.full_name = form.fullName;
+  //     u.username = form.username;
+  //     u.email = form.email;
+  //     if (form.password) {
+  //       // demo only: password not stored
+  //     }
+  //     if (avatarSrc) u.avatarUrl = avatarSrc;
+  //     localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(u));
+  //   } catch (err) {
+  //     console.error('failed to save profile to localStorage', err);
+  //   }
+  // };
+
   const handleSave = (e) => {
     if (e) e.preventDefault();
     try {
-      const raw = localStorage.getItem(USER_STORAGE_KEY);
-      const u = raw ? JSON.parse(raw) : {};
-      u.full_name = form.fullName;
-      u.username = form.username;
-      u.email = form.email;
-      if (form.password) {
-        // demo only: password not stored
-      }
-      if (avatarSrc) u.avatarUrl = avatarSrc;
-      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(u));
+      const updated = updateUser({
+        full_name: form.fullName,
+        username: form.username,
+        email: form.email,
+        password: form.password || '',   // simpan password jika ada
+        avatarUrl: avatarSrc || null,
+      });
+      console.log('User updated:', updated);
     } catch (err) {
-      console.error('failed to save profile to localStorage', err);
+      console.error('failed to save profile', err);
     }
   };
+
+  function handleModalSave() {
+    updateUser({
+      full_name: form.fullName,
+      username: form.username,
+      email: form.email,
+      password: form.password || '',
+      avatarUrl: avatarSrc || null,
+    });
+    setModalOpen(false);
+  }
 
   // Handle upload avatar
   async function handleFile(e) {
@@ -134,8 +162,8 @@ export default function ProfilePage() {
           </div>
 
           <div className="basic-info">
-            <h3 className="name">{form.fullName || '—'}</h3>
-            <div className="email">{form.email || '—'}</div>
+            <h3 className="name">{form.fullName || '...'}</h3>
+            <div className="email">{form.email || '...'}</div>
             {/* Upload to change avatar */}
             <div style={{ marginTop: 12 }}>
               <button 
@@ -198,7 +226,7 @@ export default function ProfilePage() {
               value={form.email}
               onChange={handleChange}
               placeholder="user@example.com"
-              type="Enter e-mail here"
+              type="email"
             />
           </div>
 
