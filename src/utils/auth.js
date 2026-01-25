@@ -5,6 +5,18 @@ export function isAuthenticated() {
   return !!localStorage.getItem(TOKEN_KEY);
 }
 
+export function registerUser({ full_name, username, email, password }) {
+  const user = { 
+    full_name, 
+    username, 
+    email, 
+    password, 
+    role: 'staff',
+    avatarUrl: null 
+  };
+    localStorage.setItem('sm_user', JSON.stringify(user));
+}
+
 export function getUser() {
   const raw = localStorage.getItem('sm_user');
   if (!raw) return null;
@@ -29,15 +41,3 @@ export function logoutUser() {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(USER_KEY);
 }
-
-export function registerUser({ full_name, username, email, password }) {
-  const user = { 
-    full_name, 
-    username, 
-    email, 
-    password, 
-    role: 'staff',
-    avatarUrl: null 
-  };
-    localStorage.setItem('sm_user', JSON.stringify(user));
-  }

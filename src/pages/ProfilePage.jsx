@@ -32,7 +32,7 @@ export default function ProfilePage() {
     fullName: user.full_name || '',
     username: user.username || '',
     email: user.email || '',
-    password: '',
+    password: user.password || '',
     role: user.role || 'staff',
   });
 
@@ -58,7 +58,7 @@ export default function ProfilePage() {
     try {
       const raw = localStorage.getItem(USER_STORAGE_KEY);
       const u = raw ? JSON.parse(raw) : {};
-      u.name = form.fullName;
+      u.full_name = form.fullName;
       u.username = form.username;
       u.email = form.email;
       if (form.password) {
