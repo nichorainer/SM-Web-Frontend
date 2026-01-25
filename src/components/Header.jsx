@@ -7,17 +7,22 @@ import { getUser } from '../utils/auth';
 const AVATAR_STORAGE_KEY = 'user-avatar';
 
 export default function Header() {
-  const user = getUser();
-  const [avatarSrc, setAvatarSrc] = useState(user?.avatarUrl || null);
+  // ambil initial user dari helper
+  const initialUser = getUser();
+  const [userData, setUserData] = useState(initialUser || null);
+  const [avatarSrc, setAvatarSrc] = useState(
+    // prefer stored avatar key, fallback ke user.avatarUrl
+    localStorage.getItem(AVATAR_STORAGE_KEY) || initialUser?.avatarUrl || null
+  );
   const [open, setOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const profileRef = useRef(null);
   const notifRef = useRef(null);
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
-  const [notifCount, setNotifCount] = useState(0); // default 0, bisa diisi dari API nanti
+  const [notifCount] = useState(0); // default 0, bisa diisi dari API nanti
 
-   // Tutup popup jika klik di luar
+  // Close both notification and profile pop up when outside click
   useEffect(() => {
     function onDocClick(e) {
       if (profileRef.current && !profileRef.current.contains(e.target)) setOpen(false);
@@ -27,35 +32,76 @@ export default function Header() {
     return () => document.removeEventListener('mousedown', onDocClick);
   }, []);
 
-  // Sync avatar dari localStorage atau user
+  // Sync initial user setiap mount (jika ada perubahan sebelum mount)
   useEffect(() => {
+    const u = getUser();
+    setUserData(u);
     const storedAvatar = localStorage.getItem(AVATAR_STORAGE_KEY);
     if (storedAvatar) setAvatarSrc(storedAvatar);
-    else if (user?.avatarUrl) setAvatarSrc(user.avatarUrl);
-    else setAvatarSrc(null);
-  }, [user]);
+    else setAvatarSrc(u?.avatarUrl || null);
+  }, []);
 
-  // Handle upload avatar
+  // Listen for avatar-updated custom event (dispatched oleh ProfilePage / Header)
+  useEffect(() => {
+    function onAvatarUpdated(e) {
+      const val = e?.detail ?? null;
+      setAvatarSrc(val);
+      // juga refresh userData dari storage agar fullname/role terupdate
+      const u = getUser();
+      setUserData(u);
+    }
+    window.addEventListener('avatar-updated', onAvatarUpdated);
+    return () => window.removeEventListener('avatar-updated', onAvatarUpdated);
+  }, []);
+
+  // Listen for storage events (sinkron antar tab)
+  useEffect(() => {
+    function onStorage(e) {
+      if (!e) return;
+      // jika sm_user berubah, reload userData
+      if (e.key === 'sm_user' || e.key === AVATAR_STORAGE_KEY) {
+        const u = getUser();
+        setUserData(u);
+        const storedAvatar = localStorage.getItem(AVATAR_STORAGE_KEY);
+        setAvatarSrc(storedAvatar || u?.avatarUrl || null);
+      }
+    }
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, []);
+
+  // Handle upload avatar (via header change avatar)
   async function handleFileChange(e) {
     const file = e.target.files?.[0];
     if (!file) return;
 
     const reader = new FileReader();
     reader.onload = () => {
-      localStorage.setItem(AVATAR_STORAGE_KEY, reader.result);
-
-      // Update user object agar sinkron dengan Profile/Admin
+      const base64 = reader.result;
       try {
-        const raw = localStorage.getItem('sm_user');
-        const u = raw ? JSON.parse(raw) : {};
-        u.avatarUrl = reader.result;
-        localStorage.setItem('sm_user', JSON.stringify(u));
-      } catch (err) {
-        console.warn('failed to update user object in storage', err);
-      }
+        // Simpan juga ke key avatar lokal (opsional)
+        localStorage.setItem(AVATAR_STORAGE_KEY, base64);
 
-      setAvatarSrc(reader.result);
-      window.dispatchEvent(new CustomEvent('avatar-updated', { detail: reader.result }));
+        // Update sm_user agar konsisten dengan ProfilePage
+        try {
+          if (typeof updateUser === 'function') {
+            updateUser({ avatarUrl: base64 });
+          } else {
+            const raw = localStorage.getItem('sm_user');
+            const u = raw ? JSON.parse(raw) : {};
+            u.avatarUrl = base64;
+            localStorage.setItem('sm_user', JSON.stringify(u));
+          }
+        } catch (err) {
+          console.warn('failed to update user object in storage', err);
+        }
+
+        setAvatarSrc(base64);
+        // dispatch event agar komponen lain (ProfilePage) tahu avatar berubah
+        window.dispatchEvent(new CustomEvent('avatar-updated', { detail: base64 }));
+      } catch (err) {
+        console.error('Failed to save avatar', err);
+      }
     };
     reader.readAsDataURL(file);
 
@@ -67,11 +113,24 @@ export default function Header() {
     fileInputRef.current?.click();
   }
 
-  // Handle logout (placeholder)
+  // Logout handle
   function handleLogout() {
-    console.log('Logging out...');
-    navigate('/login');
+    try {
+      localStorage.removeItem(AUTH_TOKEN_KEY);
+      localStorage.removeItem(USER_STORAGE_KEY);
+      console.log('Logging out...');
+      navigate('/login');
+    } catch (err) {
+      console.warn('logout error', err);
+    }
   }
+
+  // Derive display name and role from userData (note: register uses full_name)
+  // Display: Full Name
+  const displayName = userData?.full_name || userData?.name || 'Guest';
+  // Display: Role
+  const rawRole = userData?.role || 'staff';
+  const displayRole = rawRole.charAt(0).toUpperCase() + rawRole.slice(1).toLowerCase();
 
   return (
     <header className="header">
@@ -105,8 +164,8 @@ export default function Header() {
             >
               <img src={avatarSrc ?? undefined} alt="User Avatar" className="avatar" />
               <div className="profile-info">
-                <span className="profile-name">{user?.name || 'Guest'}</span>
-                <span className="profile-role">{user?.role || 'Staff'}</span>
+                <span className="profile-name">{displayName}</span>
+                <span className="profile-role">{displayRole}</span>
               </div>
             </button>
 

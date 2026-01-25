@@ -90,8 +90,9 @@ export function loginUser({ email, password }) {
 export function logout() {
   try {
     localStorage.removeItem(AUTH_TOKEN_KEY);
-    // keep sm_user if you want to preserve registered data; or remove to "forget" user
     localStorage.removeItem(USER_STORAGE_KEY);
+    // console.log('Logging out...');
+    // navigate('/login');
   } catch (err) {
     console.warn('logout error', err);
   }
