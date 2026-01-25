@@ -175,7 +175,7 @@ export default function ProfilePage() {
             <label>Full Name</label>
             <input
               name="fullName"
-              value={user.fullName}
+              value={form.fullName}
               onChange={handleChange}
               placeholder="Enter your full name here"
             />
@@ -185,7 +185,7 @@ export default function ProfilePage() {
             <label>Username</label>
             <input
               name="username"
-              value={user.username}
+              value={form.username}
               onChange={handleChange}
               placeholder="Username"
             />
