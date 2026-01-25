@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { IoNotificationsOutline } from "react-icons/io5";
+import { Avatar } from '@chakra-ui/react';
 import '../styles/header.css';
 import { getUser } from '../utils/auth';
 
@@ -39,6 +40,28 @@ export default function Header() {
     const storedAvatar = localStorage.getItem(AVATAR_STORAGE_KEY);
     if (storedAvatar) setAvatarSrc(storedAvatar);
     else setAvatarSrc(u?.avatarUrl || null);
+  }, []);
+
+  // Listen for user-updated events (profile edits in same tab)
+  useEffect(() => {
+    function onUserUpdated(e) {
+      const updatedUser = e?.detail ?? null;
+      if (updatedUser) {
+        setUserData(updatedUser);
+        // prefer explicit avatar cache if present, else use updatedUser.avatarUrl
+        const storedAvatar = localStorage.getItem(AVATAR_STORAGE_KEY);
+        setAvatarSrc(storedAvatar || updatedUser.avatarUrl || null);
+      } else {
+        // fallback: reload from storage
+        const u = getUser();
+        setUserData(u);
+        const storedAvatar = localStorage.getItem(AVATAR_STORAGE_KEY);
+        setAvatarSrc(storedAvatar || u?.avatarUrl || null);
+      }
+    }
+
+    window.addEventListener('user-updated', onUserUpdated);
+    return () => window.removeEventListener('user-updated', onUserUpdated);
   }, []);
 
   // Listen for avatar-updated custom event (dispatched oleh ProfilePage / Header)
@@ -162,7 +185,12 @@ export default function Header() {
               className="profile-btn"
               onClick={() => setOpen(!open)}
             >
-              <img src={avatarSrc ?? undefined} alt="User Avatar" className="avatar" />
+              <Avatar
+                name={displayName}
+                src={avatarSrc || undefined}
+                boxSize="36px"
+                className="avatar"
+              />
               <div className="profile-info">
                 <span className="profile-name">{displayName}</span>
                 <span className="profile-role">{displayRole}</span>

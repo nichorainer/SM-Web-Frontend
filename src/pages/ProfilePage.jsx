@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Avatar } from '@chakra-ui/react';
-import { getUser, isAuthenticated } from '../utils/auth';
+import { getUser, isAuthenticated, updateUser } from '../utils/auth';
 import '../styles/profile-page.css';
 import EditProfileModal from '../components/EditProfileModal';
 
@@ -66,6 +66,18 @@ export default function ProfilePage() {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Popup notification state
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [notifType, setNotifType] = useState('success'); // 'success' | 'error'
+  const [notifMessage, setNotifMessage] = useState('');
+
+  // helper untuk buka popup
+  function showNotification(type, message) {
+    setNotifType(type);
+    setNotifMessage(message);
+    setNotifOpen(true);
+  }
+
   // Save from modal or form submit
   const handleSave = (e) => {
     if (e && e.preventDefault) e.preventDefault();
@@ -88,22 +100,32 @@ export default function ProfilePage() {
     });
 
     if (updated) {
+      // dispatch custom event so other components knows the changes made
+      window.dispatchEvent(new CustomEvent('user-updated', { detail: updated }));
       // reflect changes in local state
       setForm((prev) => ({ ...prev, password: '' })); // clear password input
-      alert('Profile updated successfully.');
+      showNotification('success', 'Profile updated successfully.');
     } else {
-      alert('Failed to update profile.');
+      showNotification('error', 'Failed to update profile.');
     }
   };
 
   function handleModalSave() {
-    updateUser({
+    const updated = updateUser({
       full_name: form.fullName,
       username: form.username,
       email: form.email,
-      password: form.password || '',
+      ...(form.password ? { password: form.password } : {}),
       avatarUrl: avatarSrc || null,
+      role: form.role,
     });
+    // dispatch custom event so other components knows the changes made
+    if (updated) {
+      window.dispatchEvent(new CustomEvent('user-updated', { detail: updated }));
+      showNotification('success', 'Profile updated successfully.');
+    } else {
+      showNotification('error', 'Failed to update profile.');
+    }
     setModalOpen(false);
   }
 
@@ -117,6 +139,12 @@ export default function ProfilePage() {
       // update storage
       const updated = updateUser({ avatarUrl: base64 });
       if (updated) {
+        // simpan juga ke cache header (opsional)
+      try {
+        localStorage.setItem('user-avatar', base64);
+      } catch (err) {
+        // ignore storage errors
+      }
         setAvatarSrc(base64);
         setForm((prev) => ({ ...prev, avatarUrl: base64 }));
         window.dispatchEvent(new CustomEvent('avatar-updated', { detail: base64 }));
@@ -133,12 +161,28 @@ export default function ProfilePage() {
     fileRef.current?.click();
   }
 
-  // Untuk remove avatar
+  // Remove Avatar Handler
   function removeAvatar() {
-    updateUser({ avatarUrl: null });
-    setAvatarSrc(null);
-    setForm((prev) => ({ ...prev, avatarUrl: null }));
-    window.dispatchEvent(new CustomEvent('avatar-updated', { detail: null }));
+    try {
+      // update sm_user
+      updateUser({ avatarUrl: null });
+
+      // hapus cache avatar yang mungkin dipakai Header
+      try {
+        localStorage.removeItem('user-avatar');
+      } catch (err) {
+        // ignore
+      }
+
+      // update state agar Avatar menampilkan inisial (Chakra Avatar pakai prop name)
+      setAvatarSrc(null);
+      setForm((prev) => ({ ...prev, avatarUrl: null }));
+
+      // beri tahu komponen lain
+      window.dispatchEvent(new CustomEvent('avatar-updated', { detail: null }));
+    } catch (err) {
+      console.error('failed to remove avatar', err);
+    }
   }
 
   // Modal state
@@ -176,7 +220,7 @@ export default function ProfilePage() {
       <div className="profile-card">
         <div className="profile-left">
           <div className="avatar-large">
-            <Avatar boxSize="96px" name={form.fullName || 'User'} src={avatarSrc} />
+            <Avatar boxSize="96px" name={form.fullName || 'User'} src={avatarSrc || undefined} />
           </div>
 
           <div className="basic-info">
@@ -295,6 +339,81 @@ export default function ProfilePage() {
           form={form}
           onChange={handleChange}
         />
+      )}
+
+      {/* Notification popup */}
+      {notifOpen && (
+        <div
+          className="notif-overlay"
+          onClick={() => setNotifOpen(false)} // klik di luar menutup
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.35)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+          }}
+        >
+          <div
+            className={`notif-card ${notifType === 'success' ? 'success' : 'error'}`}
+            onClick={(e) => e.stopPropagation()} // mencegah close saat klik di dalam
+            style={{
+              width: 360,
+              maxWidth: '90%',
+              background: '#fff',
+              borderRadius: 8,
+              padding: 20,
+              boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+              position: 'relative',
+            }}
+          >
+            {/* Close X */}
+            <button
+              aria-label="Close"
+              onClick={() => setNotifOpen(false)}
+              style={{
+                position: 'absolute',
+                top: 8,
+                right: 8,
+                border: 'none',
+                background: 'transparent',
+                fontSize: 18,
+                cursor: 'pointer',
+              }}
+            >
+              ×
+            </button>
+
+            {/* Icon + Message */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 8,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: notifType === 'success' ? '#E6FFFA' : '#FFF5F5',
+                  color: notifType === 'success' ? '#059669' : '#C53030',
+                  fontSize: 20,
+                  fontWeight: 700,
+                }}
+              >
+                {notifType === 'success' ? '✓' : '!' }
+              </div>
+
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 600, marginBottom: 6 }}>
+                  {notifType === 'success' ? 'Success' : 'Error'}
+                </div>
+                <div style={{ color: '#333' }}>{notifMessage}</div>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
