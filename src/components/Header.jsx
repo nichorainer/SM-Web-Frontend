@@ -177,7 +177,7 @@ export default function Header() {
   // Display: Full Name
   const displayName = userData?.full_name || userData?.name || 'Guest';
   // Display: Role
-  const rawRole = userData?.role || 'staff';
+  const rawRole = userData?.role || 'admin';
   const displayRole = rawRole.charAt(0).toUpperCase() + rawRole.slice(1).toLowerCase();
 
   return (

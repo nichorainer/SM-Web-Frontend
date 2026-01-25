@@ -1,4 +1,3 @@
-import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import App from '../App';
 import HomePage from '../pages/HomePage';
@@ -20,8 +19,9 @@ function RequireAuth({ children }) {
 export default function Router() {
   return (
     <Routes>
-      <Route path="/" element={<RegisterPage />} />
+      <Route path="/" element={<LoginPage />} />
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
 
       <Route
         path="/"
@@ -31,7 +31,6 @@ export default function Router() {
           </RequireAuth>
         }
       >
-        {/* <Route index element={<HomePage />} /> */}
         <Route path="home" element={<HomePage />} />
         <Route path="orders" element={<OrdersPage />} />
         <Route path="products" element={<ProductsPage />} />

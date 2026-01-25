@@ -1,5 +1,5 @@
 const USER_STORAGE_KEY = 'sm_user';
-const AUTH_TOKEN_KEY = 'sm_token'; // Save demo token
+const AUTH_TOKEN_KEY = 'sm_token';
 
 export function registerUser({ full_name, username, email, password }) {
   const user = {
@@ -7,7 +7,7 @@ export function registerUser({ full_name, username, email, password }) {
     username: username || '',
     email: email || '',
     password: password || '',
-    role: 'staff',
+    role: 'admin',
     avatarUrl: null,
   };
   
@@ -48,10 +48,10 @@ export function updateUser(updates = {}) {
 }
 
 /**
- * Simulate login: verify email + password against stored sm_user.
+ * Simulate login: verify email OR username + password against stored sm_user.
  * Returns { token, user } on success, throws Error on failure.
  */
-export function loginUser({ email, password }) {
+export function loginUser({ email, username, identifier, password }) {
   try {
     const raw = localStorage.getItem(USER_STORAGE_KEY);
     if (!raw) {
@@ -59,26 +59,37 @@ export function loginUser({ email, password }) {
     }
     const user = JSON.parse(raw);
 
-    // Basic check: email and password must match stored user
-    if (!user.email || user.email !== email) {
-      throw new Error('Invalid email or password');
+    // Normalize inputs
+    const id = (identifier || email || username || '').trim();
+
+    // If no identifier provided, fail early
+    if (!id) {
+      throw new Error('Email/username and password are required');
     }
-    // In demo we stored password in plain text; compare directly
+
+    // Check identifier matches either stored email or username
+    const matchesIdentifier =
+      (user.email && user.email === id) || (user.username && user.username === id);
+
+    if (!matchesIdentifier) {
+      throw new Error('Invalid email/username or password');
+    }
+
+    // Password check (demo: plain text)
     if (!user.password || user.password !== password) {
-      throw new Error('Invalid email or password');
+      throw new Error('Invalid email/username or password');
     }
 
     // Create a simple token for demo purposes
     const token = `demo-token-${Date.now()}`;
 
-    // Optionally persist token (so isAuthenticated can check token if you want)
+    // Persist token (optional)
     try {
       localStorage.setItem(AUTH_TOKEN_KEY, token);
     } catch (e) {
       // ignore storage errors
     }
 
-    // Return token and user object
     return { token, user };
   } catch (err) {
     // rethrow so caller can handle
