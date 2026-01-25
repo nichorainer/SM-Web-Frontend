@@ -260,13 +260,12 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        <form className="profile-form" onSubmit={handleSave}>
+        <div className="profile-form">
           <div className="form-row">
             <label>Full Name</label>
             <input
-              name="fullName"
               value={form.fullName}
-              onChange={handleChange}
+              readOnly
               placeholder="Enter your full name here"
             />
           </div>
@@ -274,9 +273,8 @@ export default function ProfilePage() {
           <div className="form-row">
             <label>Username</label>
             <input
-              name="username"
               value={form.username}
-              onChange={handleChange}
+              readOnly
               placeholder="Username"
             />
           </div>
@@ -284,9 +282,8 @@ export default function ProfilePage() {
           <div className="form-row">
             <label>E-mail</label>
             <input
-              name="email"
               value={form.email}
-              onChange={handleChange}
+              readOnly
               placeholder="user@example.com"
               type="email"
             />
@@ -295,9 +292,8 @@ export default function ProfilePage() {
           <div className="form-row">
             <label>Password</label>
             <input
-              name="password"
               value={form.password}
-              onChange={handleChange}
+              readOnly
               placeholder="********"
               type="password"
               autoComplete="new-password"
@@ -327,7 +323,7 @@ export default function ProfilePage() {
               Edit Profile
             </button>
           </div>
-        </form>
+        </div>
       </div>
 
       {/* Edit Profile Modal */}

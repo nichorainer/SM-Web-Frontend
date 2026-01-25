@@ -3,7 +3,7 @@ import { Avatar } from '@chakra-ui/react';
 import { getUser, isAuthenticated } from '../utils/auth';
 import '../styles/admin-page.css';
 
-/* AdminPage (offline / no API) */
+/* AdminPage (no API) */
 const MOCK_STAFF = [
   {
     id: 'u1',
@@ -53,6 +53,12 @@ export default function AdminPage() {
   const [selectedId, setSelectedId] = useState(null);
   const [saving, setSaving] = useState(false);
 
+  // User Data (Admin) to display at top right page
+  const [userData, setUserData] = useState(getUser() || null);
+  const [avatarSrc, setAvatarSrc] = useState(
+    localStorage.getItem('user-avatar') || (getUser()?.avatarUrl || null)
+  );
+
   // derived filtered list
   const filteredStaff = useMemo(() => {
     const term = q.trim().toLowerCase();
@@ -65,6 +71,58 @@ export default function AdminPage() {
     );
   }, [q, staff]);
 
+  // sync initial dan listen untuk perubahan di tab yang sama
+  useEffect(() => {
+    // refresh initial
+    const u = getUser();
+    setUserData(u);
+    setAvatarSrc(localStorage.getItem('user-avatar') || u?.avatarUrl || null);
+
+    // handler untuk perubahan user (nama/email/role)
+    function onUserUpdated(e) {
+      const updated = e?.detail ?? null;
+      if (updated) {
+        setUserData(updated);
+        setAvatarSrc(localStorage.getItem('user-avatar') || updated.avatarUrl || null);
+      } else {
+        const fresh = getUser();
+        setUserData(fresh);
+        setAvatarSrc(localStorage.getItem('user-avatar') || fresh?.avatarUrl || null);
+      }
+    }
+
+    // handler untuk perubahan avatar khusus
+    function onAvatarUpdated(e) {
+      const val = e?.detail ?? null;
+      setAvatarSrc(val);
+      const fresh = getUser();
+      setUserData(fresh);
+    }
+
+    window.addEventListener('user-updated', onUserUpdated);
+    window.addEventListener('avatar-updated', onAvatarUpdated);
+
+    return () => {
+      window.removeEventListener('user-updated', onUserUpdated);
+      window.removeEventListener('avatar-updated', onAvatarUpdated);
+    };
+  }, []);
+
+  // To reflect listen storage for other tabs
+  useEffect(() => {
+    function onStorage(e) {
+      if (!e) return;
+      if (e.key === 'sm_user' || e.key === 'user-avatar') {
+        const u = getUser();
+        setUserData(u);
+        setAvatarSrc(localStorage.getItem('user-avatar') || u?.avatarUrl || null);
+      }
+    }
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, []);
+
+  // For edit staff permissions
   useEffect(() => {
     // simulate loading briefly (no API)
     setLoadingStaff(true);
@@ -79,34 +137,6 @@ export default function AdminPage() {
   function handleSearch(e) {
     setQ(e.target.value);
   }
-
-  // function handleSave() {
-  //   if (!selectedId) return;
-  //   setSaving(true);
-
-  //   setTimeout(() => {
-  //     setStaff((prev) =>
-  //       prev.map((s) =>
-  //         s.id === selectedId ? { ...s, role: editRole, permissions: editPerms } : s
-  //       )
-  //     );
-
-  //     setLogs((prev) => [
-  //       {
-  //         id: Date.now(),
-  //         user: selectedId,
-  //         action: 'Role & permissions updated',
-  //         detail: `${editRole} | ${Object.entries(editPerms)
-  //           .map(([key, val]) => `${key}=${val}`)
-  //           .join(', ')}`,
-  //         timestamp: new Date().toISOString(),
-  //       },
-  //       ...prev,
-  //     ]);
-  //     setSaving(false);
-  //     Navigate('/admin');
-  //   }, 100);
-  // }
 
   function openEdit(id) {
     setSelectedId(id);
@@ -150,10 +180,10 @@ export default function AdminPage() {
         </div>
 
         <div className="admin-user">
-          <Avatar size="sm" name={currentUser?.name} src={currentUser?.avatarUrl} />
-          <div style={{ marginLeft: 8 }}>
-            <div style={{ fontWeight: 600 }}>{currentUser?.name ?? '—'}</div>
-            <div className="muted">{currentUser?.email ?? '—'}</div>
+          <Avatar name={userData?.full_name || 'User'} src={avatarSrc || undefined} boxSize="40px" />
+          <div style={{ marginLeft: 8 }} className="admin-user-info">
+            <div className="admin-name">{userData?.full_name || 'Guest'}</div>
+            <div className="admin-email">{userData?.email || '—'}</div>
           </div>
         </div>
       </header>
