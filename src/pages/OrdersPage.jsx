@@ -7,6 +7,33 @@ export default function OrdersPage() {
   const [platform, setPlatform] = useState('all');
   const [status, setStatus] = useState('all');
 
+  // Orders state: initialize from localStorage if available
+  const [orders, setOrders] = useState(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      const parsed = raw ? JSON.parse(raw) : null;
+      return Array.isArray(parsed) && parsed.length ? parsed : [
+        { orderId: '100201', date: '2025-01-01', customer: 'Alice', platform: 'Tokipedia', destination: 'Jakarta', items: 2, status: 'Pending' },
+        { orderId: '100302', date: '2025-01-02', customer: 'Bob', platform: 'Shoopa', destination: 'Bandung', items: 1, status: 'Completed' },
+      ];
+    } catch (err) {
+      console.error('Failed to read orders from localStorage', err);
+      return [
+        { orderId: '100201', date: '2025-01-01', customer: 'Alice', platform: 'Tokipedia', destination: 'Jakarta', items: 2, status: 'Pending' },
+        { orderId: '100302', date: '2025-01-02', customer: 'Bob', platform: 'Shoopa', destination: 'Bandung', items: 1, status: 'Completed' },
+      ];
+    }
+  });
+
+  // Persist orders to localStorage whenever orders change
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
+    } catch (err) {
+      console.error('Failed to save orders to localStorage', err);
+    }
+  }, [orders]);
+
   // Modal state
   const [showCreate, setShowCreate] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -31,13 +58,13 @@ export default function OrdersPage() {
     setNewOrder(prev => ({ ...prev, [field]: value }));
   }
 
-  // Generate next Order ID in format #000006 (sample)
+  // Generate next Order ID in format
   function generateOrderId() {
     const base = Math.floor(Math.random() * 900000) + 100000; // sample generator
     return `#${String(base).padStart(6, '0')}`;
   }
 
-  // Save handler: simpan, tutup modal, dan refresh table
+  // Save handler: save, close modal, and refresh table
   function handleCreateOrder(e) {
     e.preventDefault();
     setSaving(true);
@@ -53,15 +80,16 @@ export default function OrdersPage() {
         status: newOrder.status,
       };
 
-      // Opsi A: kirim ke OrdersTable via CustomEvent (tidak perlu ubah props)
+      // IMPORTANT: update local orders state so parent passes new list to OrdersTable
+      setOrders(prev => [order, ...prev]);
+      
+      // dispatch global event (optional)
       window.dispatchEvent(new CustomEvent('orders:add', { detail: order }));
-
-      // Opsi B (jika kamu nanti ubah OrdersTable): pass prop onAddOrder dan panggil di sini
 
       setSaving(false);
       setShowCreate(false);
 
-      // Optional: reset form
+      // Reset form
       setNewOrder({
         customer: '',
         platform: 'Tokipedia',
@@ -131,6 +159,8 @@ export default function OrdersPage() {
           search={search}
           platform={platform}
           status={status}
+          // provide callback if you prefer prop-based add
+          onAddOrder={(o) => setOrders(prev => [o, ...prev])}
         />
       </div>
       {showCreate && (

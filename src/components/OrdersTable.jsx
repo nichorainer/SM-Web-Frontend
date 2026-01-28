@@ -1,29 +1,51 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import '../styles/orders.css';
 
-const SAMPLE_ORDERS = [
-  { id: '#000005', date: '05/15/2025', customer: 'Jennifer', platform: 'Tokipedia', destination: 'Jakarta', items: 1, status: 'Completed' },
-  { id: '#000004', date: '04/30/2025', customer: 'Michelle', platform: 'Shoopa', destination: 'Jakarta', items: 2, status: 'Pending' },
-  { id: '#000003', date: '02/16/2025', customer: 'Nixon', platform: 'Lazado', destination: 'Bandung', items: 3, status: 'Completed' },
-  { id: '#000002', date: '02/03/2025', customer: 'Owen', platform: 'Tokipedia', destination: 'Medan', items: 2, status: 'Pending' },
-  { id: '#000001', date: '01/20/2025', customer: 'Calvin', platform: 'Tokipedia', destination: 'Surabaya', items: 5, status: 'Completed' },
-];
+export default function OrdersTable({ orders = [], search = '', platform = 'all', status = 'all', onAddOrder }) {
+  // keep a local copy so the component can update itself and react to prop changes
+  const [list, setList] = useState(Array.isArray(orders) ? orders : []);
 
-export default function OrdersTable({ orders = [], search = '', platform = 'all', status = 'all' }) {
+  // sync local list when parent prop changes
+  useEffect(() => {
+    setList(Array.isArray(orders) ? orders : []);
+  }, [orders]);
+
+  // listen to global 'orders:add' events and update list
+  useEffect(() => {
+    function handleAdd(e) {
+      const newOrder = e?.detail;
+      if (!newOrder) return;
+        // only update local list; DO NOT call onAddOrder to avoid duplicate add in parent
+        setList(prev => [newOrder, ...prev]);
+      }
+      window.addEventListener('orders:add', handleAdd);
+      return () => window.removeEventListener('orders:add', handleAdd);
+    }, []);
+
+  // compute filtered list from local list and filters
   const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    return orders.filter(o => {
-      if (platform !== 'all' && o.platform.toLowerCase() !== platform.toLowerCase()) return false;
-      if (status !== 'all' && o.status.toLowerCase() !== status.toLowerCase()) return false;
+    const q = (search || '').trim().toLowerCase();
+    return (Array.isArray(list) ? list : []).filter(o => {
+      const plat = (o.platform || '').toLowerCase();
+      const stat = (o.status || '').toLowerCase();
+
+      if (platform !== 'all' && plat !== (platform || '').toLowerCase()) return false;
+      if (status !== 'all' && stat !== (status || '').toLowerCase()) return false;
       if (!q) return true;
+
+      const idField = (o.orderId || o.id || '').toString().toLowerCase();
+      const customer = (o.customer || '').toString().toLowerCase();
+      const destination = (o.destination || '').toString().toLowerCase();
+      const platformField = plat;
+
       return (
-        o.id.toLowerCase().includes(q) ||
-        o.customer.toLowerCase().includes(q) ||
-        o.destination.toLowerCase().includes(q) ||
-        o.platform.toLowerCase().includes(q)
+        idField.includes(q) ||
+        customer.includes(q) ||
+        destination.includes(q) ||
+        platformField.includes(q)
       );
     });
-  }, [orders, search, platform, status]);
+  }, [list, search, platform, status]);
 
   return (
     <div className="card">
@@ -31,7 +53,7 @@ export default function OrdersTable({ orders = [], search = '', platform = 'all'
         <table className="orders-table">
           <thead>
             <tr>
-              <th>order ID</th>
+              <th>Order ID</th>
               <th>Date</th>
               <th>Customer</th>
               <th>Platform</th>
@@ -46,21 +68,26 @@ export default function OrdersTable({ orders = [], search = '', platform = 'all'
                 <td colSpan="7" className="empty-cell">No orders found</td>
               </tr>
             ) : (
-              filtered.map((o) => (
-                <tr key={o.id}>
-                  <td className="mono">{o.id}</td>
-                  <td>{o.date}</td>
-                  <td>{o.customer}</td>
-                  <td>{o.platform}</td>
-                  <td>{o.destination}</td>
-                  <td className="center">{o.items}</td>
-                  <td className="center">
-                    <span className={`status ${o.status.toLowerCase() === 'completed' ? 'completed' : 'pending'}`}>
-                      {o.status}
-                    </span>
-                  </td>
-                </tr>
-              ))
+              filtered.map((o, idx) => {
+                const key = o.orderId || o.id || `order-${idx}`;
+                const statusClass = ((o.status || '').toString().toLowerCase() === 'completed') ? 'completed' : 'pending';
+
+                return (
+                  <tr key={key}>
+                    <td className="mono">{o.orderId || o.id || '-'}</td>
+                    <td>{o.date || '-'}</td>
+                    <td>{o.customer || '-'}</td>
+                    <td>{o.platform || '-'}</td>
+                    <td>{o.destination || '-'}</td>
+                    <td className="center">{o.items != null ? o.items : '-'}</td>
+                    <td className="center">
+                      <span className={`status ${statusClass}`}>
+                        {o.status || '-'}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>

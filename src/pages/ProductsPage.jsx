@@ -25,16 +25,24 @@ export default function ProductsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
 
+  // Open modal
   function handleAddProductClick() {
     setModalOpen(true);
   }
 
+  // Close modal
   function handleModalClose() {
     setModalOpen(false);
   }
 
+  // Save from modal
   function handleModalSave(newProduct) {
-    setProducts((prev) => [...prev, newProduct]);
+    // ensure newProduct has an id/productId
+    const productWithId = {
+      ...newProduct,
+      productId: newProduct.productId || `P-${Date.now()}`,
+    };
+    setProducts((prev) => [...prev, productWithId]);
     setModalOpen(false);
   }
 
@@ -46,12 +54,12 @@ export default function ProductsPage() {
     setSearchTerm('');
   }
 
-  // Filter search berdasarkan semua kolom
+  // Filter search across all columns
   const q = searchTerm.toLowerCase();
-  const filteredProducts = products.filter(p =>
+  const filteredProducts = products.filter((p) =>
     [p.name, p.productId, p.supplierName, p.category, String(p.price), String(p.stock)]
-      .some(field => field.toLowerCase().includes(q))
-  );
+      .some((field) => (field || '').toLowerCase().includes(q))
+  )
 
   return (
     <div className="products-page">
@@ -110,7 +118,8 @@ export default function ProductsPage() {
         </tbody>
       </table>
 
-      {modalOpen && (
+      {/* Render modal using the same modalOpen state and handlers above */}
+      {typeof AddProductModal !== 'undefined' && modalOpen && (
         <AddProductModal
           isOpen={modalOpen}
           onClose={handleModalClose}
