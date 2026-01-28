@@ -54,11 +54,56 @@ export function getToken() {
   }
 }
 
+// Check if user is authenticated
+export function isAuthenticated() {
+  const token = getToken();
+  return !!token; // true if token exists
+}
+
 // Clear token (logout)
 export function logout() {
   try {
     localStorage.removeItem(AUTH_TOKEN_KEY);
   } catch (err) {
     console.warn("logout error", err);
+  }
+}
+
+// Get user profile from backend
+export async function getUser(userId) {
+  const token = getToken();
+  if (!token) return { status: "error", message: "Not authenticated" };
+
+  try {
+    const res = await fetch(`http://localhost:8080/users/${userId}`, {
+      headers: { "Authorization": `Bearer ${token}` },
+    });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(json.message || "Failed to fetch user");
+    return json;
+  } catch (err) {
+    return { status: "error", message: err.message };
+  }
+}
+
+// Update user profile
+export async function updateUser(userId, data) {
+  const token = getToken();
+  if (!token) return { status: "error", message: "Not authenticated" };
+
+  try {
+    const res = await fetch(`http://localhost:8080/users/${userId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(json.message || "Failed to update user");
+    return json;
+  } catch (err) {
+    return { status: "error", message: err.message };
   }
 }

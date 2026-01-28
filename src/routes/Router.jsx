@@ -7,10 +7,12 @@ import ProfilePage from '../pages/ProfilePage';
 import AdminPage from '../pages/AdminPage';
 import LoginPage from '../pages/Login';
 import RegisterPage from '../pages/Register';
-import { isAuthenticated } from '../utils/auth';
+import { getToken } from '../utils/auth';
 
+// RequireAuth wrapper
 function RequireAuth({ children }) {
-  if (!isAuthenticated()) {
+  const token = getToken();
+  if (!token) {
     return <Navigate to="/login" replace />;
   }
   return children;
@@ -19,10 +21,11 @@ function RequireAuth({ children }) {
 export default function Router() {
   return (
     <Routes>
-      <Route path="/" element={<LoginPage />} />
+      {/* Public routes */}
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
 
+      {/* Protected routes */}
       <Route
         path="/"
         element={
@@ -31,6 +34,7 @@ export default function Router() {
           </RequireAuth>
         }
       >
+        <Route index element={<HomePage />} />
         <Route path="home" element={<HomePage />} />
         <Route path="orders" element={<OrdersPage />} />
         <Route path="products" element={<ProductsPage />} />
@@ -38,7 +42,11 @@ export default function Router() {
         <Route path="admin" element={<AdminPage />} />
       </Route>
 
-      <Route path="*" element={<Navigate to={isAuthenticated() ? '/' : '/login'} replace />} />
+      {/* Fallback */}
+      <Route
+        path="*"
+        element={<Navigate to={getToken() ? '/' : '/login'} replace />}
+      />
     </Routes>
   );
 }

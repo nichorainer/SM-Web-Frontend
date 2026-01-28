@@ -22,7 +22,6 @@ export default function LoginPage() {
         password,
       });
 
-      // Pastikan res selalu ada dan punya status
       if (res && res.status === "success") {
         // Save JWT token to localStorage
         if (res.data?.token) {
@@ -36,13 +35,12 @@ export default function LoginPage() {
       }
     } catch (err) {
       console.error('login error', err);
-      // Gunakan fallback aman untuk error
       setError(err?.message || "Unexpected error during login");
     } finally {
       setSubmitting(false);
     }
   };
-  
+
   return (
     <div className="auth-root">
       <div className="auth-card">

@@ -35,8 +35,7 @@ export default function RegisterPage() {
     try {
       // Call backend register API
       const res = await registerUser({ full_name, username, email, password });
-
-      // Pastikan res selalu ada dan punya status
+      
       if (res && res.status === "success") {
         // Navigate to login page
         navigate('/login', { replace: true });
@@ -45,7 +44,6 @@ export default function RegisterPage() {
       }
     } catch (err) {
       console.error('register error', err);
-      // Gunakan fallback aman untuk error
       setError(err?.message || "Unexpected error during registration");
     } finally {
       setSubmitting(false);
