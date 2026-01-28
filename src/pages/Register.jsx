@@ -26,20 +26,25 @@ export default function RegisterPage() {
     return true;
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     if (!validate()) return;
 
     setSubmitting(true);
     try {
-      // Save initial user to localStorage
-      registerUser({ full_name, username, email, password });
-      // navigate to login (replace so back doesn't return to register)
-      navigate('/login', { replace: true });
+      // Call backend register API
+      const res = await registerUser({ full_name, username, email, password });
+
+      if (res.status === "success") {
+        // Navigate to login page
+        navigate('/login', { replace: true });
+      } else {
+        setError(res.message || "Failed to register");
+      }
     } catch (err) {
       console.error('register error', err);
-      setError('Failed to register');
+      setError(err.message);
     } finally {
       setSubmitting(false);
     }
