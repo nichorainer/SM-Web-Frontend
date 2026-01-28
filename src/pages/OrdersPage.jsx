@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import OrdersTable from '../components/OrdersTable.jsx';
 import '../styles/orders-page.css';
 
+// define storage key
+const STORAGE_KEY = 'sm_orders_demo';
+
 export default function OrdersPage() {
   const [search, setSearch] = useState('');
   const [platform, setPlatform] = useState('all');
@@ -48,12 +51,13 @@ export default function OrdersPage() {
     date: new Date().toLocaleDateString(), // default today
   });
 
+  // Reset func for search bar
   const resetFilters = () => {
     setSearch('');
     setPlatform('all');
     setStatus('all');
   };
-
+  
   function updateField(field, value) {
     setNewOrder(prev => ({ ...prev, [field]: value }));
   }
@@ -83,7 +87,7 @@ export default function OrdersPage() {
       // IMPORTANT: update local orders state so parent passes new list to OrdersTable
       setOrders(prev => [order, ...prev]);
       
-      // dispatch global event (optional)
+      // dispatch global event
       window.dispatchEvent(new CustomEvent('orders:add', { detail: order }));
 
       setSaving(false);
