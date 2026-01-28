@@ -18,7 +18,9 @@ function fileToBase64(file) {
 
 export default function ProfilePage() {
   const navigate = useNavigate();
-  const user = isAuthenticated() ? getToken() : null;
+  const [user, setUser] = useState(null);
+  const [error, setError] = useState('');
+
 
   useEffect(() => {
   const token = getToken();
@@ -95,7 +97,7 @@ export default function ProfilePage() {
   const [notifType, setNotifType] = useState('success'); // 'success' | 'error'
   const [notifMessage, setNotifMessage] = useState('');
 
-  // helper untuk buka popup
+  // Helper untuk buka popup
   function showNotification(type, message) {
     setNotifType(type);
     setNotifMessage(message);
@@ -223,15 +225,6 @@ export default function ProfilePage() {
     setModalOpen(false);
   }
 
-  if (!user) {
-    // not authenticated (demo)
-    return (
-      <div className="profile-page">
-        <p>Please login to view your profile.</p>
-      </div>
-    );
-  }
-
   return (
     <div className="profile-page">
       <div className="profile-header">
@@ -249,7 +242,7 @@ export default function ProfilePage() {
 
           <div className="basic-info">
             <h3 className="name">{form.fullName || '...'}</h3>
-            <div className="email">{form.email || '...'}</div>
+
             {/* Upload to change avatar */}
             <div style={{ marginTop: 12 }}>
               <button 
@@ -288,25 +281,25 @@ export default function ProfilePage() {
           <div className="form-row">
             <label>Full Name</label>
             <input
-              value={form.fullName}
+              value={user?.full_name || ''}
               readOnly
-              placeholder="Enter your full name here"
+              placeholder="Edit your full name here"
             />
           </div>
 
           <div className="form-row">
             <label>Username</label>
             <input
-              value={form.username}
+              value={user?.username || ''}
               readOnly
-              placeholder="Username"
+              placeholder="Edit your username here"
             />
           </div>
 
           <div className="form-row">
             <label>E-mail</label>
             <input
-              value={form.email}
+              value={user?.email || ''}
               readOnly
               placeholder="user@example.com"
               type="email"
@@ -316,11 +309,10 @@ export default function ProfilePage() {
           <div className="form-row">
             <label>Password</label>
             <input
-              value={form.password}
+              type="password"
+              value="********"
               readOnly
               placeholder="********"
-              type="password"
-              autoComplete="new-password"
             />
           </div>
 
@@ -328,19 +320,20 @@ export default function ProfilePage() {
             <label>Role</label>
             <select
               name="role"
-              value={form.role}
-              onChange={handleChange}
-              disabled={!isAdmin}
+              value={user?.role || ''}
+              disabled // always disabled to prevent editing
+              style={{ backgroundColor: '#f0f0f0' }} // ensure gray background
             >
               <option value="staff">Staff</option>
               <option value="admin">Admin</option>
             </select>
-            {!isAdmin && (
-              <div className="muted small">
-                Role is set to <strong>staff</strong>. Only admins can change this.
-              </div>
-            )}
+
+            {/* Always show muted message if role is locked */}
+            <div className="muted small">
+              You have the highest authorization here. There's no downgrade.
+            </div>
           </div>
+
 
           <div className="form-actions">
             <button type="button" className="btn-primary" onClick={handleEditToggle}>
@@ -365,7 +358,7 @@ export default function ProfilePage() {
       {notifOpen && (
         <div
           className="notif-overlay"
-          onClick={() => setNotifOpen(false)} // klik di luar menutup
+          onClick={() => setNotifOpen(false)}
           style={{
             position: 'fixed',
             inset: 0,
