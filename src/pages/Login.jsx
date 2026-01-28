@@ -5,7 +5,7 @@ import '../utils/auth.css';
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const [identifier, setIdentifier] = useState(''); // to identify email/username
+  const [usernameOrEmail, setUsernameOrEmail] = useState(''); // to identify email/username
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -26,10 +26,11 @@ export default function LoginPage() {
         // Save JWT token to localStorage
         if (res.data?.token) {
           localStorage.setItem("token", res.data.token);
+          localStorage.setItem("user", JSON.stringify(res.data));
         }
 
-        // Navigate to home or profile page
-        navigate('/', { replace: true });
+        // Navigate to home after login
+        navigate('/home', { replace: true });
       } else {
         setError(res?.message || "Login failed");
       }
@@ -50,9 +51,9 @@ export default function LoginPage() {
             <span className="label-text">Username or E-mail</span>
             <input
               type="text"
-              name="identifier"
-              value={identifier}
-              onChange={(e) => setIdentifier(e.target.value)}
+              name="usernameOrEmail"
+              value={usernameOrEmail}
+              onChange={(e) => setUsernameOrEmail(e.target.value)}
               placeholder="username or e-mail"
               autoComplete="username"
               required

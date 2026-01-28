@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Avatar } from '@chakra-ui/react';
-import { getUser, isAuthenticated, updateUser } from '../utils/auth';
+import { getToken, isAuthenticated, updateUser } from '../utils/auth';
 import '../styles/profile-page.css';
 import EditProfileModal from '../components/EditProfileModal';
 
@@ -18,7 +18,31 @@ function fileToBase64(file) {
 
 export default function ProfilePage() {
   const navigate = useNavigate();
-  const user = isAuthenticated() ? getUser() : null;
+  const user = isAuthenticated() ? getToken() : null;
+
+  useEffect(() => {
+  const token = getToken();
+    if (!token) {
+      navigate('/login', { replace: true });
+      return;
+    }
+
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    } else {
+      // fallback: fetch from backend
+      getUser("me").then(res => {
+        if (res.status === "success") {
+          setUser(res.data);
+          localStorage.setItem("user", JSON.stringify(res.data));
+        } else {
+          setError(res.message);
+        }
+      });
+    }
+  }, [navigate]);
+
 
   const [form, setForm] = useState({
     fullName: user?.full_name || '',
@@ -29,7 +53,7 @@ export default function ProfilePage() {
     avatarUrl: user?.avatarUrl || null,
   });
 
-  // Avatar sync langsung dari getUser
+  // Avatar sync langsung dari getToken
   const [avatarSrc, setAvatarSrc] = useState(user?.avatarUrl || null);
   const fileRef = useRef(null);
   const isAdmin = user?.role === 'admin';
@@ -37,7 +61,7 @@ export default function ProfilePage() {
 
   // Keep form in sync if user object changes externally
   useEffect(() => {
-    const u = getUser();
+    const u = getToken();
     setForm((prev) => ({
       ...prev,
       fullName: u?.full_name || prev.fullName,
@@ -354,7 +378,7 @@ export default function ProfilePage() {
         >
           <div
             className={`notif-card ${notifType === 'success' ? 'success' : 'error'}`}
-            onClick={(e) => e.stopPropagation()} // mencegah close saat klik di dalam
+            onClick={(e) => e.stopPropagation()}
             style={{
               width: 360,
               maxWidth: '90%',
