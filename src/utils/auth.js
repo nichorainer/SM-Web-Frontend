@@ -2,18 +2,21 @@ const AUTH_TOKEN_KEY = 'sm_token';
 
 // Register user via backend
 export async function registerUser(data) {
-  const res = await fetch("http://localhost:8080/auth/register", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
+  try {
+    const res = await fetch("http://localhost:8080/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
 
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.message || "Failed to register");
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(json.message || "Failed to register");
+    }
+    return json;
+  } catch (err) {
+    return { status: "error", message: err.message };
   }
-
-  return res.json();
 }
 
 // Login user via backend

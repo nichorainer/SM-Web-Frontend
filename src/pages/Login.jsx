@@ -5,7 +5,7 @@ import '../utils/auth.css';
 
 export default function LoginPage() {
   const navigate = useNavigate();
-   const [identifier, setIdentifier] = useState(''); // to identify email/username
+  const [identifier, setIdentifier] = useState(''); // to identify email/username
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -17,28 +17,32 @@ export default function LoginPage() {
 
     try {
       // Call backend login API
-      const res = await loginUser({ 
-        username_or_email: usernameOrEmail, 
-        password 
+      const res = await loginUser({
+        username_or_email: usernameOrEmail,
+        password,
       });
 
-      if (res.status === "success") {
+      // Pastikan res selalu ada dan punya status
+      if (res && res.status === "success") {
         // Save JWT token to localStorage
-        localStorage.setItem("token", res.data.token);
+        if (res.data?.token) {
+          localStorage.setItem("token", res.data.token);
+        }
 
         // Navigate to home or profile page
         navigate('/', { replace: true });
       } else {
-        setError(res.message || "Login failed");
+        setError(res?.message || "Login failed");
       }
     } catch (err) {
       console.error('login error', err);
-      setError(err.message);
+      // Gunakan fallback aman untuk error
+      setError(err?.message || "Unexpected error during login");
     } finally {
       setSubmitting(false);
     }
   };
-
+  
   return (
     <div className="auth-root">
       <div className="auth-card">
