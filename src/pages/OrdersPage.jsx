@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import OrdersTable from '../components/OrdersTable.jsx';
 import '../styles/orders-page.css';
 
@@ -48,7 +48,7 @@ export default function OrdersPage() {
     destination: '',
     items: 1,
     status: 'Pending',
-    date: new Date().toLocaleDateString(), // default today
+    date: new Date().toISOString().slice(0, 10), // default today
   });
 
   // Reset func for search bar
@@ -57,15 +57,15 @@ export default function OrdersPage() {
     setPlatform('all');
     setStatus('all');
   };
-  
+
   function updateField(field, value) {
     setNewOrder(prev => ({ ...prev, [field]: value }));
   }
 
   // Generate next Order ID in format
   function generateOrderId() {
-    const base = Math.floor(Math.random() * 900000) + 100000; // sample generator
-    return `#${String(base).padStart(6, '0')}`;
+    const base = Math.floor(Math.random() * 900000) + 100000;
+    return `#${String(base).slice(0, 6)}`;
   }
 
   // Save handler: save, close modal, and refresh table
@@ -75,7 +75,7 @@ export default function OrdersPage() {
 
     setTimeout(() => {
       const order = {
-        id: generateOrderId(),
+        orderId: generateOrderId(),
         date: newOrder.date,
         customer: newOrder.customer,
         platform: newOrder.platform,
@@ -100,7 +100,7 @@ export default function OrdersPage() {
         destination: '',
         items: 1,
         status: 'Pending',
-        date: new Date().toLocaleDateString(),
+        date: new Date().toISOString().slice(0, 10),
       });
     }, 600);
   }
@@ -163,8 +163,8 @@ export default function OrdersPage() {
           search={search}
           platform={platform}
           status={status}
-          // provide callback if you prefer prop-based add
-          onAddOrder={(o) => setOrders(prev => [o, ...prev])}
+          // keep onAddOrder only if you want parent callback
+          // onAddOrder={(o) => setOrders(prev => [o, ...prev])}
         />
       </div>
       {showCreate && (
@@ -235,7 +235,7 @@ export default function OrdersPage() {
                   <label>Date</label>
                   <input
                     type="date"
-                    value={new Date(newOrder.date).toISOString().slice(0, 10)}
+                    value={newOrder.date}
                     onChange={e => updateField('date', e.target.value)}
                   />
                 </div>
