@@ -20,7 +20,8 @@ export default function ProfilePage() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [error, setError] = useState('');
-
+  const [avatarUrl, setAvatarUrl] = useState('');
+  const fileInputRef = useRef(null); // used to trigger hidden file input
 
   useEffect(() => {
   const token = getToken();
@@ -47,17 +48,11 @@ export default function ProfilePage() {
 
 
   const [form, setForm] = useState({
-    fullName: user?.full_name || '',
-    username: user?.username || '',
-    email: user?.email || '',
-    password: user?.password || '',
-    role: user?.role || 'staff',
-    avatarUrl: user?.avatarUrl || null,
+    
   });
 
   // Avatar sync langsung dari getToken
   const [avatarSrc, setAvatarSrc] = useState(user?.avatarUrl || null);
-  const fileRef = useRef(null);
   const isAdmin = user?.role === 'admin';
   const [savingAvatar, setSavingAvatar] = useState(false);
 
@@ -107,12 +102,6 @@ export default function ProfilePage() {
   // Save from modal or form submit
   const handleSave = (e) => {
     if (e && e.preventDefault) e.preventDefault();
-
-    // Basic validation
-    if (!form.fullName.trim() || !form.username.trim() || !form.email.trim()) {
-      alert('Full name, username and email are required.');
-      return;
-    }
 
     // Update localStorage via helper
     const updated = updateUser({
@@ -237,36 +226,54 @@ export default function ProfilePage() {
       <div className="profile-card">
         <div className="profile-left">
           <div className="avatar-large">
-            <Avatar boxSize="96px" name={form.fullName || 'User'} src={avatarSrc || undefined} />
+            {/* Show initials from user.full_name */}
+            {user?.full_name
+              ? user.full_name
+                  .split(' ')
+                  .map((n) => n[0])
+                  .join('')
+                  .toUpperCase()
+              : 'U'}
           </div>
 
           <div className="basic-info">
-            <h3 className="name">{form.fullName || '...'}</h3>
+            <h3 className="name">{user?.full_name || 'Unknown User'}</h3>
 
             {/* Upload to change avatar */}
             <div style={{ marginTop: 12 }}>
               <button 
                 type="button" 
                 className="btn-outline-add" 
-                onClick={triggerFileSelect}
+                onClick={() => fileInputRef.current?.click()}
               >
                 Change avatar
               </button>
+              
               {/* Remove/delete avatar */}
               <button
                 type="button"
                 className="btn-outline-remove"
-                onClick={removeAvatar}
+                onClick={() => setAvatarUrl('')}
                 style={{ marginLeft: 8 }}
               >
                 Remove avatar
               </button>
+
               <input
-                ref={fileRef}
+                ref={fileInputRef}
                 type="file"
                 accept="image/*"
                 style={{ display: 'none' }}
-                onChange={handleFile}
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                      setAvatarUrl(reader.result); // preview uploaded avatar
+                    };
+                    reader.readAsDataURL(file);
+                  }
+                }}
               />
               {savingAvatar && (
                 <div className="muted" style={{ marginTop: 8 }}>
