@@ -180,8 +180,6 @@ export default function ProfilePage() {
       username: form.username,
       email: form.email,
       ...(form.password ? { password: form.password } : {}),
-      role: form.role,
-      avatarUrl: form.avatarUrl || null,
     };
 
     try {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Avatar } from '@chakra-ui/react';
 import '../styles/edit-profile-modal.css';
 
@@ -13,6 +13,24 @@ export default function EditProfileModal({ isOpen, onClose, user, token, onUserU
     password: '',
     avatarUrl: user?.avatar_url || ''
   });
+  
+  // Load avatar
+  const [localAvatar, setLocalAvatar] = useState(null);
+
+  // Reset form everytime Edit Profile Modal opens
+  useEffect(() => {
+    if (isOpen && user) {
+      const storedAvatar = localStorage.getItem("avatar");
+      setLocalAvatar(storedAvatar);
+      setForm({
+        fullName: user.full_name || '',
+        username: user.username || '',
+        email: user.email || '',
+        password: '',
+      });
+    }
+  }, [isOpen, user]);
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -56,10 +74,11 @@ export default function EditProfileModal({ isOpen, onClose, user, token, onUserU
         <h3>Edit Profile</h3>
 
         <div className="modal-avatar">
+          {/* Show avatar preview */}
           <Avatar
             size="xl"
-            name={user?.full_name|| "Unknown User"}
-            src={user?.avatar_url || undefined}
+            name={form.fullName || "Unknown User"}
+            src={localAvatar || undefined}
           />
         </div>
 
@@ -95,14 +114,6 @@ export default function EditProfileModal({ isOpen, onClose, user, token, onUserU
             onChange={handleChange}
             type="password"
             placeholder="Enter your new password"
-          />
-
-          <label>Avatar URL</label>
-          <input
-            name="avatarUrl"
-            value={form.avatarUrl}
-            onChange={handleChange}
-            placeholder="Enter avatar URL"
           />
 
           <div className="modal-actions">
