@@ -1,28 +1,23 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Avatar } from '@chakra-ui/react';
+import { Avatar, useToast } from '@chakra-ui/react';
 import { getToken, isAuthenticated, updateUser } from '../utils/auth';
 import '../styles/profile-page.css';
 import EditProfileModal from '../components/EditProfileModal';
 
-const USER_STORAGE_KEY = 'sm_user';
-
-function fileToBase64(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = (e) => reject(e);
-    reader.readAsDataURL(file);
-  });
-}
-
 export default function ProfilePage() {
   const navigate = useNavigate();
+  // user data
   const [user, setUser] = useState(null);
   const [error, setError] = useState('');
+  //avatar state
   const [avatarUrl, setAvatarUrl] = useState('');
-  const fileInputRef = useRef(null); // used to trigger hidden file input
+  const [savingAvatar, setSavingAvatar] = useState(false);
+  const toast = useToast();
+  // used to trigger hidden file input
+  const fileInputRef = useRef(null);
 
+  // User token
   useEffect(() => {
   const token = getToken();
     if (!token) {
@@ -46,45 +41,82 @@ export default function ProfilePage() {
     }
   }, [navigate]);
 
-
-  const [form, setForm] = useState({
-    
-  });
-
-  // Avatar sync langsung dari getToken
-  const [avatarSrc, setAvatarSrc] = useState(user?.avatarUrl || null);
-  const isAdmin = user?.role === 'admin';
-  const [savingAvatar, setSavingAvatar] = useState(false);
-
-  // Keep form in sync if user object changes externally
+  // FE stores avatar
   useEffect(() => {
-    const u = getToken();
-    setForm((prev) => ({
-      ...prev,
-      fullName: u?.full_name || prev.fullName,
-      username: u?.username || prev.username,
-      email: u?.email || prev.email,
-      password: u?.password || prev.password,
-      role: u?.role || prev.role,
-      avatarUrl: u?.avatarUrl || prev.avatarUrl,
-    }));
-    setAvatarSrc(u?.avatarUrl || null);
-  }, []);
-
-  // Listen for avatar-updated events (dispatched by Header or other)
-  useEffect(() => {
-    function onAvatarUpdated(e) {
-      const val = e?.detail ?? null;
-      setAvatarSrc(val);
-      setForm((prev) => ({ ...prev, avatarUrl: val }));
+    const cachedAvatar = localStorage.getItem("avatar");
+    if (cachedAvatar) {
+      setAvatarUrl(cachedAvatar);
     }
-    window.addEventListener('avatar-updated', onAvatarUpdated);
-    return () => window.removeEventListener('avatar-updated', onAvatarUpdated);
   }, []);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+
+  // Upload avatar handler
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      try {
+        const base64 = reader.result;
+        setAvatarUrl(base64);
+        setSavingAvatar(true);
+
+        // Save avatar locally
+        localStorage.setItem("avatar", base64);
+
+        // Show success toast
+        toast({
+          title: "Avatar updated",
+          description: "Your avatar was saved locally.",
+          status: "success",
+          duration: 4000,
+          isClosable: true,
+          position: "top-right",
+        });
+
+        setSavingAvatar(false);
+      } catch (err) {
+        setSavingAvatar(false);
+
+        // Show error toast
+        toast({
+          title: "Failed to save avatar",
+          description: "Something went wrong while saving locally.",
+          status: "error",
+          duration: 4000,
+          isClosable: true,
+          position: "top-right",
+        });
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Handler to remove avatar
+  const removeAvatar = () => {
+    try {
+      localStorage.removeItem("avatar");
+      setAvatarUrl("");
+
+      toast({
+        title: "Avatar removed",
+        description: "Your avatar has been cleared.",
+        status: "info",
+        duration: 4000,
+        isClosable: true,
+        position: "top-right",
+      });
+    } catch (err) {
+      toast({
+        title: "Failed to remove avatar",
+        description: "Something went wrong while removing.",
+        status: "error",
+        duration: 4000,
+        isClosable: true,
+        position: "top-right",
+      });
+    }
   };
 
   // Popup notification state
@@ -144,62 +176,6 @@ export default function ProfilePage() {
     setModalOpen(false);
   }
 
-  // Handle upload avatar
-  async function handleFile(e) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setSavingAvatar(true);
-    try {
-      const base64 = await fileToBase64(file);
-      // update storage
-      const updated = updateUser({ avatarUrl: base64 });
-      if (updated) {
-        // simpan juga ke cache header (opsional)
-      try {
-        localStorage.setItem('user-avatar', base64);
-      } catch (err) {
-        // ignore storage errors
-      }
-        setAvatarSrc(base64);
-        setForm((prev) => ({ ...prev, avatarUrl: base64 }));
-        window.dispatchEvent(new CustomEvent('avatar-updated', { detail: base64 }));
-      }
-    } catch (err) {
-      console.error('failed to read file', err);
-    } finally {
-      setSavingAvatar(false);
-      if (fileRef.current) fileRef.current.value = '';
-    }
-  }
-
-  function triggerFileSelect() {
-    fileRef.current?.click();
-  }
-
-  // Remove Avatar Handler
-  function removeAvatar() {
-    try {
-      // update sm_user
-      updateUser({ avatarUrl: null });
-
-      // hapus cache avatar yang mungkin dipakai Header
-      try {
-        localStorage.removeItem('user-avatar');
-      } catch (err) {
-        // ignore
-      }
-
-      // update state agar Avatar menampilkan inisial (Chakra Avatar pakai prop name)
-      setAvatarSrc(null);
-      setForm((prev) => ({ ...prev, avatarUrl: null }));
-
-      // beri tahu komponen lain
-      window.dispatchEvent(new CustomEvent('avatar-updated', { detail: null }));
-    } catch (err) {
-      console.error('failed to remove avatar', err);
-    }
-  }
-
   // Modal state
   const [modalOpen, setModalOpen] = useState(false);
   function handleEditToggle() {
@@ -227,13 +203,11 @@ export default function ProfilePage() {
         <div className="profile-left">
           <div className="avatar-large">
             {/* Show initials from user.full_name */}
-            {user?.full_name
-              ? user.full_name
-                  .split(' ')
-                  .map((n) => n[0])
-                  .join('')
-                  .toUpperCase()
-              : 'U'}
+            <Avatar
+              size="xl"
+              name={user?.full_name || "Unknown User"} // initials fallback
+              src={user?.avatarUrl || undefined}             // uploaded image if available
+            />
           </div>
 
           <div className="basic-info">
@@ -241,40 +215,31 @@ export default function ProfilePage() {
 
             {/* Upload to change avatar */}
             <div style={{ marginTop: 12 }}>
-              <button 
-                type="button" 
-                className="btn-outline-add" 
+              <input
+                type="file"
+                accept="image/*"
+                ref={fileInputRef}
+                style={{ display: "none" }}
+                onChange={handleFileSelect}
+              />
+
+              <button
+                type="button"
+                className="btn-outline-add"
                 onClick={() => fileInputRef.current?.click()}
               >
-                Change avatar
+                Change Avatar
               </button>
-              
-              {/* Remove/delete avatar */}
+
               <button
                 type="button"
                 className="btn-outline-remove"
-                onClick={() => setAvatarUrl('')}
+                onClick={removeAvatar}
                 style={{ marginLeft: 8 }}
               >
-                Remove avatar
+                Remove Avatar
               </button>
 
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                style={{ display: 'none' }}
-                onChange={(e) => {
-                  const file = e.target.files[0];
-                  if (file) {
-                    const reader = new FileReader();
-                    reader.onloadend = () => {
-                      setAvatarUrl(reader.result); // preview uploaded avatar
-                    };
-                    reader.readAsDataURL(file);
-                  }
-                }}
-              />
               {savingAvatar && (
                 <div className="muted" style={{ marginTop: 8 }}>
                   Saving avatar…
