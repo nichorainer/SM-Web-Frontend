@@ -320,13 +320,13 @@ export default function ProfilePage() {
             <label>Role</label>
             <input
               name="role"
-              value={user?.role || ''}
+              value="Admin"
               disabled
             />
 
             {/* Muted message */}
             <div className="muted small">
-              You have the highest authorization here. There's no downgrade.
+              You already have the highest authorization here.
             </div>
           </div>
 
