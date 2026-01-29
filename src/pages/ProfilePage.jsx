@@ -53,7 +53,17 @@ export default function ProfilePage() {
   // Upload avatar handler
   const handleFileSelect = (e) => {
     const file = e.target.files[0];
-    if (!file) return;
+      if (!file) {
+      toast({
+        title: "No file selected",
+        description: "Please choose an image to upload.",
+        status: "warning",
+        duration: 4000,
+        isClosable: true,
+        position: "top-right",
+      });
+      return;
+    }
 
     const reader = new FileReader();
     reader.onloadend = () => {
@@ -61,7 +71,6 @@ export default function ProfilePage() {
         const base64 = reader.result;
         setAvatarUrl(base64);
         setSavingAvatar(true);
-
         // Save avatar locally
         localStorage.setItem("avatar", base64);
 
@@ -78,7 +87,6 @@ export default function ProfilePage() {
         setSavingAvatar(false);
       } catch (err) {
         setSavingAvatar(false);
-
         // Show error toast
         toast({
           title: "Failed to save avatar",
@@ -131,6 +139,29 @@ export default function ProfilePage() {
     setNotifOpen(true);
   }
 
+    // Modal state
+  const [modalOpen, setModalOpen] = useState(false);
+  function handleEditToggle() {
+    setModalOpen(true);
+  }
+  function handleModalClose() {
+    setModalOpen(false);
+  }
+  function handleModalSave() {
+    // validate then save
+    handleSave();
+    setModalOpen(false);
+  }
+
+  // Form declaration
+  const [form, setForm] = useState({
+    fullName: '',
+    username: '',
+    email: '',
+    password: '',
+    role: '',
+  });
+
   // Save from modal or form submit
   const handleSave = (e) => {
     if (e && e.preventDefault) e.preventDefault();
@@ -142,7 +173,7 @@ export default function ProfilePage() {
       email: form.email,
       // only set password if provided (demo)
       ...(form.password ? { password: form.password } : {}),
-      avatarUrl: avatarSrc || null,
+      avatarUrl: avatarUrl || null,
       role: form.role,
     });
 
@@ -163,7 +194,7 @@ export default function ProfilePage() {
       username: form.username,
       email: form.email,
       ...(form.password ? { password: form.password } : {}),
-      avatarUrl: avatarSrc || null,
+      avatarUrl: avatarUrl || null,
       role: form.role,
     });
     // dispatch custom event so other components knows the changes made
@@ -173,20 +204,6 @@ export default function ProfilePage() {
     } else {
       showNotification('error', 'Failed to update profile.');
     }
-    setModalOpen(false);
-  }
-
-  // Modal state
-  const [modalOpen, setModalOpen] = useState(false);
-  function handleEditToggle() {
-    setModalOpen(true);
-  }
-  function handleModalClose() {
-    setModalOpen(false);
-  }
-  function handleModalSave() {
-    // validate then save
-    handleSave();
     setModalOpen(false);
   }
 
@@ -206,7 +223,12 @@ export default function ProfilePage() {
             <Avatar
               size="xl"
               name={user?.full_name || "Unknown User"} // initials fallback
-              src={user?.avatarUrl || undefined}             // uploaded image if available
+              src={avatarUrl || user?.avatarUrl || undefined}
+              style={{
+                width: "168px",
+                height: "168px",
+                fontSize: "32px",
+              }}
             />
           </div>
 
@@ -290,17 +312,13 @@ export default function ProfilePage() {
 
           <div className="form-row">
             <label>Role</label>
-            <select
+            <input
               name="role"
               value={user?.role || ''}
-              disabled // always disabled to prevent editing
-              style={{ backgroundColor: '#f0f0f0' }} // ensure gray background
-            >
-              <option value="staff">Staff</option>
-              <option value="admin">Admin</option>
-            </select>
+              disabled
+            />
 
-            {/* Always show muted message if role is locked */}
+            {/* Muted message */}
             <div className="muted small">
               You have the highest authorization here. There's no downgrade.
             </div>
