@@ -343,8 +343,10 @@ export default function ProfilePage() {
           isOpen={modalOpen}
           onClose={handleModalClose}
           onSave={handleModalSave}
+          user={user}
           form={form}
           onChange={handleChange}
+          onUserUpdated={(updatedUser) => setUser(updatedUser)}
         />
       )}
 

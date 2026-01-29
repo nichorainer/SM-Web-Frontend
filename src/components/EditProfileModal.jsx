@@ -13,24 +13,20 @@ export default function EditProfileModal({ isOpen, onClose, user, token, onUserU
     password: '',
     avatarUrl: user?.avatar_url || ''
   });
-  
-  // Load avatar
-  const [localAvatar, setLocalAvatar] = useState(null);
 
   // Reset form everytime Edit Profile Modal opens
   useEffect(() => {
     if (isOpen && user) {
       const storedAvatar = localStorage.getItem("avatar");
-      setLocalAvatar(storedAvatar);
       setForm({
         fullName: user.full_name || '',
         username: user.username || '',
         email: user.email || '',
         password: '',
+        avatarUrl: storedAvatar || ''
       });
     }
   }, [isOpen, user]);
-
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -50,16 +46,13 @@ export default function EditProfileModal({ isOpen, onClose, user, token, onUserU
           username: form.username,
           email: form.email,
           password: form.password,
-          avatar_url: form.avatarUrl
+          // avatar tidak dikirim ke backend, hanya disimpan lokal
         })
       });
 
-      if (!res.ok) {
-        throw new Error('Failed to update profile');
-      }
+      if (!res.ok) throw new Error('Failed to update profile');
 
       const data = await res.json();
-      // Notify parent with updated user data
       onUserUpdated(data.data);
       onClose();
     } catch (err) {
@@ -78,7 +71,7 @@ export default function EditProfileModal({ isOpen, onClose, user, token, onUserU
           <Avatar
             size="xl"
             name={form.fullName || "Unknown User"}
-            src={localAvatar || undefined}
+            src={form.avatarUrl || undefined}
           />
         </div>
 
