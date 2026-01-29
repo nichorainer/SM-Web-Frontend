@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Avatar, useToast } from '@chakra-ui/react';
-import { getToken, isAuthenticated, updateUser } from '../utils/auth';
+import { getToken, updateUser } from '../utils/auth';
 import '../styles/profile-page.css';
 import EditProfileModal from '../components/EditProfileModal';
 
@@ -132,78 +132,84 @@ export default function ProfilePage() {
   const [notifType, setNotifType] = useState('success'); // 'success' | 'error'
   const [notifMessage, setNotifMessage] = useState('');
 
-  // Helper untuk buka popup
+  // Helper untuk buka popup notification
   function showNotification(type, message) {
     setNotifType(type);
     setNotifMessage(message);
     setNotifOpen(true);
   }
 
-    // Modal state
+  // Modal state
   const [modalOpen, setModalOpen] = useState(false);
+
+  // Form declaration
+  const [form, setForm] = useState({
+    fullName: user?.full_name || "",
+    username: user?.username || "",
+    email: user?.email || "",
+    password: "",
+    role: user?.role || "",
+    avatarUrl: avatarUrl || "",
+  });
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // Open modal, close modal, save modal
   function handleEditToggle() {
     setModalOpen(true);
   }
-  function handleModalClose() {
+
+  function handleModalClose () {
     setModalOpen(false);
   }
+  
   function handleModalSave() {
-    // validate then save
     handleSave();
     setModalOpen(false);
   }
 
-  // Form declaration
-  const [form, setForm] = useState({
-    fullName: '',
-    username: '',
-    email: '',
-    password: '',
-    role: '',
-  });
-
   // Save from modal or form submit
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
 
-    // Update localStorage via helper
-    const updated = updateUser({
+    const updated = {
       full_name: form.fullName,
       username: form.username,
       email: form.email,
-      // only set password if provided (demo)
       ...(form.password ? { password: form.password } : {}),
-      avatarUrl: avatarUrl || null,
       role: form.role,
-    });
+      avatarUrl: form.avatarUrl || null,
+    };
 
-    if (updated) {
-      // dispatch custom event so other components knows the changes made
-      window.dispatchEvent(new CustomEvent('user-updated', { detail: updated }));
-      // reflect changes in local state
-      setForm((prev) => ({ ...prev, password: '' })); // clear password input
-      showNotification('success', 'Profile updated successfully.');
-    } else {
-      showNotification('error', 'Failed to update profile.');
+    try {
+      // Kirim ke backend
+      const res = await updateUser("me", updated);
+
+      if (res.status === "success") {
+        // simpan ke localStorage agar tetap ada di FE
+        localStorage.setItem("user", JSON.stringify(res.data));
+        setUser(res.data);
+
+        // dispatch custom event supaya komponen lain tahu
+        window.dispatchEvent(new CustomEvent("user-updated", { detail: res.data }));
+
+        // reset password agar tidak tersimpan plaintext
+        setForm((prev) => ({ ...prev, password: "" }));
+
+        showNotification("success", "Profile updated successfully.");
+      } else {
+        showNotification("error", res.message || "Failed to update profile.");
+      }
+    } catch (err) {
+      showNotification("error", "Error saving profile to backend.");
     }
   };
 
   function handleModalSave() {
-    const updated = updateUser({
-      full_name: form.fullName,
-      username: form.username,
-      email: form.email,
-      ...(form.password ? { password: form.password } : {}),
-      avatarUrl: avatarUrl || null,
-      role: form.role,
-    });
-    // dispatch custom event so other components knows the changes made
-    if (updated) {
-      window.dispatchEvent(new CustomEvent('user-updated', { detail: updated }));
-      showNotification('success', 'Profile updated successfully.');
-    } else {
-      showNotification('error', 'Failed to update profile.');
-    }
+    handleSave();
     setModalOpen(false);
   }
 
@@ -219,7 +225,7 @@ export default function ProfilePage() {
       <div className="profile-card">
         <div className="profile-left">
           <div className="avatar-large">
-            {/* Show initials from user.full_name */}
+            {/* Avatar shows initials from user.full_name */}
             <Avatar
               size="xl"
               name={user?.full_name || "Unknown User"} // initials fallback

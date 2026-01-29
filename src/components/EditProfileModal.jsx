@@ -11,21 +11,31 @@ export default function EditProfileModal({ isOpen, onClose, form, onChange, onSa
         <h3>Edit Profile</h3>
 
         <div className="modal-avatar">
-          <Avatar name={form.fullName || 'User'} src={form.avatarUrl} boxSize="64px" />
+          {/* Avatar shows initials from user.full_name */}
+            <Avatar
+              size="xl"
+              name={form?.full_name || "Unknown User"} // initials fallback
+              src={form.avatarUrl || undefined}
+              style={{
+                width: "168px",
+                height: "168px",
+                fontSize: "32px",
+              }}
+            />
         </div>
 
         <div className="modal-form">
           <label>Full Name</label>
-          <input name="fullName" value={form.fullName} onChange={onChange} />
+          <input name="fullName" onChange={onChange} placeholder="Enter your new full name"/>
 
           <label>Username</label>
-          <input name="username" value={form.username} onChange={onChange} />
+          <input name="username" onChange={onChange} placeholder="Enter your new username"/>
 
-          <label>Email</label>
-          <input name="email" value={form.email} onChange={onChange} />
+          <label>E-mail</label>
+          <input name="email" onChange={onChange} placeholder="Enter your new e-mail"/>
 
           <label>Password</label>
-          <input name="password" value={form.password} onChange={onChange} type="password" />
+          <input name="password" onChange={onChange} type="password" placeholder="Enter your new password"/>
 
           <div className="modal-actions">
             <button
