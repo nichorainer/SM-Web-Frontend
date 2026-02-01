@@ -3,7 +3,8 @@ import { Avatar } from '@chakra-ui/react';
 import { 
   getUser, 
   getProfile,
-  onAuthEvent,
+  readLocalAvatar, 
+  onAuthEvent, 
   offAuthEvent, 
 } from '../utils/auth';
 import '../styles/admin-page.css';
@@ -67,9 +68,10 @@ export default function AdminPage() {
   const [userData, setUserData] = useState(getUser() || null);
   // Prefer per-user FE avatar (if utils wrote it), then legacy 'user-avatar', then backend avatar
   const [avatarSrc, setAvatarSrc] = useState(
-    // read per-user key lazily in effect; initial fallback to legacy key or getUser()
+    // // read per-user key lazily in effect; initial fallback to legacy key or getUser()
     localStorage.getItem('user-avatar') || (getUser()?.avatarUrl || null)
   );
+  const userIdRef = { current: null };
 
   // derived filtered list
   const filteredStaff = useMemo(() => {
@@ -83,65 +85,111 @@ export default function AdminPage() {
     );
   }, [q, staff]);
 
-
-  // Sync initial and listen for the same tabs
+  // Sync initial and listen for updates — mirror Header logic
   useEffect(() => {
     let mounted = true;
+    const userIdRef = { current: null }; // simple ref-like holder
 
-    async function refreshFromProfile() {
+    // init: read authoritative profile (localStorage or backend)
+    async function init() {
       try {
-        // call getProfile from utils/auth.js (reads localStorage or backend)
-        const profile = await getProfile(); 
-        if (!mounted) return;
+        const profile = await getProfile();
+        console.log('Admin init profile:', profile);
+        if (!mounted || !profile) return;
+
+        userIdRef.current = profile.id;
         setUserData(profile);
-        // prefer per-user avatar key if present
-        const perUser = profile?.id ? localStorage.getItem(`fe_avatar_user_${profile.id}`) : null;
-        setAvatarSrc(perUser || localStorage.getItem('user-avatar') || profile?.avatarUrl || null);
+        // prefer per-user FE avatar if present
+        const local = readLocalAvatar(profile.id);
+        setAvatarSrc(local || profile.avatar_url || profile.avatarUrl || null);
       } catch (err) {
-        console.error('AdminPage refreshFromProfile error', err);
+        console.error('Admin getProfile error:', err);
       }
     }
+    init();
 
-    // initial refresh
-    refreshFromProfile();
+    // Handler: update avatar when emitter/window event arrives
+    const avatarHandler = (e) => {
+      // support both shapes: { id, dataUrl } or direct dataUrl
+      const detail = e?.detail ?? null;
+      const id = detail && typeof detail === 'object' && 'id' in detail ? detail.id : null;
+      const dataUrl = detail && typeof detail === 'object' && 'dataUrl' in detail ? detail.dataUrl : detail;
+      console.log('Admin avatarHandler event:', e?.type, e?.detail);
 
-    // handlers (use refreshFromProfile as fallback)
-    function onUserUpdated(e) {
+      // If id provided, only update when it matches current user; if no id, update anyway
+      if (!id || id === userIdRef.current) {
+        setAvatarSrc(dataUrl || null);
+      }
+    };
+
+    // Handler: update name when emitter/window event arrives
+    const nameHandler = (e) => {
+      const detail = e?.detail ?? null;
+      const id = detail && typeof detail === 'object' && 'id' in detail ? detail.id : null;
+      const fullName = detail && typeof detail === 'object' && 'fullName' in detail ? detail.fullName : detail?.full_name ?? null;
+      console.log('Admin nameHandler event:', e?.type, e?.detail);
+      if (!fullName) return;
+      if (!id || id === userIdRef.current) {
+        // update userData.full_name while preserving other fields
+        setUserData((prev) => (prev ? { ...prev, full_name: fullName } : prev));
+      }
+    };
+
+    // Handler: user refreshed payload
+    const userRefreshedHandler = (e) => {
+      const payload = e?.detail?.user ?? e?.detail ?? null;
+      console.log('Admin userRefreshed event:', e?.type, e?.detail);
+      if (!payload) return;
+      userIdRef.current = payload.id;
+      setUserData(payload);
+      const local = readLocalAvatar(payload.id);
+      setAvatarSrc(local || payload.avatar_url || payload.avatarUrl || null);
+    };
+
+    // Subscribe to utils emitter (if available)
+    try {
+      onAuthEvent?.('avatar:changed', avatarHandler);
+      onAuthEvent?.('name:changed', nameHandler);
+      onAuthEvent?.('user:refreshed', userRefreshedHandler);
+    } catch (err) {
+      console.warn('Admin emitter subscribe failed (ok if not present):', err);
+    }
+
+    // Legacy window events fallback (keeps backward compatibility)
+    function onUserUpdatedWindow(e) {
+      console.log('Admin window user-updated:', e?.detail);
       const updated = e?.detail ?? null;
       if (updated) {
+        userIdRef.current = updated.id ?? userIdRef.current;
         setUserData(updated);
-        const perUser = updated?.id ? localStorage.getItem(`fe_avatar_user_${updated.id}`) : null;
-        setAvatarSrc(perUser || localStorage.getItem('user-avatar') || updated.avatarUrl || null);
-      } else {
-        // fallback to authoritative source
-        refreshFromProfile();
+        const local = updated?.id ? readLocalAvatar(updated.id) : null;
+        setAvatarSrc(local || updated.avatar_url || updated.avatarUrl || null);
       }
     }
-
-    function onAvatarUpdated(e) {
-      const detail = e?.detail ?? null;
-      const dataUrl = detail && typeof detail === 'object' && 'dataUrl' in detail ? detail.dataUrl : detail;
-      const eventId = detail && typeof detail === 'object' && 'id' in detail ? detail.id : null;
-      if (eventId && userData?.id && eventId !== userData.id) return;
-      setAvatarSrc(dataUrl);
-      // ensure authoritative refresh
-      refreshFromProfile();
+    function onAvatarUpdatedWindow(e) {
+      console.log('Admin window avatar-updated:', e?.detail);
+      const val = e?.detail ?? null;
+      // If event carries no id, assume it's for current user; otherwise compare in avatarHandler
+      setAvatarSrc(val || null);
     }
 
-    onAuthEvent?.('avatar:changed', onAvatarUpdated);
-    onAuthEvent?.('name:changed', onUserUpdated);
-    onAuthEvent?.('user:refreshed', (e) => refreshFromProfile());
+    window.addEventListener('user-updated', onUserUpdatedWindow);
+    window.addEventListener('avatar-updated', onAvatarUpdatedWindow);
 
-    window.addEventListener('user-updated', onUserUpdated);
-    window.addEventListener('avatar-updated', onAvatarUpdated);
-
+    // cleanup
     return () => {
       mounted = false;
-      offAuthEvent?.('avatar:changed', onAvatarUpdated);
-      offAuthEvent?.('name:changed', onUserUpdated);
-      window.removeEventListener('user-updated', onUserUpdated);
-      window.removeEventListener('avatar-updated', onAvatarUpdated);
+      try {
+        offAuthEvent?.('avatar:changed', avatarHandler);
+        offAuthEvent?.('name:changed', nameHandler);
+        offAuthEvent?.('user:refreshed', userRefreshedHandler);
+      } catch (err) {
+        // ignore
+      }
+      window.removeEventListener('user-updated', onUserUpdatedWindow);
+      window.removeEventListener('avatar-updated', onAvatarUpdatedWindow);
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // * TO EDIT STAFF *

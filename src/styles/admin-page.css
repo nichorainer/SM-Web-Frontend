@@ -41,6 +41,20 @@
   font-size: 14px !important;
 }
 
+.admin-user-info .admin-name {
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 1.1;
+  color: #111827;
+}
+
+.admin-user-info .admin-email {
+  font-weight: 400;
+  font-size: 13px;
+  color: #6b7280;
+  margin-top: 2px;
+}
+
 /* Grid */
 .admin-grid {
   display: grid;

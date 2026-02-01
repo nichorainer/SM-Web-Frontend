@@ -240,7 +240,11 @@ export default function Header() {
               />
               <div className="profile-info">
                 <span className="profile-name">{displayName}</span>
-                <span className="profile-role">{displayRole}</span>
+                <span className="profile-role">
+                  {displayRole
+                  ? `${displayRole.charAt(0).toUpperCase()}${displayRole.slice(1)}`
+                  : ''}
+              </span>
               </div>
             </button>
 

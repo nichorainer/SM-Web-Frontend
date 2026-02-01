@@ -301,7 +301,7 @@ export default function ProfilePage() {
           status: 'warning',
           duration: 4000,
           isClosable: true,
-          position: 'top-right',
+          position: 'top-right', 
         });
         return;
       }
