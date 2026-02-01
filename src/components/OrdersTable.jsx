@@ -73,7 +73,7 @@ export default function OrdersTable({
               </tr>
             ) : (
               orders.map((o, idx) => {
-                const key = o.orderName || o.id || `order-${idx}`;
+                const key = o.orderId || o.id || `order-${idx}`;
 
                 // status class for 3 options
                 const statusValue = (o.status || '').toLowerCase();
@@ -88,7 +88,7 @@ export default function OrdersTable({
 
                 return (
                   <tr key={key}>
-                    <td className="mono">{o.orderName || o.id || '-'}</td>
+                    <td className="mono">{o.orderId || o.id || '-'}</td>
                     <td>{o.created_at ? new Date(o.created_at).toLocaleString() : '-'}</td>
                     <td>{o.customer || '-'}</td>
                     <td>{o.platform || '-'}</td>
