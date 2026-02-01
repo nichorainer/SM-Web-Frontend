@@ -108,7 +108,7 @@ export default function OrdersPage() {
       const mapped = {
         id: created.id ?? generateOrderId(),
         orderNumber: created.order_number ?? payload.order_number,
-        customerName: created.customer_name ?? payload.customer_name,
+        customer: created.customer_name ?? payload.customer_name,
         platform: created.platform ?? payload.platform,
         destination: created.destination ?? payload.destination,
         total_amount: created.total_amount ?? payload.total_amount,

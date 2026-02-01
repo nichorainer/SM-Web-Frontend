@@ -16,3 +16,18 @@ button[disabled] {
   cursor: not-allowed;
 }
 
+/* Order Status */
+.status.completed {
+  color: white;
+  font-weight: bold;
+}
+
+.status.shipping {
+  color: white;
+  font-weight: bold;
+}
+
+.status.pending {
+  color: white;
+  font-weight: bold;
+}

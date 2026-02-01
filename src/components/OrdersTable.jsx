@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import '../styles/orders.css';
 import { validateOrderPayload } from '../utils/validators';
 
@@ -6,13 +6,6 @@ export default function OrdersTable({
   orders = [],
   onAddOrder, // optional callback if parent wants to be notified (not used for event-driven adds)
 }) {
-  // local copy so the table can update itself without forcing parent re-renders
-  // const [list, setList] = useState(Array.isArray(orders) ? orders : []);
-
-  // sync local list when parent prop changes
-  // useEffect(() => {
-  //   setList(Array.isArray(orders) ? orders : []);
-  // }, [orders]);
 
   // Add order handler
   useEffect(() => {
@@ -40,8 +33,6 @@ export default function OrdersTable({
         __raw: newOrder,
       };
 
-      // setList(prev => [normalized, ...prev]);
-
       // optionally notify parent (do not call parent to re-add to backend)
       if (typeof onAddOrder === 'function') {
         try {
@@ -65,7 +56,7 @@ export default function OrdersTable({
             <tr>
               <th>Order ID</th>
               <th>Created At</th>
-              <th>Customer</th>
+              <th>Customer Name</th>
               <th>Platform</th>
               <th>Destination</th>
               <th>total_amount</th>
@@ -80,9 +71,17 @@ export default function OrdersTable({
             ) : (
               orders.map((o, idx) => {
                 const key = o.orderId || o.id || `order-${idx}`;
-                const statusClass = ((o.status || '').toString().toLowerCase() === 'completed') 
-                ? 'completed' 
-                : 'pending';
+
+                // status class for 3 options
+                const statusValue = (o.status || '').toString().toLowerCase();
+                let statusClass = '';
+                if (statusValue === 'completed') {
+                  statusClass = 'completed';   // green
+                } else if (statusValue === 'shipping') {
+                  statusClass = 'shipping';    // gray
+                } else {
+                  statusClass = 'pending';     // red
+                }
 
                 return (
                   <tr key={key}>
