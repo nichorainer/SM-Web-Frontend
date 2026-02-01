@@ -59,7 +59,7 @@ export default function OrdersTable({
               <th>Customer Name</th>
               <th>Platform</th>
               <th>Destination</th>
-              <th>total_amount</th>
+              <th>Total Amount</th>
               <th>Status</th>
             </tr>
           </thead>
