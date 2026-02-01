@@ -1,10 +1,15 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Avatar } from '@chakra-ui/react';
-import { getUser, isAuthenticated } from '../utils/auth';
+import { 
+  getUser, 
+  getProfile,
+  onAuthEvent,
+  offAuthEvent, 
+} from '../utils/auth';
 import '../styles/admin-page.css';
 
 /* AdminPage (no API) */
-// helper: Capitalize first letter, lowercase sisanya
+// Helper: Capitalize first letter, lowercase the rest
 function capitalizeRole(role) {
   if (!role) return '';
   return String(role).charAt(0).toUpperCase() + String(role).slice(1).toLowerCase();
@@ -48,8 +53,6 @@ const MOCK_LOGS = [
 ];
 
 export default function AdminPage() {
-  const currentUser = typeof isAuthenticated === 'function' && isAuthenticated() ? getUser() : null;
-
   const [staff, setStaff] = useState(MOCK_STAFF);
   const [q, setQ] = useState('');
   const [loadingStaff, setLoadingStaff] = useState(false);
@@ -62,7 +65,9 @@ export default function AdminPage() {
 
   // User Data (Admin) to display at top right page
   const [userData, setUserData] = useState(getUser() || null);
+  // Prefer per-user FE avatar (if utils wrote it), then legacy 'user-avatar', then backend avatar
   const [avatarSrc, setAvatarSrc] = useState(
+    // read per-user key lazily in effect; initial fallback to legacy key or getUser()
     localStorage.getItem('user-avatar') || (getUser()?.avatarUrl || null)
   );
 
@@ -81,56 +86,65 @@ export default function AdminPage() {
 
   // Sync initial and listen for the same tabs
   useEffect(() => {
-    // Refresh initial
-    const u = getUser();
-    setUserData(u);
-    setAvatarSrc(localStorage.getItem('user-avatar') || u?.avatarUrl || null);
+    let mounted = true;
 
-    // Handler for user change (fullname/email/role)
+    async function refreshFromProfile() {
+      try {
+        // call getProfile from utils/auth.js (reads localStorage or backend)
+        const profile = await getProfile(); 
+        if (!mounted) return;
+        setUserData(profile);
+        // prefer per-user avatar key if present
+        const perUser = profile?.id ? localStorage.getItem(`fe_avatar_user_${profile.id}`) : null;
+        setAvatarSrc(perUser || localStorage.getItem('user-avatar') || profile?.avatarUrl || null);
+      } catch (err) {
+        console.error('AdminPage refreshFromProfile error', err);
+      }
+    }
+
+    // initial refresh
+    refreshFromProfile();
+
+    // handlers (use refreshFromProfile as fallback)
     function onUserUpdated(e) {
       const updated = e?.detail ?? null;
       if (updated) {
         setUserData(updated);
-        setAvatarSrc(localStorage.getItem('user-avatar') || updated.avatarUrl || null);
+        const perUser = updated?.id ? localStorage.getItem(`fe_avatar_user_${updated.id}`) : null;
+        setAvatarSrc(perUser || localStorage.getItem('user-avatar') || updated.avatarUrl || null);
       } else {
-        const fresh = getUser();
-        setUserData(fresh);
-        setAvatarSrc(localStorage.getItem('user-avatar') || fresh?.avatarUrl || null);
+        // fallback to authoritative source
+        refreshFromProfile();
       }
     }
 
-    // Handler for avatar change
     function onAvatarUpdated(e) {
-      const val = e?.detail ?? null;
-      setAvatarSrc(val);
-      const fresh = getUser();
-      setUserData(fresh);
+      const detail = e?.detail ?? null;
+      const dataUrl = detail && typeof detail === 'object' && 'dataUrl' in detail ? detail.dataUrl : detail;
+      const eventId = detail && typeof detail === 'object' && 'id' in detail ? detail.id : null;
+      if (eventId && userData?.id && eventId !== userData.id) return;
+      setAvatarSrc(dataUrl);
+      // ensure authoritative refresh
+      refreshFromProfile();
     }
+
+    onAuthEvent?.('avatar:changed', onAvatarUpdated);
+    onAuthEvent?.('name:changed', onUserUpdated);
+    onAuthEvent?.('user:refreshed', (e) => refreshFromProfile());
 
     window.addEventListener('user-updated', onUserUpdated);
     window.addEventListener('avatar-updated', onAvatarUpdated);
 
     return () => {
+      mounted = false;
+      offAuthEvent?.('avatar:changed', onAvatarUpdated);
+      offAuthEvent?.('name:changed', onUserUpdated);
       window.removeEventListener('user-updated', onUserUpdated);
       window.removeEventListener('avatar-updated', onAvatarUpdated);
     };
   }, []);
 
-  // To reflect listen storage for other tabs
-  useEffect(() => {
-    function onStorage(e) {
-      if (!e) return;
-      if (e.key === 'sm_user' || e.key === 'user-avatar') {
-        const u = getUser();
-        setUserData(u);
-        setAvatarSrc(localStorage.getItem('user-avatar') || u?.avatarUrl || null);
-      }
-    }
-    window.addEventListener('storage', onStorage);
-    return () => window.removeEventListener('storage', onStorage);
-  }, []);
-
-  // For edit staff permissions
+  // * TO EDIT STAFF *
   useEffect(() => {
     // simulate loading briefly (no API)
     setLoadingStaff(true);
@@ -188,10 +202,20 @@ export default function AdminPage() {
         </div>
 
         <div className="admin-user">
-          <Avatar name={userData?.full_name || 'User'} src={avatarSrc || undefined} boxSize="40px" />
+          <Avatar
+            name={userData?.full_name || 'User'}
+            src={avatarSrc || undefined}
+            boxSize="40px"
+          />
+
           <div style={{ marginLeft: 8 }} className="admin-user-info">
-            <div className="admin-name">{userData?.full_name || 'Guest'}</div>
-            <div className="admin-email">{userData?.email || null }</div>
+            <div className="admin-name">
+              {userData?.full_name || 'Guest'}
+            </div>
+            <div className="admin-email">
+              {userData?.email || null}
+            </div>
+
           </div>
         </div>
       </header>

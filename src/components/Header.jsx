@@ -3,27 +3,31 @@ import { useNavigate } from 'react-router-dom';
 import { IoNotificationsOutline } from "react-icons/io5";
 import { Avatar } from '@chakra-ui/react';
 import '../styles/header.css';
-import { getUser } from '../utils/auth';
-
-const AVATAR_STORAGE_KEY = 'user-avatar';
-const AUTH_TOKEN_KEY = 'auth_token';
-const USER_STORAGE_KEY = 'sm_user';
+import {
+  getProfile,
+  readLocalAvatar, 
+  onAuthEvent, 
+  offAuthEvent, 
+  setLocalAvatarAndEmit 
+} from '../utils/auth';
 
 export default function Header() {
-  // ambil initial user dari helper
-  const initialUser = getUser();
-  const [userData, setUserData] = useState(initialUser || null);
-  const [avatarSrc, setAvatarSrc] = useState(
-    // prefer stored avatar key, fallback ke user.avatarUrl
-    localStorage.getItem(AVATAR_STORAGE_KEY) || initialUser?.avatarUrl || null
-  );
-  const [open, setOpen] = useState(false);
-  const [notifOpen, setNotifOpen] = useState(false);
-  const profileRef = useRef(null);
-  const notifRef = useRef(null);
-  const fileInputRef = useRef(null);
   const navigate = useNavigate();
-  const [notifCount] = useState(0); // default 0, bisa diisi dari API nanti
+  const notifRef = useRef(null);
+  const profileRef = useRef(null);
+  const fileInputRef = useRef(null);
+
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [notifCount] = useState(0); // keep your existing logic
+  const [open, setOpen] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  // user display state
+  const [avatarSrc, setAvatarSrc] = useState(null);
+  const [displayName, setDisplayName] = useState("Guest");
+  const [displayRole, setDisplayRole] = useState(""); // keep if you set role elsewhere
+  const [userId, setUserId] = useState(null);
+  const userIdRef = useRef(null);
 
   // Close both notification and profile pop up when outside click
   useEffect(() => {
@@ -35,110 +39,134 @@ export default function Header() {
     return () => document.removeEventListener('mousedown', onDocClick);
   }, []);
 
-  // Sync initial user setiap mount (jika ada perubahan sebelum mount)
+  // Initialize profile and avatar on mount
   useEffect(() => {
-    const u = getUser();
-    setUserData(u);
-    const storedAvatar = localStorage.getItem(AVATAR_STORAGE_KEY);
-    if (storedAvatar) setAvatarSrc(storedAvatar);
-    else setAvatarSrc(u?.avatarUrl || null);
-  }, []);
+    let mounted = true;
 
-  // Listen for user-updated events (profile edits in same tab)
-  useEffect(() => {
-    function onUserUpdated(e) {
-      const updatedUser = e?.detail ?? null;
-      if (updatedUser) {
-        setUserData(updatedUser);
-        // prefer explicit avatar cache if present, else use updatedUser.avatarUrl
-        const storedAvatar = localStorage.getItem(AVATAR_STORAGE_KEY);
-        setAvatarSrc(storedAvatar || updatedUser.avatarUrl || null);
-      } else {
-        // fallback: reload from storage
-        const u = getUser();
-        setUserData(u);
-        const storedAvatar = localStorage.getItem(AVATAR_STORAGE_KEY);
-        setAvatarSrc(storedAvatar || u?.avatarUrl || null);
-      }
-    }
-
-    window.addEventListener('user-updated', onUserUpdated);
-    return () => window.removeEventListener('user-updated', onUserUpdated);
-  }, []);
-
-  // Listen for avatar-updated custom event (dispatched oleh ProfilePage / Header)
-  useEffect(() => {
-    function onAvatarUpdated(e) {
-      const val = e?.detail ?? null;
-      setAvatarSrc(val);
-      // juga refresh userData dari storage agar fullname/role terupdate
-      const u = getUser();
-      setUserData(u);
-    }
-    window.addEventListener('avatar-updated', onAvatarUpdated);
-    return () => window.removeEventListener('avatar-updated', onAvatarUpdated);
-  }, []);
-
-  // Listen for storage events (sinkron antar tab)
-  useEffect(() => {
-    function onStorage(e) {
-      if (!e) return;
-      // jika sm_user berubah, reload userData
-      if (e.key === 'sm_user' || e.key === AVATAR_STORAGE_KEY) {
-        const u = getUser();
-        setUserData(u);
-        const storedAvatar = localStorage.getItem(AVATAR_STORAGE_KEY);
-        setAvatarSrc(storedAvatar || u?.avatarUrl || null);
-      }
-    }
-    window.addEventListener('storage', onStorage);
-    return () => window.removeEventListener('storage', onStorage);
-  }, []);
-
-  // Handle upload avatar (via header change avatar)
-  async function handleFileChange(e) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      const base64 = reader.result;
+    async function init() {
       try {
-        // Simpan juga ke key avatar lokal (opsional)
-        localStorage.setItem(AVATAR_STORAGE_KEY, base64);
+        const profile = await getProfile();
+        console.log("Header init profile:", profile);
+        if (!mounted || !profile) return;
 
-        // Update sm_user agar konsisten dengan ProfilePage
-        try {
-          if (typeof updateUser === 'function') {
-            updateUser({ avatarUrl: base64 });
-          } else {
-            const raw = localStorage.getItem('sm_user');
-            const u = raw ? JSON.parse(raw) : {};
-            u.avatarUrl = base64;
-            localStorage.setItem('sm_user', JSON.stringify(u));
-          }
-        } catch (err) {
-          console.warn('failed to update user object in storage', err);
-        }
+        setUserId(profile.id);
+        userIdRef.current = profile.id;
 
-        setAvatarSrc(base64);
-        // dispatch event agar komponen lain (ProfilePage) tahu avatar berubah
-        window.dispatchEvent(new CustomEvent('avatar-updated', { detail: base64 }));
+        setDisplayName(profile.full_name || profile.fullName || "Guest");
+        setDisplayRole(profile.role || "");
+        const local = readLocalAvatar(profile.id);
+        setAvatarSrc(local || profile.avatar_url || profile.avatarUrl || null);
       } catch (err) {
-        console.error('Failed to save avatar', err);
+        console.error("Header getProfile error:", err);
+      }
+    }
+    init();
+
+    // Handler: update avatar when emitter/window event arrives
+    const avatarHandler = (e) => {
+      const { id, dataUrl } = e?.detail ?? {};
+      console.log("Header avatarHandler event:", e?.type, e?.detail);
+      // If id provided, only update when it matches current user; if no id, update anyway
+      if (!id || id === userIdRef.current) {
+        setAvatarSrc(dataUrl || null);
       }
     };
+
+    // Handler: update name when emitter/window event arrives
+    const nameHandler = (e) => {
+      const { id, fullName } = e?.detail ?? {};
+      console.log("Header nameHandler event:", e?.type, e?.detail);
+      // Update if event is for current user or if no id provided
+      if (!fullName) return;
+      if (!id || id === userIdRef.current) {
+        setDisplayName(fullName);
+      }
+    };
+
+    const userRefreshedHandler = (e) => {
+      const { user } = e?.detail ?? {};
+      console.log("Header userRefreshed event:", e?.type, e?.detail);
+      if (!user) return;
+      userIdRef.current = user.id;
+      setUserId(user.id);
+      setDisplayName(user.full_name || user.fullName || "Guest");
+      const local = readLocalAvatar(user.id);
+      setAvatarSrc(local || user.avatar_url || user.avatarUrl || null);
+      if (user.role) setDisplayRole(user.role);
+    };
+
+    // Subscribe to utils emitter (if available)
+    try {
+      onAuthEvent?.("avatar:changed", avatarHandler);
+      onAuthEvent?.("name:changed", nameHandler);
+      onAuthEvent?.("user:refreshed", userRefreshedHandler);
+    } catch (err) {
+      console.warn("Header emitter subscribe failed (ok if not present):", err);
+    }
+
+    // Legacy window events fallback
+    function onUserUpdatedWindow(e) {
+      console.log("Header window user-updated:", e?.detail);
+      const updated = e?.detail ?? null;
+      if (updated) {
+        userIdRef.current = updated.id;
+        setUserId(updated.id);
+        setDisplayName(updated.full_name || updated.fullName || "Guest");
+        const local = readLocalAvatar(updated.id);
+        setAvatarSrc(local || updated.avatar_url || updated.avatarUrl || null);
+        if (updated.role) setDisplayRole(updated.role);
+      }
+    }
+    function onAvatarUpdatedWindow(e) {
+      console.log("Header window avatar-updated:", e?.detail);
+      const val = e?.detail ?? null;
+      // If event carries no id, assume it's for current user; otherwise compare
+      // Some legacy events send just dataUrl; we update avatarSrc directly
+      setAvatarSrc(val || null);
+    }
+
+    window.addEventListener("user-updated", onUserUpdatedWindow);
+    window.addEventListener("avatar-updated", onAvatarUpdatedWindow);
+
+    return () => {
+      mounted = false;
+      try {
+        offAuthEvent?.("avatar:changed", avatarHandler);
+        offAuthEvent?.("name:changed", nameHandler);
+        offAuthEvent?.("user:refreshed", userRefreshedHandler);
+      } catch (err) {
+        // ignore
+      }
+      window.removeEventListener("user-updated", onUserUpdatedWindow);
+      window.removeEventListener("avatar-updated", onAvatarUpdatedWindow);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Handle file selection from header
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file || !userId) return;
+    setUploading(true);
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result;
+      // Persist FE-only and emit event so other components sync
+      setLocalAvatarAndEmit(userId, dataUrl);
+      // Update local header immediately
+      setAvatarSrc(dataUrl);
+      setUploading(false);
+      e.target.value = "";
+    };
+    reader.onerror = (err) => {
+      console.error("Header FileReader error:", err);
+      setUploading(false);
+      e.target.value = "";
+    };
     reader.readAsDataURL(file);
+  };
 
-    if (fileInputRef.current) fileInputRef.current.value = '';
-  }
-
-  // Trigger file selector
-  function triggerFileSelect() {
-    fileInputRef.current?.click();
-  }
-
-  // Logout handle
+  // Logout handler
   function handleLogout() {
     try {
       // hapus token dan user object
@@ -173,13 +201,6 @@ export default function Header() {
     }
   }
 
-  // Derive display name and role from userData (note: register uses full_name)
-  // Display: Full Name
-  const displayName = userData?.full_name || userData?.name || 'Guest';
-  // Display: Role
-  const rawRole = userData?.role || 'admin';
-  const displayRole = rawRole.charAt(0).toUpperCase() + rawRole.slice(1).toLowerCase();
-
   return (
     <header className="header">
       <div className="header-left"></div>
@@ -206,9 +227,10 @@ export default function Header() {
         {/* Profile dropdown */}
         <div className="profile" ref={profileRef}>
           <div className="profile">
-            <button
+            <button 
               className="profile-btn"
-              onClick={() => setOpen(!open)}
+              onClick={() => setOpen(!open)} 
+              aria-haspopup="true"
             >
               <Avatar
                 name={displayName}
@@ -228,7 +250,7 @@ export default function Header() {
                   className="menu-item"
                   onClick={() => {
                     setOpen(false);
-                    navigate('/profile');
+                    navigate("/profile");
                   }}
                 >
                   Profile
@@ -256,7 +278,8 @@ export default function Header() {
             accept="image/*"
             ref={fileInputRef}
             onChange={handleFileChange}
-            style={{ display: 'none' }}
+            style={{ display: "none" }}
+            aria-hidden
           />
         </div>
       </div>
