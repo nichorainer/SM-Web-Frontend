@@ -60,34 +60,27 @@ export default function ProductsPage() {
 
   // Save from modal -> send to backend then update UI
   async function handleModalSave(newProduct) {
-    // normalize payload to backend expected fields
     const payload = {
-      name: newProduct.name,
-      product_id: newProduct.productId || undefined, // adapt field names if backend expects product_id
+      product_id: newProduct.productId || undefined,
+      product_name: newProduct.name,
       supplier_name: newProduct.supplierName,
       category: newProduct.category,
-      price: Number(newProduct.price) || 0,
+      price_idr: Number(newProduct.price) || 0,
       stock: Number(newProduct.stock) || 0,
-      // add other fields if needed
+      // created_by: newProduct.createdBy || 'frontend',
     };
-
-    // Option A: optimistic update (uncomment if you want immediate UI update)
-    // const temp = { ...newProduct, productId: newProduct.productId || `P-${Date.now()}` };
-    // setProducts(prev => [temp, ...prev]);
 
     try {
       const created = await createProduct(payload);
-      // adapt to backend response shape: created may be the created object or { data: obj }
-      // Map backend fields to frontend fields used in the table
       const mapped = {
-        name: created.name ?? created.product_name ?? newProduct.name,
-        productId: created.product_id ?? created.productId ?? (newProduct.productId || `P-${Date.now()}`),
-        supplierName: created.supplier_name ?? created.supplierName ?? newProduct.supplierName,
-        category: created.category ?? newProduct.category,
-        price: created.price ?? newProduct.price,
-        stock: created.stock ?? newProduct.stock,
-        // include any other fields returned by backend
+        name: created.product_name ?? created.name,
+        productId: created.product_id ?? created.productId ?? `P-${Date.now()}`,
+        supplierName: created.supplier_name ?? created.supplierName,
+        category: created.category,
+        price: created.price_idr ?? created.price,
+        stock: created.stock,
       };
+
       // Add to UI
       setProducts((prev) => [mapped, ...prev]);
       setModalOpen(false);
@@ -138,15 +131,16 @@ export default function ProductsPage() {
         </thead>
         <tbody>
           {filteredProducts.length > 0 ? (
-            filteredProducts.map((p) => (
-              <tr key={p.product_id}>
-                <td>{p.product_name}</td>
-                <td>{p.id}</td>
-                <td>{p.supplier_name}</td>
+            filteredProducts.map((p, idx) => (
+              <tr key={p.product_id ?? p.id ?? p.productId ?? `product-${idx}`}>
+                <td>{p.product_name ?? p.name}</td>
+                <td>{p.product_id ?? p.productId ?? p.id}</td>
+                <td>{p.supplier_name ?? p.supplierName}</td>
                 <td>{p.category}</td>
-                <td>IDR {p.price_idr}K</td>
+                <td>IDR {p.price_idr ?? p.price}K</td>
                 <td>{p.stock}</td>
-              </tr>
+            </tr>
+
             ))
           ) : (
             <tr>

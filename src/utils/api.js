@@ -40,3 +40,35 @@ export async function createProduct(payload) {
   return body?.data ?? body;
 }
 
+// ORDERS
+
+export async function getOrders() {
+  const url = `http://localhost:8080/orders`;
+  const res = await fetch(url, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+  });
+  if (!res.ok) {
+    const body = await safeJson(res);
+    throw new Error(`Failed to fetch orders: ${res.status} ${JSON.stringify(body)}`);
+  }
+  const body = await res.json();
+  return body?.data ?? body;
+}
+
+export async function createOrders(payload) {
+  const url = `http://localhost:8080/orders`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const body = await safeJson(res);
+    throw new Error(`Failed to create orders: ${res.status} ${JSON.stringify(body)}`);
+  }
+  const body = await res.json();
+  return body?.data ?? body;
+}

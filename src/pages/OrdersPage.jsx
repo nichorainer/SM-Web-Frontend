@@ -11,31 +11,31 @@ export default function OrdersPage() {
   const [status, setStatus] = useState('all');
 
   // Orders state: initialize from localStorage if available
-  const [orders, setOrders] = useState(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      const parsed = raw ? JSON.parse(raw) : null;
-      return Array.isArray(parsed) && parsed.length ? parsed : [
-        { orderId: '100201', date: '2025-01-01', customer: 'Alice', platform: 'Tokipedia', destination: 'Jakarta', items: 2, status: 'Pending' },
-        { orderId: '100302', date: '2025-01-02', customer: 'Bob', platform: 'Shoopa', destination: 'Bandung', items: 1, status: 'Completed' },
-      ];
-    } catch (err) {
-      console.error('Failed to read orders from localStorage', err);
-      return [
-        { orderId: '100201', date: '2025-01-01', customer: 'Alice', platform: 'Tokipedia', destination: 'Jakarta', items: 2, status: 'Pending' },
-        { orderId: '100302', date: '2025-01-02', customer: 'Bob', platform: 'Shoopa', destination: 'Bandung', items: 1, status: 'Completed' },
-      ];
-    }
-  });
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  // Persist orders to localStorage whenever orders change
+  // Load orders from backend on mount
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
-    } catch (err) {
-      console.error('Failed to save orders to localStorage', err);
+    let mounted = true;
+    async function load() {
+      setLoading(true);
+      setError(null);
+      try {
+        const list = await getProducts();
+        if (!mounted) return;
+        // Ensure consistent shape: map backend fields to frontend if needed
+        setProducts(Array.isArray(list) ? list : []);
+      } catch (err) {
+        console.error('Failed to load products', err);
+        if (mounted) setError(err.message || 'Failed to load products');
+      } finally {
+        if (mounted) setLoading(false);
+      }
     }
-  }, [orders]);
+    load();
+    return () => { mounted = false; };
+  }, []);
 
   // Modal state
   const [showCreate, setShowCreate] = useState(false);
@@ -68,41 +68,37 @@ export default function OrdersPage() {
     return `#${String(base).slice(0, 6)}`;
   }
 
-  // Save handler: save, close modal, and refresh table
-  function handleCreateOrder(e) {
-    e.preventDefault();
-    setSaving(true);
+  async function handleModalSave(newProduct) {
+    const payload = {
+      product_id: newProduct.productId || undefined,
+      product_name: newProduct.name,
+      supplier_name: newProduct.supplierName,
+      category: newProduct.category,
+      price_idr: Number(newProduct.price) || 0,
+      stock: Number(newProduct.stock) || 0,
+      // created_by: newProduct.createdBy || 'frontend',
+    };
 
-    setTimeout(() => {
-      const order = {
-        orderId: generateOrderId(),
-        date: newOrder.date,
-        customer: newOrder.customer,
-        platform: newOrder.platform,
-        destination: newOrder.destination,
-        items: Number(newOrder.items),
-        status: newOrder.status,
+    try {
+      const created = await createProduct(payload);
+      const mapped = {
+        name: created.product_name ?? created.name,
+        productId: created.product_id ?? created.productId ?? `P-${Date.now()}`,
+        supplierName: created.supplier_name ?? created.supplierName,
+        category: created.category,
+        price: created.price_idr ?? created.price,
+        stock: created.stock,
       };
 
-      // IMPORTANT: update local orders state so parent passes new list to OrdersTable
-      setOrders(prev => [order, ...prev]);
-      
-      // dispatch global event
-      window.dispatchEvent(new CustomEvent('orders:add', { detail: order }));
-
-      setSaving(false);
-      setShowCreate(false);
-
-      // Reset form
-      setNewOrder({
-        customer: '',
-        platform: 'Tokipedia',
-        destination: '',
-        items: 1,
-        status: 'Pending',
-        date: new Date().toISOString().slice(0, 10),
-      });
-    }, 600);
+      // Add to UI
+      setProducts((prev) => [mapped, ...prev]);
+      setModalOpen(false);
+    } catch (err) {
+      console.error('Create product failed', err);
+      // If you did optimistic update earlier, consider rolling back here
+      setError(err.message || 'Failed to create product');
+      // show user feedback (toast) if you have one
+    }
   }
 
   return (
@@ -163,8 +159,6 @@ export default function OrdersPage() {
           search={search}
           platform={platform}
           status={status}
-          // keep onAddOrder only if you want parent callback
-          // onAddOrder={(o) => setOrders(prev => [o, ...prev])}
         />
       </div>
       {showCreate && (
@@ -176,7 +170,7 @@ export default function OrdersPage() {
             </div>
 
             <div className="modal-body">
-              <form className="order-form" onSubmit={handleCreateOrder}>
+              <form className="order-form" onSubmit={handleModalSave}>
                 <div className="form-row">
                   <label>Customer Name</label>
                   <input
