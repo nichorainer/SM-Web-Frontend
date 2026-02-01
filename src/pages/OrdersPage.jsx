@@ -1,19 +1,33 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import OrdersTable from '../components/OrdersTable.jsx';
 import '../styles/orders-page.css';
-
-// define storage key
-const STORAGE_KEY = 'sm_orders_demo';
+import { getOrders, createOrders } from '../utils/api.js';
+import { validateOrderPayload } from '../utils/validators.js';
 
 export default function OrdersPage() {
   const [search, setSearch] = useState('');
   const [platform, setPlatform] = useState('all');
   const [status, setStatus] = useState('all');
 
-  // Orders state: initialize from localStorage if available
+  // Orders state
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  // state untuk menampilkan pesan validasi
+  const [formError, setFormError] = useState(null);
+
+  // Modal or form state
+  const [showCreate, setShowCreate] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [newOrder, setNewOrder] = useState({
+    order_number: '',
+    customer_name: '',
+    platform: 'Tokipedia',
+    destination: '',
+    total_amount: 1,
+    status: 'Pending',
+    created_at: new Date().toISOString(),
+  });
 
   // Load orders from backend on mount
   useEffect(() => {
@@ -22,13 +36,12 @@ export default function OrdersPage() {
       setLoading(true);
       setError(null);
       try {
-        const list = await getProducts();
+        const list = await getOrders();
         if (!mounted) return;
-        // Ensure consistent shape: map backend fields to frontend if needed
-        setProducts(Array.isArray(list) ? list : []);
+        setOrders(Array.isArray(list) ? list : []);
       } catch (err) {
-        console.error('Failed to load products', err);
-        if (mounted) setError(err.message || 'Failed to load products');
+        console.error('Failed to load orders', err);
+        if (mounted) setError(err.message || 'Failed to load orders');
       } finally {
         if (mounted) setLoading(false);
       }
@@ -37,19 +50,107 @@ export default function OrdersPage() {
     return () => { mounted = false; };
   }, []);
 
-  // Modal state
-  const [showCreate, setShowCreate] = useState(false);
-  const [saving, setSaving] = useState(false);
+  // Open/close modal
+  const openCreate = () => {
+    setNewOrder({
+      order_number: generateOrderId(),
+      customer_name: '',
+      platform: 'Tokipedia',
+      destination: '',
+      total_amount: 1,
+      status: 'Pending',
+      created_at: new Date().toISOString(),
+    });
+    setShowCreate(true);
+    setError(null);
+  };
+  const closeCreate = () => {
+    setShowCreate(false);
+  };
 
-  // New order form state
-  const [newOrder, setNewOrder] = useState({
-    customer: '',
-    platform: 'Tokipedia',
-    destination: '',
-    items: 1,
-    status: 'Pending',
-    date: new Date().toISOString().slice(0, 10), // default today
+  // Save handler for new order -> call backend and update UI
+  async function handleCreateOrderSave() {
+    setFormError(null);
+
+    // Form validation
+    const check = validateOrderPayload({
+      order_number: newOrder.order_number,
+      customer_name: newOrder.customer_name,
+      platform: newOrder.platform,
+      destination: newOrder.destination,
+      total_amount: newOrder.total_amount,
+      status: newOrder.status,
+      created_at: newOrder.created_at,
+    });
+
+    if (!check.ok) {
+      setFormError(check.reason || 'Please fill required fields');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      // Build payload expected by backend. Sesuaikan nama field dengan API server.
+      const payload = {
+        order_number: newOrder.order_number,
+        customer_name: newOrder.customer_name,
+        platform: newOrder.platform,
+        destination: newOrder.destination,
+        total_amount: Number(newOrder.total_amount) || 1,
+        status: newOrder.status,
+        created_at: newOrder.created_at,
+
+      };
+
+      const created = await createOrders(payload);
+
+      // Map response: use created_at from backend
+      const mapped = {
+        id: created.id ?? generateOrderId(),
+        orderNumber: created.order_number ?? payload.order_number,
+        customerName: created.customer_name ?? payload.customer_name,
+        platform: created.platform ?? payload.platform,
+        destination: created.destination ?? payload.destination,
+        total_amount: created.total_amount ?? payload.total_amount,
+        status: created.status ?? payload.status,
+        created_at: created.created_at ?? payload.created_at,
+      };
+
+      setOrders(prev => [mapped, ...prev]);
+      setShowCreate(false);
+    } catch (err) {
+      console.error('Create order failed', err);
+      setError(err.message || 'Failed to create order');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  // Filtered list for display
+  const filtered = orders.filter(o => {
+    if (search && !(
+      String(o.orderNumber).toLowerCase().includes(search.toLowerCase()) ||
+      String(o.customerName).toLowerCase().includes(search.toLowerCase())
+    )) return false;
+    if (platform !== 'all' && o.platform !== platform) return false;
+    if (status !== 'all' && o.status !== status) return false;
+    return true;
   });
+
+  // HELPERS
+  // Untuk cek validitas form saat mengetik
+  const isFormValid = useMemo(() => {
+    const check = validateOrderPayload({
+      order_number: newOrder.order_number,
+      customer_name: newOrder.customer_name,
+      platform: newOrder.platform,
+      destination: newOrder.destination,
+      total_amount: newOrder.total_amount,
+      status: newOrder.status,
+      created_at: newOrder.created_at,
+    });
+    return check.ok;
+  }, [newOrder]);
 
   // Reset func for search bar
   const resetFilters = () => {
@@ -66,39 +167,6 @@ export default function OrdersPage() {
   function generateOrderId() {
     const base = Math.floor(Math.random() * 900000) + 100000;
     return `#${String(base).slice(0, 6)}`;
-  }
-
-  async function handleModalSave(newProduct) {
-    const payload = {
-      product_id: newProduct.productId || undefined,
-      product_name: newProduct.name,
-      supplier_name: newProduct.supplierName,
-      category: newProduct.category,
-      price_idr: Number(newProduct.price) || 0,
-      stock: Number(newProduct.stock) || 0,
-      // created_by: newProduct.createdBy || 'frontend',
-    };
-
-    try {
-      const created = await createProduct(payload);
-      const mapped = {
-        name: created.product_name ?? created.name,
-        productId: created.product_id ?? created.productId ?? `P-${Date.now()}`,
-        supplierName: created.supplier_name ?? created.supplierName,
-        category: created.category,
-        price: created.price_idr ?? created.price,
-        stock: created.stock,
-      };
-
-      // Add to UI
-      setProducts((prev) => [mapped, ...prev]);
-      setModalOpen(false);
-    } catch (err) {
-      console.error('Create product failed', err);
-      // If you did optimistic update earlier, consider rolling back here
-      setError(err.message || 'Failed to create product');
-      // show user feedback (toast) if you have one
-    }
   }
 
   return (
@@ -137,8 +205,9 @@ export default function OrdersPage() {
             aria-label="Filter status"
           >
             <option value="all">All status</option>
-            <option value="Completed">Completed</option>
             <option value="Pending">Pending</option>
+            <option value="Shipped">Shipped</option>
+            <option value="Delivered">Delivered</option>
           </select>
 
           <button className="btn btn-outline" onClick={resetFilters}>
@@ -146,37 +215,50 @@ export default function OrdersPage() {
           </button>
 
           <button className="btn btn-primary"
-            onClick={() => setShowCreate(true)}
+            onClick={openCreate}
           >
             Create New Order
           </button>
         </div>
       </div>
 
+      {loading && <p>Loading orders…</p>}
+      {error && <div className="error">{error}</div>}
+
       <div className="orders-card">
         <OrdersTable 
-          orders={orders}
+          orders={filtered}
           search={search}
           platform={platform}
           status={status}
         />
       </div>
+      {/* Button Create New Order */}
       {showCreate && (
         <div className="order-modal" role="dialog" aria-modal="true" aria-label="Create new order">
           <div className="modal-card">
             <div className="modal-head">
               <h2>Create New Order</h2>
-              <button className="btn-close" onClick={() => setShowCreate(false)} aria-label="Close">✕</button>
+              <button className="btn-close" onClick={closeCreate} aria-label="Close">✕</button>
             </div>
 
             <div className="modal-body">
-              <form className="order-form" onSubmit={handleModalSave}>
+              <form className="order-form" onSubmit={handleCreateOrderSave}>
+                {/* Order Number */}
+                <div className="form-row">
+                  <label>Order Number</label>
+                  <input
+                    input value={newOrder.order_number}
+                    onChange={e => updateField('order_number', e.target.value)}
+                    required
+                  />
+                </div>
+                {/* Customer Name */}
                 <div className="form-row">
                   <label>Customer Name</label>
                   <input
-                    type="text"
-                    value={newOrder.customer}
-                    onChange={e => updateField('customer', e.target.value)}
+                    input value={newOrder.customer_name}
+                    onChange={e => updateField('customer_name', e.target.value)}
                     required
                   />
                 </div>
@@ -186,17 +268,18 @@ export default function OrdersPage() {
                   <select
                     value={newOrder.platform}
                     onChange={e => updateField('platform', e.target.value)}
+                    required
                   >
                     <option value="Tokipedia">Tokipedia</option>
                     <option value="Shoopa">Shoopa</option>
                     <option value="Lazado">Lazado</option>
+                    {/* <option>{input value="text"}</option> */}
                   </select>
                 </div>
 
                 <div className="form-row">
                   <label>Destination</label>
                   <input
-                    type="text"
                     value={newOrder.destination}
                     onChange={e => updateField('destination', e.target.value)}
                     required
@@ -204,12 +287,12 @@ export default function OrdersPage() {
                 </div>
 
                 <div className="form-row">
-                  <label>Items</label>
+                  <label>Total Amount</label>
                   <input
                     type="number"
                     min="1"
-                    value={newOrder.items}
-                    onChange={e => updateField('items', e.target.value)}
+                    value={newOrder.total_amount}
+                    onChange={e => updateField('total_amount', e.target.value)}
                     required
                   />
                 </div>
@@ -219,9 +302,11 @@ export default function OrdersPage() {
                   <select
                     value={newOrder.status}
                     onChange={e => updateField('status', e.target.value)}
+                    required
                   >
                     <option value="Pending">Pending</option>
-                    <option value="Completed">Completed</option>
+                    <option value="Completed">Shipped</option>
+                    <option>Delivered</option>
                   </select>
                 </div>
 
@@ -234,9 +319,15 @@ export default function OrdersPage() {
                   />
                 </div>
 
-                <div className="form-actions">
-                  <button className="btn btn-primary" type="submit" disabled={saving}>
-                    {saving ? 'Saving...' : 'Save Order'}
+                {formError && <div className="form-error">{formError}</div>}
+
+                <div className="modal-actions">
+                  <button onClick={closeCreate} disabled={saving}>Cancel</button>
+                  <button
+                    onClick={handleCreateOrderSave}
+                    disabled={saving || !isFormValid}
+                  >
+                    {saving ? 'Saving…' : 'Save Order'}
                   </button>
                 </div>
               </form>

@@ -12,6 +12,7 @@ import {
 } from '../utils/auth';
 import '../styles/profile-page.css';
 import EditProfileModal from '../components/EditProfileModal';
+import { validateEmail } from '../utils/validators';
 
 export default function ProfilePage() {
   const navigate = useNavigate();

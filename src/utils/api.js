@@ -10,7 +10,7 @@ async function safeJson(res) {
 }
 
 export async function getProducts() {
-  const url = `http://localhost:8080/api/products`;
+  const url = `http://localhost:8080/products`;
   const res = await fetch(url, {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' },
@@ -25,7 +25,7 @@ export async function getProducts() {
 }
 
 export async function createProduct(payload) {
-  const url = `http://localhost:8080/api/products`;
+  const url = `http://localhost:8080/products`;
   const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

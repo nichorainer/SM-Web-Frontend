@@ -1,51 +1,61 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import '../styles/orders.css';
+import { validateOrderPayload } from '../utils/validators';
 
-export default function OrdersTable({ orders = [], search = '', platform = 'all', status = 'all', onAddOrder }) {
-  // keep a local copy so the component can update itself and react to prop changes
-  const [list, setList] = useState(Array.isArray(orders) ? orders : []);
+export default function OrdersTable({
+  orders = [],
+  onAddOrder, // optional callback if parent wants to be notified (not used for event-driven adds)
+}) {
+  // local copy so the table can update itself without forcing parent re-renders
+  // const [list, setList] = useState(Array.isArray(orders) ? orders : []);
 
   // sync local list when parent prop changes
-  useEffect(() => {
-    setList(Array.isArray(orders) ? orders : []);
-  }, [orders]);
+  // useEffect(() => {
+  //   setList(Array.isArray(orders) ? orders : []);
+  // }, [orders]);
 
-  // listen to global 'orders:add' events and update list
+  // Add order handler
   useEffect(() => {
     function handleAdd(e) {
       const newOrder = e?.detail;
       if (!newOrder) return;
-        // only update local list; DO NOT call onAddOrder to avoid duplicate add in parent
-        setList(prev => [newOrder, ...prev]);
+
+      // validate payload shape and required fields
+      const check = validateOrderPayload(newOrder);
+      if (!check.ok) {
+        console.warn('Ignored invalid orders:add event:', check.reason, newOrder);
+        return;
       }
-      window.addEventListener('orders:add', handleAdd);
-      return () => window.removeEventListener('orders:add', handleAdd);
-    }, []);
 
-  // compute filtered list from local list and filters
-  const filtered = useMemo(() => {
-    const q = (search || '').trim().toLowerCase();
-    return (Array.isArray(list) ? list : []).filter(o => {
-      const plat = (o.platform || '').toLowerCase();
-      const stat = (o.status || '').toLowerCase();
+      // normalize minimal fields for UI consistency
+      const normalized = {
+        id: newOrder.id ?? newOrder.order_id ?? newOrder.orderNumber ?? newOrder.order_number,
+        orderId: newOrder.order_number ?? newOrder.orderId ?? newOrder.orderNumber ?? newOrder.id,
+        customer: newOrder.customer_name ?? newOrder.customerName ?? newOrder.customer,
+        platform: newOrder.platform ?? 'Unknown',
+        destination: newOrder.destination ?? '',
+        total_amount: newOrder.total_amount ?? 0,
+        status: newOrder.status ?? 'Pending',
+        created_at: newOrder.created_at ?? new Date().toISOString(),
+        __raw: newOrder,
+      };
 
-      if (platform !== 'all' && plat !== (platform || '').toLowerCase()) return false;
-      if (status !== 'all' && stat !== (status || '').toLowerCase()) return false;
-      if (!q) return true;
+      // setList(prev => [normalized, ...prev]);
 
-      const idField = (o.orderId || o.id || '').toString().toLowerCase();
-      const customer = (o.customer || '').toString().toLowerCase();
-      const destination = (o.destination || '').toString().toLowerCase();
-      const platformField = plat;
+      // optionally notify parent (do not call parent to re-add to backend)
+      if (typeof onAddOrder === 'function') {
+        try {
+          onAddOrder(normalized);
+        } catch (err) {
+          // swallow errors from parent callback to avoid breaking table
+          console.warn('onAddOrder callback error', err);
+        }
+      }
+    }
 
-      return (
-        idField.includes(q) ||
-        customer.includes(q) ||
-        destination.includes(q) ||
-        platformField.includes(q)
-      );
-    });
-  }, [list, search, platform, status]);
+    window.addEventListener('orders:add', handleAdd);
+    return () => window.removeEventListener('orders:add', handleAdd);
+  }, [onAddOrder]);
 
   return (
     <div className="card">
@@ -54,32 +64,34 @@ export default function OrdersTable({ orders = [], search = '', platform = 'all'
           <thead>
             <tr>
               <th>Order ID</th>
-              <th>Date</th>
+              <th>Created At</th>
               <th>Customer</th>
               <th>Platform</th>
               <th>Destination</th>
-              <th>Items</th>
+              <th>total_amount</th>
               <th>Status</th>
             </tr>
           </thead>
           <tbody>
-            {filtered.length === 0 ? (
+            {orders.length === 0 ? (
               <tr className="empty-row">
                 <td colSpan="7" className="empty-cell">No orders found</td>
               </tr>
             ) : (
-              filtered.map((o, idx) => {
+              orders.map((o, idx) => {
                 const key = o.orderId || o.id || `order-${idx}`;
-                const statusClass = ((o.status || '').toString().toLowerCase() === 'completed') ? 'completed' : 'pending';
+                const statusClass = ((o.status || '').toString().toLowerCase() === 'completed') 
+                ? 'completed' 
+                : 'pending';
 
                 return (
                   <tr key={key}>
                     <td className="mono">{o.orderId || o.id || '-'}</td>
-                    <td>{o.date || '-'}</td>
+                    <td>{o.created_at || '-'}</td>
                     <td>{o.customer || '-'}</td>
                     <td>{o.platform || '-'}</td>
                     <td>{o.destination || '-'}</td>
-                    <td className="center">{o.items != null ? o.items : '-'}</td>
+                    <td className="center">{o.total_amount != null ? o.total_amount : '-'}</td>
                     <td className="center">
                       <span className={`status ${statusClass}`}>
                         {o.status || '-'}
