@@ -53,7 +53,7 @@ export default function OrdersTable({
 
   return (
     <div className="card">
-      <div className="table-wrap">
+      <div className="orders-table-wrap">
         <table className="orders-table">
           <thead>
             <tr>

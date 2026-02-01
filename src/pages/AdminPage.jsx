@@ -8,12 +8,18 @@ import {
   offAuthEvent, 
 } from '../utils/auth';
 import '../styles/admin-page.css';
+import { form } from 'framer-motion/client';
 
 /* AdminPage (no API) */
 // Helper: Capitalize first letter, lowercase the rest
 function capitalizeRole(role) {
   if (!role) return '';
   return String(role).charAt(0).toUpperCase() + String(role).slice(1).toLowerCase();
+}
+
+// Helper format date for mock logs
+function formatDate(str) {
+  return new Date(str).toLocaleString();
 }
 
 // Mock Data
@@ -48,9 +54,10 @@ const MOCK_STAFF = [
 ];
 
 const MOCK_LOGS = [
-  { id: 'l1', action: 'User created', detail: 'Budi Pratama created', when: '2026-01-10 09:12' },
-  { id: 'l2', action: 'Role changed', detail: 'Role Ayu changed into admin', when: '2026-01-11 14:03' },
-  { id: 'l3', action: 'Permission toggled', detail: 'Citra edit order permission enabled', when: '2026-01-12 08:22' },
+  { id: '001', action: 'Role changed', detail: 'Role Ayu changed into admin', when: formatDate('2026-01-11T14:03:00') },
+  { id: '002', action: 'Permission toggled', detail: 'Citra edit order permission enabled', when: formatDate('2026-01-12T08:22:00') },
+  { id: '003', action: 'User created', detail: 'Budi Pratama created', when: formatDate('2026-01-10T09:12:00') },
+  { id: '004', action: 'User created', detail: 'Nielson created', when: formatDate('2026-01-09T11:11:00') },
 ];
 
 export default function AdminPage() {
@@ -197,6 +204,24 @@ export default function AdminPage() {
     // simulate loading briefly (no API)
     setLoadingStaff(true);
     setLoadingLogs(true);
+
+    // load localStorage for staffData
+    const stored = localStorage.getItem("staffData");
+    if (stored) {
+      setStaff(JSON.parse(stored));
+    } else {
+      setStaff(MOCK_STAFF);
+    }
+
+    // load logs from localStorage
+    const storedLogs = localStorage.getItem("logsData");
+    if (storedLogs) {
+      setLogs(JSON.parse(storedLogs));
+    } else {
+      setLogs(MOCK_LOGS);
+    }
+
+    // timeout simulation
     const t = setTimeout(() => {
       setLoadingStaff(false);
       setLoadingLogs(false);
@@ -218,27 +243,53 @@ export default function AdminPage() {
 
   const selected = staff.find((s) => s.id === selectedId) || null;
 
-  async function togglePermission(userId, key) {
-    if (!selected) return;
+  function changePermission(userId, permKey) {
     setSaving(true);
-    // simulate network latency
-    await new Promise((r) => setTimeout(r, 200));
-    setStaff((prev) =>
-      prev.map((u) =>
-        u.id === userId ? { ...u, permissions: { ...(u.permissions || {}), [key]: !u.permissions?.[key] } } : u
-      )
-    );
-    // add log
-    setLogs((prev) => [{ id: `l${Date.now()}`, action: 'Permission toggled', detail: `${selected.name}: ${key}=${!selected.permissions?.[key]}`, when: new Date().toLocaleString() }, ...prev]);
-    setSaving(false);
-  }
 
-  async function changeRole(userId, newRole) {
-    setSaving(true);
-    await new Promise((r) => setTimeout(r, 200));
-    setStaff((prev) => prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u)));
-    setLogs((prev) => [{ id: `l${Date.now()}`, action: 'Role changed', detail: `${selected?.name} -> ${newRole}`, when: new Date().toLocaleString() }, ...prev]);
-    setSaving(false);
+    // Delay simulation (dummy data)
+    setTimeout(() => {
+      setStaff(prev => {
+        const updated = prev.map(u =>
+        u.id === userId
+          ? {
+              ...u,
+              permissions: {
+                ...u.permissions,
+                [permKey]: !u.permissions[permKey],
+              },
+            }
+          : u
+      );
+
+      // save changes to local storage
+      localStorage.setItem("staffData", JSON.stringify(updated));
+
+      return updated;
+    });
+
+      // Get the user
+      const user = staff.find(u => u.id === userId);
+      const newValue = !user.permissions[permKey];
+
+      // Add logs
+      setLogs(prev => {
+        const updatedLogs = [
+          {
+            id: `l${Date.now()}`,
+            action: 'Permission toggled',
+            detail: `${user.name} ${permKey} ${newValue ? 'enabled' : 'disabled'}`,
+            when: new Date().toLocaleString(),
+          },
+          ...prev,
+        ];
+
+      localStorage.setItem("logsData", JSON.stringify(updatedLogs));
+
+      return updatedLogs;
+    });
+
+      setSaving(false);
+    }, 200);
   }
 
   return (
@@ -395,7 +446,7 @@ export default function AdminPage() {
                       <input
                         type="checkbox"
                         checked={!!selected.permissions?.[key]}
-                        onChange={() => togglePermission(selected.id, key)}
+                        onChange={() => changePermission(selected.id, key)}
                       />
                       <span style={{ marginLeft: 8 }}>{key}</span>
                     </label>

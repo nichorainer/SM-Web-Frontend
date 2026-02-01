@@ -137,14 +137,34 @@ export default function OrdersPage() {
     }
   }
 
-  // Filtered list for display
+  // Filtered list for search bar
   const filtered = orders.filter(o => {
-    if (search && !(
-      String(o.orderId).toLowerCase().includes(search.toLowerCase()) ||
-      String(o.customerName).toLowerCase().includes(search.toLowerCase())
-    )) return false;
+    if (search) {
+      const s = search.toLowerCase();
+
+      // Order ID: prefix match
+      const cleanOrderId = o.orderId ? String(o.orderId).replace(/^#/, '').toLowerCase() : '';
+      const orderIdMatch = cleanOrderId.startsWith(s);
+
+
+      // Customer Name: substring match
+      const customerMatch = o.customer && String(o.customer).toLowerCase().includes(s);
+
+      // Destination: substring match
+      const destinationMatch = o.destination && String(o.destination).toLowerCase().includes(s);
+
+      // Created At: not filtered, always shown all
+      if (!(orderIdMatch || customerMatch || destinationMatch)) {
+        return false;
+      }
+    }
+
+    // Platform filter
     if (platform !== 'all' && o.platform !== platform) return false;
+
+    // Status filter
     if (status !== 'all' && o.status !== status) return false;
+
     return true;
   });
 

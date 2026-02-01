@@ -135,6 +135,15 @@
   border-bottom: 1px solid #f3f6f9;
 }
 
+.staff-table tbody td.staff-cell {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  min-height: 52px;
+  padding-top: 55px;
+  padding-bottom: 6px;
+}
+
 /* Make each row look like a soft card */
 .staff-table tbody tr {
   background: #fff;
@@ -154,19 +163,25 @@
 
 /* Avatar + name spacing inside staff cell */
 .staff-cell {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
 }
 
-/* Slightly larger avatar for clarity */
 .staff-cell .chakra-avatar {
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
 }
 
 .staff-name {
   font-weight: 600;
+  line-height: 25px;
+  align-items: center;
+}
+
+.staff-table td {
+  vertical-align: middle;
 }
 
 /* Make action column narrower and centered */
@@ -204,9 +219,9 @@
 /* Buttons */
 /* Subtle button (used for Edit) */
 .btn-subtle {
-  background-color: transparent;  /* no fill */
-  color: #555;                  /* softer text color */
-  border: 1px solid #ddd;       /* light border */
+  background-color: transparent;
+  color: #555;
+  border: 1px solid #ddd;
   padding: 8px 16px;
   border-radius: 6px;
   font-size: 0.95rem;
@@ -215,8 +230,8 @@
 }
 
 .btn-subtle:hover {
-  background-color: #f3f3f3;       /* light gray hover */
-  color: #333;                     /* slightly darker text */
+  background-color: #f3f3f3;
+  color: #333;
 }
 
 .btn-primary {
@@ -340,10 +355,12 @@
   .staff-table tbody td {
     padding: 10px 12px;
   }
+
   .staff-cell .chakra-avatar {
     width: 36px;
     height: 36px;
   }
+
   .staff-table tbody tr {
     border-radius: 6px;
   }

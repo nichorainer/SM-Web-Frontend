@@ -13,10 +13,43 @@ export default function ProductsPage() {
 
   // Filter search across all columns
   const q = searchTerm.toLowerCase();
-  const filteredProducts = products.filter((p) =>
-    [p.name, p.productId, p.supplierName, p.category, String(p.price), String(p.stock)]
-      .some((field) => (field || '').toLowerCase().includes(q))
-  )
+
+  const filteredProducts = products.filter((p) => {
+    if (!q) return true;
+
+    // Product ID: prefix match
+    const productIdMatch = p.productId && p.productId.toLowerCase().startsWith(q);
+
+    // Product Name: per kata
+    const productNameMatch =
+      p.name &&
+      p.name
+        .toLowerCase()
+        .split(/\s+/)
+        .some((word) => word.startsWith(q));
+
+    // Supplier Name: per kata
+    const supplierMatch =
+      p.supplierName &&
+      p.supplierName
+        .toLowerCase()
+        .split(/\s+/)
+        .some((word) => word.startsWith(q));
+
+    // Category: per kata
+    const categoryMatch =
+      p.category &&
+      p.category
+        .toLowerCase()
+        .split(/\s+/)
+        .some((word) => word.startsWith(q));
+
+    // Price: prefix match angka
+    const priceStr = String(p.price_idr ?? p.price).toLowerCase();
+    const priceMatch = /^\d+/.test(q) && priceStr.startsWith(q);
+
+    return productIdMatch || productNameMatch || supplierMatch || categoryMatch || priceMatch;
+  });
 
   function handleSearchChange(e) {
     setSearchTerm(e.target.value);
@@ -36,7 +69,14 @@ export default function ProductsPage() {
         const list = await getProducts();
         if (!mounted) return;
         // Ensure consistent shape: map backend fields to frontend if needed
-        setProducts(Array.isArray(list) ? list : []);
+          setProducts(Array.isArray(list) ? list.map(p => ({
+            name: p.product_name ?? p.name,
+            productId: p.product_id ?? p.productId,
+            supplierName: p.supplier_name ?? p.supplierName,
+            category: p.category,
+            price: p.price_idr ?? p.price,
+            stock: p.stock,
+          })) : []);
       } catch (err) {
         console.error('Failed to load products', err);
         if (mounted) setError(err.message || 'Failed to load products');
@@ -67,7 +107,6 @@ export default function ProductsPage() {
       category: newProduct.category,
       price_idr: Number(newProduct.price) || 0,
       stock: Number(newProduct.stock) || 0,
-      // created_by: newProduct.createdBy || 'frontend',
     };
 
     try {
@@ -132,15 +171,14 @@ export default function ProductsPage() {
         <tbody>
           {filteredProducts.length > 0 ? (
             filteredProducts.map((p, idx) => (
-              <tr key={p.product_id ?? p.id ?? p.productId ?? `product-${idx}`}>
-                <td>{p.product_name ?? p.name}</td>
-                <td>{p.product_id ?? p.productId ?? p.id}</td>
-                <td>{p.supplier_name ?? p.supplierName}</td>
+              <tr key={p.productId ?? p.product_id ?? p.id ?? `product-${idx}`}>
+                <td>{p.name ?? p.product_name}</td>
+                <td>{p.productId ?? p.product_id ?? p.id}</td>
+                <td>{p.supplierName ?? p.supplier_name}</td>
                 <td>{p.category}</td>
-                <td>IDR {p.price_idr ?? p.price}K</td>
+                <td>IDR {p.price ?? p.price_idr}K</td>
                 <td>{p.stock}</td>
-            </tr>
-
+              </tr>
             ))
           ) : (
             <tr>
