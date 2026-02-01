@@ -18,16 +18,19 @@ button[disabled] {
 
 /* Order Status */
 .status.completed {
+  background-color: green;
   color: white;
   font-weight: bold;
 }
 
 .status.shipping {
+  background-color: gray;
   color: white;
   font-weight: bold;
 }
 
 .status.pending {
+  background-color: red;
   color: white;
   font-weight: bold;
 }

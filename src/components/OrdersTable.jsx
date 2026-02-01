@@ -22,16 +22,19 @@ export default function OrdersTable({
 
       // normalize minimal fields for UI consistency
       const normalized = {
-        id: newOrder.id ?? newOrder.order_id ?? newOrder.orderNumber ?? newOrder.order_number,
-        orderId: newOrder.order_number ?? newOrder.orderId ?? newOrder.orderNumber ?? newOrder.id,
-        customer: newOrder.customer_name ?? newOrder.customerName ?? newOrder.customer,
+        id: newOrder.id ?? null,
+        orderId: newOrder.order_number ?? newOrder.orderId ?? null,
+        customer: newOrder.customer_name ?? newOrder.customer ?? '',
         platform: newOrder.platform ?? 'Unknown',
         destination: newOrder.destination ?? '',
-        total_amount: newOrder.total_amount ?? 0,
-        status: newOrder.status ?? 'Pending',
-        created_at: newOrder.created_at ?? new Date().toISOString(),
+        total_amount: newOrder.total_amount ?? 1,
+        status: (newOrder.status ?? 'pending').toLowerCase(),
+        created_at: newOrder.created_at
+          ? new Date(newOrder.created_at).toLocaleString()
+          : new Date().toLocaleString(),
         __raw: newOrder,
       };
+
 
       // optionally notify parent (do not call parent to re-add to backend)
       if (typeof onAddOrder === 'function') {
@@ -70,30 +73,30 @@ export default function OrdersTable({
               </tr>
             ) : (
               orders.map((o, idx) => {
-                const key = o.orderId || o.id || `order-${idx}`;
+                const key = o.orderName || o.id || `order-${idx}`;
 
                 // status class for 3 options
-                const statusValue = (o.status || '').toString().toLowerCase();
+                const statusValue = (o.status || '').toLowerCase();
                 let statusClass = '';
                 if (statusValue === 'completed') {
                   statusClass = 'completed';   // green
-                } else if (statusValue === 'shipping') {
+                } else if (statusValue === 'shipping' || statusValue === 'shipped') {
                   statusClass = 'shipping';    // gray
-                } else {
+                } else if (statusValue === 'pending') {
                   statusClass = 'pending';     // red
                 }
 
                 return (
                   <tr key={key}>
-                    <td className="mono">{o.orderId || o.id || '-'}</td>
-                    <td>{o.created_at || '-'}</td>
+                    <td className="mono">{o.orderName || o.id || '-'}</td>
+                    <td>{o.created_at ? new Date(o.created_at).toLocaleString() : '-'}</td>
                     <td>{o.customer || '-'}</td>
                     <td>{o.platform || '-'}</td>
                     <td>{o.destination || '-'}</td>
                     <td className="center">{o.total_amount != null ? o.total_amount : '-'}</td>
                     <td className="center">
                       <span className={`status ${statusClass}`}>
-                        {o.status || '-'}
+                        {statusValue.charAt(0).toUpperCase() + statusValue.slice(1)}
                       </span>
                     </td>
                   </tr>

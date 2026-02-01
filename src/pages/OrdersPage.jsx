@@ -38,7 +38,16 @@ export default function OrdersPage() {
       try {
         const list = await getOrders();
         if (!mounted) return;
-        setOrders(Array.isArray(list) ? list : []);
+        setOrders(Array.isArray(list) ? list.map(o => ({
+          orderId: o.order_number,
+          customer: o.customer_name,
+          platform: o.platform,
+          destination: o.destination,
+          total_amount: o.total_amount,
+          status: o.status,
+          created_at: o.created_at ? new Date(o.created_at).toLocaleString() : null,
+        })) : []);
+
       } catch (err) {
         console.error('Failed to load orders', err);
         if (mounted) setError(err.message || 'Failed to load orders');
@@ -97,7 +106,7 @@ export default function OrdersPage() {
         platform: newOrder.platform,
         destination: newOrder.destination,
         total_amount: Number(newOrder.total_amount) || 1,
-        status: newOrder.status,
+        status: newOrder.status.toLowerCase(),
         created_at: newOrder.created_at,
 
       };
@@ -107,13 +116,15 @@ export default function OrdersPage() {
       // Map response: use created_at from backend
       const mapped = {
         id: created.id ?? generateOrderId(),
-        orderNumber: created.order_number ?? payload.order_number,
+        orderId: created.order_number ?? payload.order_number,
         customer: created.customer_name ?? payload.customer_name,
         platform: created.platform ?? payload.platform,
         destination: created.destination ?? payload.destination,
         total_amount: created.total_amount ?? payload.total_amount,
-        status: created.status ?? payload.status,
-        created_at: created.created_at ?? payload.created_at,
+        status: created.status ?? payload.status.toLowerCase(),
+        created_at: created.created_at     
+          ? new Date(created.created_at).toLocaleString()
+          : new Date(payload.created_at).toLocaleString(),
       };
 
       setOrders(prev => [mapped, ...prev]);
@@ -129,7 +140,7 @@ export default function OrdersPage() {
   // Filtered list for display
   const filtered = orders.filter(o => {
     if (search && !(
-      String(o.orderNumber).toLowerCase().includes(search.toLowerCase()) ||
+      String(o.orderId).toLowerCase().includes(search.toLowerCase()) ||
       String(o.customerName).toLowerCase().includes(search.toLowerCase())
     )) return false;
     if (platform !== 'all' && o.platform !== platform) return false;
@@ -205,9 +216,9 @@ export default function OrdersPage() {
             aria-label="Filter status"
           >
             <option value="all">All status</option>
-            <option value="Pending">Pending</option>
-            <option value="Shipped">Shipped</option>
-            <option value="Delivered">Delivered</option>
+            <option value="pending">Pending</option>
+            <option value="shipping">Shipped</option>
+            <option value="completed">Completed</option>
           </select>
 
           <button className="btn btn-outline" onClick={resetFilters}>
@@ -273,7 +284,6 @@ export default function OrdersPage() {
                     <option value="Tokipedia">Tokipedia</option>
                     <option value="Shoopa">Shoopa</option>
                     <option value="Lazado">Lazado</option>
-                    {/* <option>{input value="text"}</option> */}
                   </select>
                 </div>
 
@@ -304,18 +314,21 @@ export default function OrdersPage() {
                     onChange={e => updateField('status', e.target.value)}
                     required
                   >
-                    <option value="Pending">Pending</option>
-                    <option value="Completed">Shipped</option>
-                    <option>Delivered</option>
+                    <option value="pending">Pending</option>
+                    <option value="shipping">Shipped</option>
+                    <option value="completed">Completed</option>
                   </select>
                 </div>
 
                 <div className="form-row">
                   <label>Date</label>
                   <input
-                    type="date"
-                    value={newOrder.date}
-                    onChange={e => updateField('date', e.target.value)}
+                    type="datetime-local"
+                    className="control-input"
+                    value={newOrder.created_at
+                      ? new Date(newOrder.created_at).toISOString().slice(0,16) // format ke yyyy-MM-ddTHH:mm
+                      : new Date().toISOString().slice(0,16)}
+                    onChange={e => updateField('created_at', new Date(e.target.value).toISOString())}
                   />
                 </div>
 
