@@ -1,3 +1,5 @@
+import { data } from "framer-motion/client";
+
 const USER_KEY = "user";
 // Call for avatar
 const AVATAR_KEY_PREFIX = "fe_avatar_user_";
@@ -78,7 +80,9 @@ export async function getUser(userId) {
 
   try {
     const res = await fetch(`http://localhost:8080/users/${userId}`, {
-      headers: { "Authorization": `Bearer ${token}` },
+      headers: {
+        "Content-Type": "application/json",
+      },
     });
     const json = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(json.message || "Failed to fetch user");
@@ -95,7 +99,6 @@ export async function updateUser(userId, data) {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
       },
       body: JSON.stringify(data),
     });
@@ -173,10 +176,20 @@ export function emitUserRefreshed(user) {
 }
 
 /* getProfile */
-export async function getProfile(forceFetch = false) {
-    try {
+export async function getProfile() {
+  try {
+    // Ambil user dari localStorage dulu untuk dapatkan id
+    const stored = localStorage.getItem("user");
+    const parsed = stored ? JSON.parse(stored) : null;
+    const userId = parsed?.id;
+
+    if (!userId) {
+      console.warn("No userId found in localStorage");
+      return null;
+    }
+
     // Fetch from BE
-    const resp = await fetch("http://localhost:8080/users/me?id=6", {
+    const resp = await fetch(`http://localhost:8080/users/me?id=${userId}`, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
     });
@@ -185,7 +198,7 @@ export async function getProfile(forceFetch = false) {
       const body = await resp.json();
       console.log("Raw body from BE:", body);
 
-      profile = body?.data || body;
+      const profile = body?.data || body;
       console.log("Profile before normalize:", profile);
 
       if (profile) {
@@ -201,19 +214,19 @@ export async function getProfile(forceFetch = false) {
     console.warn("getProfile fetch error", err);
   }
 
-  // Fallback try to localStorage
+  // Fallback ke localStorage
   try {
-      const raw = localStorage.getItem("user");
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (parsed && (parsed.id || parsed.username || parsed.email)) {
-          return normalizeProfile(parsed);
-        }
+    const raw = localStorage.getItem("user");
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && (parsed.id || parsed.username || parsed.email)) {
+        return normalizeProfile(parsed);
       }
-    } catch (err) {
-      console.warn("getProfile localStorage parse error", err);
     }
-  // Nothing found
+  } catch (err) {
+    console.warn("getProfile localStorage parse error", err);
+  }
+  // Nothing found, so return = null
   return null;
 }
 
@@ -225,8 +238,14 @@ function normalizeProfile(profile) {
   console.log("normalizeProfile input:", profile);
 
   return {
-    id: profile.user_id || profile.id || null,
-    full_name: profile.full_name || profile.name || profile.fullName || profile.FullName || "",
+    id: profile.id || profile.user_id || null,
+    user_id: profile.user_id || null,
+    full_name:
+      profile.full_name ||
+      profile.name ||
+      profile.fullName ||
+      profile.FullName ||
+      "",
     username: profile.username || "",
     email: profile.email || "",
     role: profile.role || null,
