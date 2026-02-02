@@ -8,6 +8,7 @@ import {
   setLocalAvatarAndEmit,
   onAuthEvent,
   offAuthEvent,
+  emitUserRefreshed,
 } from '../utils/auth';
 import '../styles/profile-page.css';
 import EditProfileModal from '../components/EditProfileModal';
@@ -43,19 +44,7 @@ export default function ProfilePage() {
     avatarUrl: '',
   });
 
-  // Helper untuk buka popup notification
-  function showNotification(type, message) {
-    setNotifType(type);
-    setNotifMessage(message);
-    setNotifOpen(true);
-  }
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-  };
-
-  // Open modal, close modal, save modal
+  // Open & close EditProfileModal
   function handleEditToggle() {
     setModalOpen(true);
   }
@@ -63,47 +52,6 @@ export default function ProfilePage() {
   function handleModalClose() {
     setModalOpen(false);
   }
-
-  function handleModalSave() {
-    handleSave();
-    setModalOpen(false);
-  }
-
-  // Save modal handler
-  const handleSave = async (e) => {
-    if (e && e.preventDefault) e.preventDefault();
-
-    const updated = {
-      full_name: form.fullName,
-      username: form.username,
-      email: form.email,
-      ...(form.password ? { password: form.password } : {}),
-    };
-
-    try {
-      // Kirim ke backend
-      const res = await updateUser("me", updated);
-
-      if (res.status === "success") {
-        // save to localStorage FE
-        saveUser(res.data);
-        setUser(res.data);
-
-        // dispatch custom event supaya komponen lain tahu
-        // window.dispatchEvent(new CustomEvent("user-updated", { detail: res.data }));
-        emitUserRefreshed(res.data); // broadcast changes
-
-        // reset password agar tidak tersimpan plaintext
-        setForm((prev) => ({ ...prev, password: "" }));
-
-        showNotification("success", "Profile updated successfully.");
-      } else {
-        showNotification("error", res.message || "Failed to update profile.");
-      }
-    } catch (err) {
-      showNotification("error", "Error saving profile to backend.");
-    }
-  };
 
   // User initialization
   useEffect(() => {
@@ -225,31 +173,6 @@ export default function ProfilePage() {
 
         // Persist FE-only using utils helper (per-user key) and emit emitter event
         setLocalAvatarAndEmit(user.id, base64);
-
-        // // Also keep legacy localStorage key for backward compatibility
-        // try {
-        //   localStorage.setItem('avatar', base64);
-        // } catch (err) {
-        //   // ignore storage errors
-        // }
-
-        // // Also dispatch legacy window event for other parts that listen to it
-        // try {
-        //   window.dispatchEvent(new CustomEvent('avatar-updated', { detail: base64 }));
-        // } catch (err) {
-        //   // ignore
-        // }
-
-        // // Show success toast
-        // toast({
-        //   title: 'Avatar updated',
-        //   description: 'Your avatar was saved locally.',
-        //   status: 'success',
-        //   duration: 4000,
-        //   isClosable: true,
-        //   position: 'top-right',
-        // });
-
         setSavingAvatar(false);
       } catch (err) {
         setSavingAvatar(false);
@@ -454,11 +377,7 @@ export default function ProfilePage() {
         <EditProfileModal
           isOpen={modalOpen}
           onClose={handleModalClose}
-          onSave={handleModalSave}
           user={user}
-          form={form}
-          onChange={handleChange}
-          onUserUpdated={(updatedUser) => setUser(updatedUser)}
         />
       )}
 

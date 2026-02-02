@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Avatar } from '@chakra-ui/react';
 import '../styles/edit-profile-modal.css';
+import { updateUser } from '../utils/auth';
 
-export default function EditProfileModal({ isOpen, onClose, user, token, onUserUpdated }) {
+export default function EditProfileModal({ isOpen, onClose, user }) {
   if (!isOpen) return null;
 
   // Local form state initialized from user prop
@@ -33,31 +34,43 @@ export default function EditProfileModal({ isOpen, onClose, user, token, onUserU
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Edit profile handler
   const handleSave = async () => {
     try {
-      const res = await fetch('http://localhost:8080/users/me', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          full_name: form.fullName,
-          username: form.username,
-          email: form.email,
-          password: form.password,
-          // avatar tidak dikirim ke backend, hanya disimpan lokal
-        })
-      });
+      // Ambil userId dari localStorage
+      const raw = localStorage.getItem("user");
+      const parsed = raw ? JSON.parse(raw) : null;
+      const userId = parsed?.id;
 
-      if (!res.ok) throw new Error('Failed to update profile');
+      if (!userId) {
+        alert("No user ID found");
+        return;
+      }
 
-      const data = await res.json();
-      onUserUpdated(data.data);
+      // Payload sesuai field BE
+      const payload = {
+        id: userId,
+        full_name: form.fullName,
+        username: form.username,
+        email: form.email,
+        password: form.password || "",
+      };
+
+      // Panggil helper updateUser dari auth.js
+      const result = await updateUser(userId, payload);
+
+      if (result.status === "error") {
+        throw new Error(result.message);
+      }
+
+      // Simpan hasil update ke localStorage
+      localStorage.setItem("user", JSON.stringify(result.data || result));
+
+      // Tutup modal / refresh state
       onClose();
     } catch (err) {
-      console.error(err);
-      alert('Error updating profile');
+      console.error("handleSave error:", err);
+      alert("Error updating profile");
     }
   };
 
@@ -108,12 +121,18 @@ export default function EditProfileModal({ isOpen, onClose, user, token, onUserU
             type="password"
             placeholder="Enter your new password"
           />
-
+          {/* Save Button and Cancel Button */}
           <div className="modal-actions">
-            <button className="btn-primary" onClick={handleSave}>
+            <button 
+              className="btn-primary" 
+              onClick={handleSave}
+            >
               Save
             </button>
-            <button className="btn-subtle" onClick={onClose}>
+            <button
+            className="btn-subtle" 
+            onClick={onClose}
+            >
               Cancel
             </button>
           </div>

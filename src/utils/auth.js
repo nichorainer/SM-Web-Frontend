@@ -73,39 +73,41 @@ export function logout() {
   }
 }
 
-// Get user profile from backend
+// Get user profile from BE from user_id
 export async function getUser(userId) {
-  const token = getToken();
-  if (!token) return { status: "error", message: "Not authenticated" };
-
   try {
-    const res = await fetch(`http://localhost:8080/users/${userId}`, {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    const json = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(json.message || "Failed to fetch user");
-    return json;
-  } catch (err) {
-    return { status: "error", message: err.message };
-  }
-}
+    // Ambil userId dari localStorage kalau tidak diberikan sebagai argumen
+    if (!userId) {
+      const raw = localStorage.getItem("user");
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      userId = parsed?.id;
+      if (!userId) return null;
+    }
 
-// Update user profile
-export async function updateUser(userId, data) {
-  try {
+    // Panggil backend
     const res = await fetch(`http://localhost:8080/users/${userId}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
+      headers: { "Content-Type": "application/json" },
     });
+
+    // Parse response JSON
     const json = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(json.message || "Failed to update user");
-    return json;
+
+    if (!res.ok) {
+      throw new Error(json.message || "Failed to fetch user");
+    }
+
+    // Simpan ke localStorage untuk cache
+    try {
+      localStorage.setItem("user", JSON.stringify(json.data || json));
+    } catch (err) {
+      console.warn("Failed to save user to localStorage", err);
+    }
+
+    // Kembalikan data user
+    return json.data || json;
   } catch (err) {
+    console.error("getUser error:", err);
     return { status: "error", message: err.message };
   }
 }
@@ -252,4 +254,22 @@ function normalizeProfile(profile) {
     avatar_url: null,
     _raw: profile,
   };
+}
+
+// Update user profile
+export async function updateUser(userId, data) {
+  try {
+    const res = await fetch(`http://localhost:8080/users/${userId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(json.message || "Failed to update user");
+    return json;
+  } catch (err) {
+    return { status: "error", message: err.message };
+  }
 }
