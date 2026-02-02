@@ -17,7 +17,6 @@ export default function ProfilePage() {
   const navigate = useNavigate();
   // user data
   const [user, setUser] = useState(null);
-  const [error, setError] = useState('');
   //avatar state
   const [avatarUrl, setAvatarUrl] = useState('');
   const [savingAvatar, setSavingAvatar] = useState(false);
@@ -25,11 +24,6 @@ export default function ProfilePage() {
   // used to trigger hidden file input
   const fileInputRef = useRef(null);
   const [loading, setLoading] = useState(false);
-
-    // Popup notification state
-  const [notifOpen, setNotifOpen] = useState(false);
-  const [notifType, setNotifType] = useState('success'); // 'success' | 'error'
-  const [notifMessage, setNotifMessage] = useState('');
 
   // Modal state
   const [modalOpen, setModalOpen] = useState(false);
@@ -379,81 +373,6 @@ export default function ProfilePage() {
           onClose={handleModalClose}
           user={user}
         />
-      )}
-
-      {/* Notification popup */}
-      {notifOpen && (
-        <div
-          className="notif-overlay"
-          onClick={() => setNotifOpen(false)}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(0,0,0,0.35)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 9999,
-          }}
-        >
-          <div
-            className={`notif-card ${notifType === 'success' ? 'success' : 'error'}`}
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              width: 360,
-              maxWidth: '90%',
-              background: '#fff',
-              borderRadius: 8,
-              padding: 20,
-              boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
-              position: 'relative',
-            }}
-          >
-            {/* Close X */}
-            <button
-              aria-label="Close"
-              onClick={() => setNotifOpen(false)}
-              style={{
-                position: 'absolute',
-                top: 8,
-                right: 8,
-                border: 'none',
-                background: 'transparent',
-                fontSize: 18,
-                cursor: 'pointer',
-              }}
-            >
-              ×
-            </button>
-
-            {/* Icon + Message */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div
-                style={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: 8,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  background: notifType === 'success' ? '#E6FFFA' : '#FFF5F5',
-                  color: notifType === 'success' ? '#059669' : '#C53030',
-                  fontSize: 20,
-                  fontWeight: 700,
-                }}
-              >
-                {notifType === 'success' ? '✓' : '!' }
-              </div>
-
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 600, marginBottom: 6 }}>
-                  {notifType === 'success' ? 'Success' : 'Error'}
-                </div>
-                <div style={{ color: '#333' }}>{notifMessage}</div>
-              </div>
-            </div>
-          </div>
-        </div>
       )}
     </div>
   );
