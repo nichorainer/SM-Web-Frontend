@@ -97,6 +97,15 @@ body {
   color: #ffffff;
 }
 /* Table */
+.products-table-wrapper {
+  max-height: 60vh;          /* atur tinggi maksimal area tabel */
+  overflow-y: auto;          /* scroll vertical */
+  overflow-x: hidden;        /* cegah scroll horizontal */
+  border-radius: 8px;        /* biar konsisten dengan tabel */
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  background-color: white;
+}
+
 .products-table {
   width: 100%;
   border-collapse: collapse;

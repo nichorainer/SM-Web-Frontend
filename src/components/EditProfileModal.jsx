@@ -77,7 +77,7 @@ export default function EditProfileModal({ isOpen, onClose, user, onUserUpdated}
       console.error("handleSave error:", err);
       alert("Error updating profile");
     } finally {
-      setTimeout(() => setLoading(false), 4000);
+      setTimeout(() => setLoading(false), 5000);
     }
   };
 

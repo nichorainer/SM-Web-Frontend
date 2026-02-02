@@ -157,39 +157,40 @@ export default function ProductsPage() {
 
       {loading && <div className="muted">Loading products…</div>}
       {error && <div className="error">Error: {error}</div>}
-      <table className="products-table">
-        <thead>
-          <tr>
-            <th>Product Name</th>
-            <th>Product ID</th>
-            <th>Supplier Name</th>
-            <th>Category</th>
-            <th>Price</th>
-            <th>Stock</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredProducts.length > 0 ? (
-            filteredProducts.map((p, idx) => (
-              <tr key={p.productId ?? p.product_id ?? p.id ?? `product-${idx}`}>
-                <td>{p.name ?? p.product_name}</td>
-                <td>{p.productId ?? p.product_id ?? p.id}</td>
-                <td>{p.supplierName ?? p.supplier_name}</td>
-                <td>{p.category}</td>
-                <td>IDR {p.price ?? p.price_idr}K</td>
-                <td>{p.stock}</td>
-              </tr>
-            ))
-          ) : (
+      <div className="products-table-wrapper">
+        <table className="products-table">
+          <thead>
             <tr>
-              <td colSpan="6" style={{ textAlign: 'center' }}>
-                No products found.
-              </td>
+              <th>Product Name</th>
+              <th>Product ID</th>
+              <th>Supplier Name</th>
+              <th>Category</th>
+              <th>Price</th>
+              <th>Stock</th>
             </tr>
-          )}
-        </tbody>
-      </table>
-
+          </thead>
+          <tbody>
+            {filteredProducts.length > 0 ? (
+              filteredProducts.map((p, idx) => (
+                <tr key={p.productId ?? p.product_id ?? p.id ?? `product-${idx}`}>
+                  <td>{p.name ?? p.product_name}</td>
+                  <td>{p.productId ?? p.product_id ?? p.id}</td>
+                  <td>{p.supplierName ?? p.supplier_name}</td>
+                  <td>{p.category}</td>
+                  <td>IDR {p.price ?? p.price_idr}</td>
+                  <td>{p.stock}</td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="6" style={{ textAlign: 'center' }}>
+                  No products found.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
       {/* Render modal using the same modalOpen state and handlers above */}
       {typeof AddProductModal !== 'undefined' && modalOpen && (
         <AddProductModal
