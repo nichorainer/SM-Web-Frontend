@@ -172,35 +172,37 @@ export function emitUserRefreshed(user) {
   emitAuthEvent("user:refreshed", { user });
 }
 
-/**
- * Normalize backend profile shape to a consistent object used across the app.
- */
-function normalizeProfile(profile) {
-  if (!profile) return null;
-  return {
-    id: profile.user_id || profile.id || null,   
-    full_name: profile.full_name || profile.name || profile.fullName || "",
-    username: profile.username || "",
-    email: profile.email || "",
-    role: profile.role || null, 
-    avatar_url: null,
-    _raw: profile,
-  };
-}
-
-/**
- * getProfile
- * - If forceFetch is false (default), try localStorage 'user' first.
- * - If not found or forceFetch === true, try to fetch from backend.
- * - On successful fetch, normalize and persist to localStorage under 'user'.
- *
- * Usage:
- *   const profile = await getProfile(); // returns normalized profile or null
- */
+/* getProfile */
 export async function getProfile(forceFetch = false) {
-  // Try localStorage first for speed and backward compatibility
-  if (!forceFetch) {
     try {
+    // Fetch from BE
+    const resp = await fetch("http://localhost:8080/users/me?id=6", {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    if (resp.ok) {
+      const body = await resp.json();
+      console.log("Raw body from BE:", body);
+
+      profile = body?.data || body;
+      console.log("Profile before normalize:", profile);
+
+      if (profile) {
+        try {
+          localStorage.setItem("user", JSON.stringify(profile));
+        } catch (err) {
+          // ignore storage errors
+        }
+        return normalizeProfile(profile);
+      }
+    }
+  } catch (err) {
+    console.warn("getProfile fetch error", err);
+  }
+
+  // Fallback try to localStorage
+  try {
       const raw = localStorage.getItem("user");
       if (raw) {
         const parsed = JSON.parse(raw);
@@ -209,36 +211,26 @@ export async function getProfile(forceFetch = false) {
         }
       }
     } catch (err) {
-      // ignore parse errors and fall through to fetch
-      // console.warn("getProfile: localStorage parse error", err);
+      console.warn("getProfile localStorage parse error", err);
     }
-  }
-
-  try {
-    // Fallback: use fetch to a common endpoint. Adjust URL to match your backend.
-    const resp = await fetch("http://localhost:8080/users/me", {
-      method: "GET",
-      headers: { "Content-Type": "application/json" },
-    });
-
-    if (!resp.ok) {
-      return null;
-    }
-    const body = await resp.json();
-    // adapt to your backend response shape: body.data or body
-    const profile = body?.data || body;
-    if (profile) {
-      try {
-        localStorage.setItem("user", JSON.stringify(profile));
-      } catch (err) {
-        // ignore storage errors
-      }
-      return normalizeProfile(profile);
-    }
-  } catch (err) {
-    // console.warn("getProfile fetch error", err);
-  }
-
   // Nothing found
   return null;
+}
+
+/**
+ * Normalize backend profile shape to a consistent object used across the app.
+ */
+function normalizeProfile(profile) {
+  if (!profile) return null;
+  console.log("normalizeProfile input:", profile);
+
+  return {
+    id: profile.user_id || profile.id || null,
+    full_name: profile.full_name || profile.name || profile.fullName || profile.FullName || "",
+    username: profile.username || "",
+    email: profile.email || "",
+    role: profile.role || null,
+    avatar_url: null,
+    _raw: profile,
+  };
 }

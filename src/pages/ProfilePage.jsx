@@ -116,6 +116,7 @@ export default function ProfilePage() {
       }
 
       setUser(profile);
+      console.log("User set in ProfilePage:", profile);
       setForm({
         fullName: profile.full_name || '',
         username: profile.username || '',
@@ -129,7 +130,6 @@ export default function ProfilePage() {
       const localAvatar = readLocalAvatar(profile.id);
       setAvatarUrl(localAvatar || '');
     }
-
     initUser();
   }, [navigate]);
 
@@ -187,101 +187,7 @@ export default function ProfilePage() {
         offAuthEvent('name:changed', nameHandler);
         offAuthEvent('user:refreshed', userRefreshedHandler);
       };
-
-
-      // // Subscribe to utils emitter from auth.js
-      // try {
-      //   onAuthEvent?.('avatar:changed', avatarHandler);
-      //   onAuthEvent?.('name:changed', nameHandler);
-      //   onAuthEvent?.('user:refreshed', userRefreshedHandler);
-      // } catch (err) {
-      //   // ignore if emitter not present
-      // }
-
-    //   // Also subscribe to legacy window events for backward compatibility
-    //   function onUserUpdatedWindow(e) {
-    //     const updated = e?.detail ?? null;
-    //     if (updated) {
-    //       // update local user and form
-    //       setUser(updated);
-    //       setForm((prev) => ({
-    //         ...prev,
-    //         fullName: updated?.full_name || updated?.fullName || '',
-    //         username: updated?.username || '',
-    //         email: updated?.email || '',
-    //         role: updated?.role || '',
-    //         avatarUrl: readLocalAvatar(updated.id) || updated.avatar_url || updated.avatarUrl || '',
-    //       }));
-    //       setAvatarUrl(readLocalAvatar(updated.id) || updated.avatar_url || updated.avatarUrl || '');
-    //     } else {
-    //       // fallback: re-read from localStorage
-    //       const fresh = JSON.parse(localStorage.getItem('user') || 'null');
-    //       if (fresh) {
-    //         setUser(fresh);
-    //         setForm((prev) => ({
-    //           ...prev,
-    //           fullName: fresh?.full_name || fresh?.fullName || '',
-    //           username: fresh?.username || '',
-    //           email: fresh?.email || '',
-    //           role: fresh?.role || '',
-    //           avatarUrl: readLocalAvatar(fresh.id) || fresh.avatar_url || fresh.avatarUrl || '',
-    //         }));
-    //         setAvatarUrl(readLocalAvatar(fresh.id) || fresh.avatar_url || fresh.avatarUrl || '');
-    //       }
-    //     }
-    //   }
-
-    //   function onAvatarUpdatedWindow(e) {
-    //     const val = e?.detail ?? null;
-    //     setAvatarUrl(val || '');
-    //     // refresh user from localStorage if available
-    //     const fresh = JSON.parse(localStorage.getItem('user') || 'null');
-    //     if (fresh) {
-    //       setUser(fresh);
-    //       setForm((prev) => ({ ...prev, avatarUrl: readLocalAvatar(fresh.id) || fresh.avatar_url || fresh.avatarUrl || '' }));
-    //     }
-    //   }
-
-    //   window.addEventListener('user-updated', onUserUpdatedWindow);
-    //   window.addEventListener('avatar-updated', onAvatarUpdatedWindow);
-
-    //   return () => {
-    //     try {
-    //       offAuthEvent?.('avatar:changed', avatarHandler);
-    //       offAuthEvent?.('name:changed', nameHandler);
-    //       offAuthEvent?.('user:refreshed', userRefreshedHandler);
-    //     } catch (err) {
-    //       // ignore
-    //     }
-    //     window.removeEventListener('user-updated', onUserUpdatedWindow);
-    //     window.removeEventListener('avatar-updated', onAvatarUpdatedWindow);
-    //   };
     }, [user?.id]);
-
-  // ---------------------------
-  // FE avatar persistence: read initial cached avatar (keeps existing behavior but prefer per-user key)
-  // ---------------------------
-  // useEffect(() => {
-  //   if (!user?.id) {
-  //     // if user not loaded yet, try generic key (backwards compatibility)
-  //     const cachedAvatar = localStorage.getItem('avatar');
-  //     if (cachedAvatar) setAvatarUrl(cachedAvatar);
-  //     return;
-  //   }
-  //   // prefer per-user stored avatar via utils helper
-  //   const local = readLocalAvatar(user.id);
-  //   if (local) {
-  //     setAvatarUrl(local);
-  //   } else {
-  //     // fallback to legacy key
-  //     const cachedAvatar = localStorage.getItem('avatar');
-  //     if (cachedAvatar) setAvatarUrl(cachedAvatar);
-  //   }
-  // }, [user?.id]);
-
-  // ---------------------------
-  // Upload avatar handler (FE-only persistence + emit)
-  // ---------------------------
 
   // file reader
   const handleFileSelect = (e) => {
