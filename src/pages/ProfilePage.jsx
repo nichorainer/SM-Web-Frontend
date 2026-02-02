@@ -2,17 +2,15 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Avatar, useToast } from '@chakra-ui/react';
 import { 
-  getToken, 
+  getUserLocal, 
   updateUser,
   readLocalAvatar,
   setLocalAvatarAndEmit,
-  emitNameChanged,
   onAuthEvent,
   offAuthEvent,
 } from '../utils/auth';
 import '../styles/profile-page.css';
 import EditProfileModal from '../components/EditProfileModal';
-import { validateEmail } from '../utils/validators';
 
 export default function ProfilePage() {
   const navigate = useNavigate();
@@ -107,52 +105,30 @@ export default function ProfilePage() {
   };
 
   // User initialization
-    useEffect(() => {
-    const token = getToken();
-    if (!token) {
+  useEffect(() => {
+    const storedUser = getUserLocal();
+    if (!storedUser) {
       navigate('/login', { replace: true });
       return;
     }
-    // Try to read stored user from localStorage first (keeps existing behavior)
-    const storedUser = localStorage.getItem('user');
-      if (storedUser) {
-        const parsed = JSON.parse(storedUser);
-        setUser(parsed);
-        // sync form with loaded user
-        setForm((prev) => ({
-          ...prev,
-          fullName: parsed?.full_name || parsed?.fullName || '',
-          username: parsed?.username || '',
-          email: parsed?.email || '',
-          role: parsed?.role || '',
-          avatarUrl: readLocalAvatar(parsed.id) || parsed.avatar_url || parsed.avatarUrl || '',
-        }));
-        // prefer FE-stored avatar if present
-        const localAvatar = readLocalAvatar(parsed.id);
-        if (localAvatar) setAvatarUrl(localAvatar);
-      } else {
-        // fallback: fetch from backend (keeps existing behavior)
-        getUser('me').then((res) => {
-          if (res.status === 'success') {
-            setUser(res.data);
-            localStorage.setItem('user', JSON.stringify(res.data));
-            setForm((prev) => ({
-              ...prev,
-              fullName: res.data?.full_name || res.data?.fullName || '',
-              username: res.data?.username || '',
-              email: res.data?.email || '',
-              role: res.data?.role || '',
-              avatarUrl: readLocalAvatar(res.data.id) || res.data.avatar_url || res.data.avatarUrl || '',
-            }));
-            const localAvatar = readLocalAvatar(res.data.id);
-            if (localAvatar) setAvatarUrl(localAvatar);
-          } else {
-            setError(res.message);
-          }
-        });
-      }
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [navigate]);
+
+    setUser(storedUser);
+    setForm((prev) => ({
+      ...prev,
+      fullName: storedUser.full_name || storedUser.fullName || '',
+      username: storedUser.username || '',
+      email: storedUser.email || '',
+      role: storedUser.role || '',
+      avatarUrl:
+        readLocalAvatar(storedUser.id) ||
+        storedUser.avatar_url ||
+        storedUser.avatarUrl ||
+        '',
+    }));
+
+    const localAvatar = readLocalAvatar(storedUser.id);
+    if (localAvatar) setAvatarUrl(localAvatar);
+  }, [navigate]);
 
     // ---------------------------
     // Subscribe to emitter/window events so this page updates when other tabs/components change avatar/name

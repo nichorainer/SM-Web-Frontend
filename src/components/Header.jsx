@@ -8,7 +8,8 @@ import {
   readLocalAvatar, 
   onAuthEvent, 
   offAuthEvent, 
-  setLocalAvatarAndEmit 
+  setLocalAvatarAndEmit,
+  logout 
 } from '../utils/auth';
 
 export default function Header() {
@@ -166,31 +167,24 @@ export default function Header() {
     reader.readAsDataURL(file);
   };
 
-  // Logout handler
+    // Logout handler
   function handleLogout() {
     try {
-      // hapus token dan user object
-      localStorage.removeItem(AUTH_TOKEN_KEY);
-      localStorage.removeItem(USER_STORAGE_KEY);
+      logout();
+      localStorage.removeItem("user");
 
-      // hapus avatar cache jika ada
-      try { localStorage.removeItem(AVATAR_STORAGE_KEY); } catch (e) {}
-
-      // beri tahu komponen lain bahwa user sudah logout
+      // beri tahu komponen lain
       window.dispatchEvent(new CustomEvent('user-logged-out'));
 
-      // reset local state jika perlu (jika ada setter di scope)
-      try {
-        setUserData(null);
-        setAvatarSrc(null);
-      } catch (e) {
-        // ignore if setters not in scope
-      }
+      // bersihkan avatar / state lokal
+      setAvatarSrc(null);
+      setDisplayName("Guest");
+      setDisplayRole("");
 
-      // navigate ke login, replace agar user tidak bisa back ke halaman sebelumnya
+      // redirect ke login
       navigate('/login', { replace: true });
 
-      // fallback: jika navigate tidak memaksa reload (rare), paksa redirect
+      // fallback redirect paksa
       setTimeout(() => {
         if (window.location.pathname !== '/login') {
           window.location.href = '/login';

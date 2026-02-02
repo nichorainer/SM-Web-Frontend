@@ -1,8 +1,3 @@
-export function validateEmail(email) {
-  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return re.test(String(email).toLowerCase());
-}
-
 // Validasi Order Fields
 export function validateOrderPayload(o) {
   // required fields: order_number/orderId, customer_name/customer, platform, destination, total_amount (>0), status,

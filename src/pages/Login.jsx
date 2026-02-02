@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { loginUser } from '../utils/auth';
+import { loginUser, saveUser } from '../utils/auth';
 import '../utils/auth.css';
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const [usernameOrEmail, setUsernameOrEmail] = useState(''); // to identify email/username
+  const [usernameOrEmail, setUsernameOrEmail] = useState('');
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -23,13 +23,9 @@ export default function LoginPage() {
       });
 
       if (res && res.status === "success") {
-        // Save JWT token to localStorage
-        if (res.data?.token) {
-          localStorage.setItem("token", res.data.token);
-          localStorage.setItem("user", JSON.stringify(res.data));
-        }
-
-        // Navigate to home after login
+        // Simpan user info ke localStorage
+        saveUser(res.data);
+        // Redirect ke home
         navigate('/home', { replace: true });
       } else {
         setError(res?.message || "Login failed");

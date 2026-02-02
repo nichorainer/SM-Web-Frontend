@@ -1,11 +1,11 @@
-const AUTH_TOKEN_KEY = 'sm_token';
+const USER_KEY = "user";
 // Call for avatar
 const AVATAR_KEY_PREFIX = "fe_avatar_user_";
 
 // Register user via backend
 export async function registerUser(data) {
   try {
-    const res = await fetch("http://localhost:8080/auth/register", {
+    const res = await fetch("http://localhost:8080/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
@@ -23,7 +23,7 @@ export async function registerUser(data) {
 
 // Login user via backend
 export async function loginUser(data) {
-  const res = await fetch("http://localhost:8080/auth/login", {
+  const res = await fetch("http://localhost:8080/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
@@ -37,35 +37,35 @@ export async function loginUser(data) {
   return res.json();
 }
 
-// Save token to localStorage
-export function saveToken(token) {
+// Save user object to localStorage
+export function saveUser(user) {
   try {
-    localStorage.setItem(AUTH_TOKEN_KEY, token);
+    localStorage.setItem(USER_KEY, JSON.stringify(user));
   } catch (err) {
-    console.warn("Failed to save token", err);
+    console.warn("Failed to save user", err);
   }
 }
 
 // Get token from localStorage
-export function getToken() {
+export function getUserLocal() {
   try {
-    return localStorage.getItem(AUTH_TOKEN_KEY);
+    const raw = localStorage.getItem(USER_KEY);
+    return raw ? JSON.parse(raw) : null;
   } catch (err) {
-    console.warn("Failed to get token", err);
+    console.warn("Failed to get user", err);
     return null;
   }
 }
 
 // Check if user is authenticated
 export function isAuthenticated() {
-  const token = getToken();
-  return !!token; // true if token exists
+  return !!getUserLocal();
 }
 
 // Clear token (logout)
 export function logout() {
   try {
-    localStorage.removeItem(AUTH_TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
   } catch (err) {
     console.warn("logout error", err);
   }
