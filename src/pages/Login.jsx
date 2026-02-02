@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { loginUser, saveUser } from '../utils/auth';
 import '../utils/auth.css';
@@ -9,6 +9,20 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+
+  // listen event dari ProfilePage
+  useEffect(() => {
+    const handler = (e) => {
+      const { user } = e.detail || {};
+      if (user) {
+        // auto isi username/email terbaru ke field login
+        setUsernameOrEmail(user.username || user.email || '');
+      }
+    };
+    window.addEventListener('user:refreshed', handler);
+    return () => window.removeEventListener('user:refreshed', handler);
+  }, []);
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();

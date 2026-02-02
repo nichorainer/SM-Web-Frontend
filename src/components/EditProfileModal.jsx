@@ -70,6 +70,7 @@ export default function EditProfileModal({ isOpen, onClose, user, onUserUpdated}
       const updatedUser = result.data || result; 
       localStorage.setItem("user", JSON.stringify(result.data || result));
       onUserUpdated?.(updatedUser);
+      window.dispatchEvent(new CustomEvent('user:refreshed', { detail: { user: updatedUser } }));
 
       // Tutup modal / refresh state
       onClose();

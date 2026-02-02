@@ -1,15 +1,16 @@
 import React from 'react';
-import { NavLink, replace, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import '../styles/sidebar.css';
 import { logout } from '../utils/auth';
 
-const handleLogout = () => {
-  logout()
-  navigate('/login', { replace: true })
-}
-
 export default function Sidebar() {
   const linkClass = ({ isActive }) => `nav-item ${isActive ? 'active' : ''}`;
+  const navigate = useNavigate()
+  
+  const handleLogout = () => {
+    logout()
+    navigate('/login', { replace: true })
+  }
 
   return (
     <aside className="sidebar">
