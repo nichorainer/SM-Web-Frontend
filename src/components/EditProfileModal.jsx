@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Avatar } from '@chakra-ui/react';
+import { Avatar, Spinner } from '@chakra-ui/react';
 import '../styles/edit-profile-modal.css';
 import { updateUser } from '../utils/auth';
 
-export default function EditProfileModal({ isOpen, onClose, user }) {
+export default function EditProfileModal({ isOpen, onClose, user, onUserUpdated}) {
   if (!isOpen) return null;
+  // For loading effect
+  const [loading, setLoading] = useState(false);
 
   // Local form state initialized from user prop
   const [form, setForm] = useState({
@@ -37,6 +39,7 @@ export default function EditProfileModal({ isOpen, onClose, user }) {
   // Edit profile handler
   const handleSave = async () => {
     try {
+      setLoading(true);
       // Ambil userId dari localStorage
       const raw = localStorage.getItem("user");
       const parsed = raw ? JSON.parse(raw) : null;
@@ -64,13 +67,17 @@ export default function EditProfileModal({ isOpen, onClose, user }) {
       }
 
       // Simpan hasil update ke localStorage
+      const updatedUser = result.data || result; 
       localStorage.setItem("user", JSON.stringify(result.data || result));
+      onUserUpdated?.(updatedUser);
 
       // Tutup modal / refresh state
       onClose();
     } catch (err) {
       console.error("handleSave error:", err);
       alert("Error updating profile");
+    } finally {
+      setTimeout(() => setLoading(false), 4000);
     }
   };
 
@@ -126,12 +133,20 @@ export default function EditProfileModal({ isOpen, onClose, user }) {
             <button 
               className="btn-primary" 
               onClick={handleSave}
+              disabled={loading}
             >
-              Save
+              {loading ? (
+                <>
+                  <Spinner size="sm" /> Saving...
+                </>
+              ) : (
+                "Save"
+              )}
             </button>
             <button
             className="btn-subtle" 
             onClick={onClose}
+            disabled={loading}
             >
               Cancel
             </button>

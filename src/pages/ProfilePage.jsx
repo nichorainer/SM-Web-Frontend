@@ -3,12 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { Avatar, useToast } from '@chakra-ui/react';
 import { 
   getProfile, 
-  updateUser,
   readLocalAvatar,
   setLocalAvatarAndEmit,
   onAuthEvent,
   offAuthEvent,
-  emitUserRefreshed,
 } from '../utils/auth';
 import '../styles/profile-page.css';
 import EditProfileModal from '../components/EditProfileModal';
@@ -23,7 +21,6 @@ export default function ProfilePage() {
   const toast = useToast();
   // used to trigger hidden file input
   const fileInputRef = useRef(null);
-  const [loading, setLoading] = useState(false);
 
   // Modal state
   const [modalOpen, setModalOpen] = useState(false);
@@ -372,6 +369,7 @@ export default function ProfilePage() {
           isOpen={modalOpen}
           onClose={handleModalClose}
           user={user}
+          onUserUpdated={(updatedUser) => setUser(updatedUser)}
         />
       )}
     </div>
