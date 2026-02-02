@@ -200,7 +200,7 @@ export default function ProfilePage() {
       setLocalAvatarAndEmit(user.id, null);
       // Also remove legacy key
       try {
-        localStorage.removeItem('avatar');
+        localStorage.removeItem('user-avatar');
       } catch (err) {
         // ignore
       }

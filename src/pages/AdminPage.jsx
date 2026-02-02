@@ -78,8 +78,7 @@ export default function AdminPage() {
     // // read per-user key lazily in effect; initial fallback to legacy key or getUser()
     localStorage.getItem('user-avatar') || (getUser()?.avatarUrl || null)
   );
-  const userIdRef = { current: null };
-
+  
   // derived filtered list
   const filteredStaff = useMemo(() => {
     const term = q.trim().toLowerCase();

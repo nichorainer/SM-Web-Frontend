@@ -167,11 +167,15 @@ export default function Header() {
     reader.readAsDataURL(file);
   };
 
-    // Logout handler
+  // Logout handler
   function handleLogout() {
     try {
       logout();
-      localStorage.removeItem("user");
+
+      // clear localStorage
+      localStorage.removeItem("user-avatar");
+      localStorage.removeItem("staffData");
+      localStorage.removeItem("logsData");
 
       // beri tahu komponen lain
       window.dispatchEvent(new CustomEvent('user-logged-out'));

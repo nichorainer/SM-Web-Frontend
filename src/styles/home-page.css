@@ -88,17 +88,31 @@
 }
 
 .badge {
-  font-size: 0.8rem;
-  padding: 4px 8px;
+  font-size: 0.85rem;
+  padding: 6px 12px;
   border-radius: 999px;
-  border: 1px solid #ddd;
-  color: #555;
+  border: 2px solid #ddd;
+  font-weight: 700;
+  text-transform: capitalize;
+  box-shadow: 0 0 6px rgba(0,0,0,0.1);
 }
 
+/* Red Badge */
 .badge.danger {
   border-color: #f0b6b6;
   color: #c53030;
   background: #fff5f5;
+}
+
+/* Green Badge */
+.badge.success {
+  border-color: #a3d9a5;
+  color: #2f855a;
+  background: #f0fff4;
+}
+
+.badge-orders {
+  text-transform: capitalize;
 }
 
 /* Lists (Top Selling Products) */
@@ -145,19 +159,6 @@
 .simple-table th {
   background: #f7f7f7;
   color: #444;
-  font-weight: 600;
-}
-
-/* Best Seller Badge */
-.badge.success {
-  border-color: #a3d9a5;
-  color: #2f855a;
-  background: #f0fff4;
-}
-
-/* Critical Badge */
-.danger {
-  color: #c53030;
   font-weight: 600;
 }
 
