@@ -90,9 +90,6 @@ export async function getUser(userId) {
 
 // Update user profile
 export async function updateUser(userId, data) {
-  const token = getToken();
-  if (!token) return { status: "error", message: "Not authenticated" };
-
   try {
     const res = await fetch(`http://localhost:8080/users/${userId}`, {
       method: "PUT",
@@ -156,18 +153,18 @@ export function emitAuthEvent(name, detail) {
 /** Convenience: set local avatar and emit avatar:changed */
 export function setLocalAvatarAndEmit(userId, dataUrl) {
   writeLocalAvatar(userId, dataUrl);
-  emitAuthEvent("avatar:changed", { id: userId, dataUrl });
+  emitAuthEvent("avatar:changed", { user_id: userId, dataUrl });
 }
 
 /** Convenience: remove local avatar and emit avatar:changed with null */
 export function removeLocalAvatarAndEmit(userId) {
   writeLocalAvatar(userId, null);
-  emitAuthEvent("avatar:changed", { id: userId, dataUrl: null });
+  emitAuthEvent("avatar:changed", { user_id: userId, dataUrl: null });
 }
 
 /** Convenience: emit name changed */
 export function emitNameChanged(userId, fullName) {
-  emitAuthEvent("name:changed", { id: userId, fullName });
+  emitAuthEvent("name:changed", { user_id: userId, fullName });
 }
 
 /** Convenience: emit user refreshed (payload: full user object) */
@@ -175,21 +172,18 @@ export function emitUserRefreshed(user) {
   emitAuthEvent("user:refreshed", { user });
 }
 
-// Optional: import your API helper if you have one
-// import { getProfile as apiGetProfile } from "../services/api";
-
 /**
  * Normalize backend profile shape to a consistent object used across the app.
  */
 function normalizeProfile(profile) {
   if (!profile) return null;
   return {
-    id: profile.id,
-    full_name: profile.full_name || profile.fullName || profile.name || "",
-    username: profile.username || profile.user_name || "",
+    id: profile.user_id || profile.id || null,   
+    full_name: profile.full_name || profile.name || profile.fullName || "",
+    username: profile.username || "",
     email: profile.email || "",
-    role: profile.role || null,
-    avatar_url: profile.avatar_url || profile.avatarUrl || profile.avatar || null,
+    role: profile.role || null, 
+    avatar_url: null,
     _raw: profile,
   };
 }
@@ -204,7 +198,7 @@ function normalizeProfile(profile) {
  *   const profile = await getProfile(); // returns normalized profile or null
  */
 export async function getProfile(forceFetch = false) {
-  // 1) Try localStorage first for speed and backward compatibility
+  // Try localStorage first for speed and backward compatibility
   if (!forceFetch) {
     try {
       const raw = localStorage.getItem("user");
@@ -220,27 +214,11 @@ export async function getProfile(forceFetch = false) {
     }
   }
 
-  // 2) Try to fetch from backend
   try {
-    // If you have an API helper, prefer it. Uncomment and adapt the import above.
-    // if (typeof apiGetProfile === "function") {
-    //   const res = await apiGetProfile();
-    //   const profile = res?.data || res;
-    //   if (profile) {
-    //     try { localStorage.setItem("user", JSON.stringify(profile)); } catch {}
-    //     return normalizeProfile(profile);
-    //   }
-    // }
-
     // Fallback: use fetch to a common endpoint. Adjust URL to match your backend.
-    const resp = await fetch("/api/me", {
+    const resp = await fetch("http://localhost:8080/users/me", {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        // If you store token in localStorage, include it here:
-        // Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
-      },
-      credentials: "include", // optional: include cookies if your backend uses them
+      headers: { "Content-Type": "application/json" },
     });
 
     if (!resp.ok) {
