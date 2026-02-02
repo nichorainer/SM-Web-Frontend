@@ -68,6 +68,11 @@ export function isAuthenticated() {
 export function logout() {
   try {
     localStorage.removeItem(USER_KEY);
+    // clear localStorage data
+    localStorage.removeItem("user-avatar");
+    localStorage.removeItem("staffData");
+    localStorage.removeItem("logsData");
+
   } catch (err) {
     console.warn("logout error", err);
   }

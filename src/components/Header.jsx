@@ -171,12 +171,7 @@ export default function Header() {
   function handleLogout() {
     try {
       logout();
-
-      // clear localStorage
-      localStorage.removeItem("user-avatar");
-      localStorage.removeItem("staffData");
-      localStorage.removeItem("logsData");
-
+      
       // beri tahu komponen lain
       window.dispatchEvent(new CustomEvent('user-logged-out'));
 
