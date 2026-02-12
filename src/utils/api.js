@@ -42,6 +42,7 @@ export async function createProduct(payload) {
 
 // ORDERS
 
+// Get Orders
 export async function getOrders() {
   const url = `http://localhost:8080/orders`;
   const res = await fetch(url, {
@@ -57,6 +58,7 @@ export async function getOrders() {
   return body?.data ?? body;
 }
 
+// Create Orders
 export async function createOrders(payload) {
   const url = `http://localhost:8080/orders`;
   const res = await fetch(url, {
@@ -73,8 +75,27 @@ export async function createOrders(payload) {
   return body?.data ?? body;
 }
 
+// For Order ID (Order Number) generation
 export async function fetchNextOrderNumber() {
   const res = await fetch(`http://localhost:8080/orders/order-number`);
   const data = await res.json();
   return data.order_number;
+}
+
+// Update Order Status
+export async function updateOrderStatus(id, status) {
+  const res = await fetch(`/orders/${id}/status`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status }),
+  });
+  if (!res.ok) throw new Error('Failed to update status');
+  return res.json();
+}
+
+// Delete Order
+export async function deleteOrder(id) {
+  const res = await fetch(`/orders/${id}`, { method: 'DELETE' });
+  if (!res.ok) throw new Error('Failed to delete order');
+  return res.json();
 }

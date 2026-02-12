@@ -34,3 +34,15 @@ button[disabled] {
   color: white;
   font-weight: bold;
 }
+
+/* Row actions for edit status and delete */
+.row-actions {
+  margin-top: 12px;
+  display: flex;
+  gap: 8px;
+}
+.row-actions button {
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}

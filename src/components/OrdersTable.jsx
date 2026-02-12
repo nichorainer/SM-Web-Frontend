@@ -1,10 +1,13 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import '../styles/orders.css';
+import { updateOrderStatus, deleteOrder } from '../utils/api';
 import { validateOrderPayload } from '../utils/validators';
 
 export default function OrdersTable({
   orders = [],
-  onAddOrder, // optional callback if parent wants to be notified (not used for event-driven adds)
+  onAddOrder,
+  onUpdateOrder,
+  onDeleteOrder,
 }) {
 
   // Add order handler
@@ -51,6 +54,36 @@ export default function OrdersTable({
     return () => window.removeEventListener('orders:add', handleAdd);
   }, [onAddOrder]);
 
+  // Handler for edit status and delete order
+  const [selectedOrder, setSelectedOrder] = useState(null);
+
+  async function openEditStatus(order) {
+    const newStatus = prompt("Enter new status (pending/shipping/completed):", order.status);
+    if (!newStatus) return;
+    try {
+      const updated = await updateOrderStatus(order.id, newStatus.toLowerCase());
+      if (typeof onUpdateOrder === "function") {
+        onUpdateOrder(order.id, updated.status);
+      }
+      setSelectedOrder(null);
+    } catch (err) {
+      console.error("Update status failed", err);
+    }
+  }
+
+  async function handleDeleteOrder(order) {
+    if (!window.confirm(`Delete order ${order.orderId}?`)) return;
+    try {
+      await deleteOrder(order.id);
+      if (typeof onDeleteOrder === "function") {
+        onDeleteOrder(order.id);
+      }
+      setSelectedOrder(null);
+    } catch (err) {
+      console.error("Delete order failed", err);
+    }
+  }
+
   return (
     <div className="card">
       <div className="orders-table-wrap">
@@ -72,12 +105,11 @@ export default function OrdersTable({
           <tbody>
             {orders.length === 0 ? (
               <tr className="empty-row">
-                <td colSpan="7" className="empty-cell">No orders found</td>
+                <td colSpan="10" className="empty-cell">No orders found</td>
               </tr>
             ) : (
               orders.map((o, idx) => {
                 const key = o.orderId || o.id || `order-${idx}`;
-
                 // status class for 3 options
                 const statusValue = (o.status || '').toLowerCase();
                 let statusClass = '';
@@ -90,7 +122,7 @@ export default function OrdersTable({
                 }
 
                 return (
-                  <tr key={key}>
+                  <tr key={key} onClick={() => setSelectedOrder(o)}>
                     <td className="mono">{o.orderId || o.id || '-'}</td>
                     <td>{o.product_id != null ? o.product_id : '-'}</td>
                     <td>{o.product_name != null ? o.product_name : '-'}</td>
@@ -114,6 +146,12 @@ export default function OrdersTable({
             )}
           </tbody>
         </table>
+        {selectedOrder && (
+          <div className="row-actions">
+            <button onClick={() => openEditStatus(selectedOrder)}>Edit Status</button>
+            <button onClick={() => handleDeleteOrder(selectedOrder)}>Delete Order</button>
+          </div>
+        )}
       </div>
     </div>
   );

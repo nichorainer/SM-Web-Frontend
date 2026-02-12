@@ -1,14 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import DatePicker from 'react-datepicker';
 import {
-  FormControl,
-  FormLabel,
-  Input,
   Button,
   HStack
 } from "@chakra-ui/react";
 import "react-datepicker/dist/react-datepicker.css";
-import OrdersTable from '../components/OrdersTable.jsx';
+import OrdersTable, {open} from '../components/OrdersTable.jsx';
 import '../styles/orders-page.css';
 import { getOrders, createOrders, getProducts, fetchNextOrderNumber } from '../utils/api.js';
 import { validateOrderPayload } from '../utils/validators.js';
@@ -260,6 +257,15 @@ export default function OrdersPage() {
     }
   }
 
+  // Handlers for update and delete order from OrdersTable
+  function handleUpdateOrder(id, newStatus) {
+    setOrders(prev => prev.map(o => o.id === id ? { ...o, status: newStatus } : o));
+  }
+
+  function handleDeleteOrder(id) {
+    setOrders(prev => prev.filter(o => o.id !== id));
+  }
+
   return (
     <div className="orders-page">
       <div className="page-top">
@@ -322,6 +328,8 @@ export default function OrdersPage() {
           search={search}
           platform={platform}
           status={status}
+          onUpdateOrder={handleUpdateOrder}
+          onDeleteOrder={handleDeleteOrder}
         />
       </div>
       {/* Button Create New Order */}
