@@ -84,9 +84,11 @@ export async function fetchNextOrderNumber() {
 
 // Update Order Status
 export async function updateOrderStatus(id, status) {
-  const res = await fetch(`/orders/${id}/status`, {
+  const url = `http://localhost:8080/orders/${id}/status`;
+  const res = await fetch(url, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
     body: JSON.stringify({ status }),
   });
   if (!res.ok) throw new Error('Failed to update status');
@@ -95,7 +97,11 @@ export async function updateOrderStatus(id, status) {
 
 // Delete Order
 export async function deleteOrder(id) {
-  const res = await fetch(`/orders/${id}`, { method: 'DELETE' });
+  const url = `http://localhost:8080/orders/${id}`;
+  const res = await fetch(url, {
+    method: 'DELETE',
+    credentials: 'include',
+  });
   if (!res.ok) throw new Error('Failed to delete order');
   return res.json();
 }

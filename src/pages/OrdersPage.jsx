@@ -5,7 +5,7 @@ import {
   HStack
 } from "@chakra-ui/react";
 import "react-datepicker/dist/react-datepicker.css";
-import OrdersTable, {open} from '../components/OrdersTable.jsx';
+import OrdersTable from '../components/OrdersTable.jsx';
 import '../styles/orders-page.css';
 import { getOrders, createOrders, getProducts, fetchNextOrderNumber } from '../utils/api.js';
 import { validateOrderPayload } from '../utils/validators.js';
@@ -48,6 +48,7 @@ export default function OrdersPage() {
         const list = await getOrders();
         if (!mounted) return;
         setOrders(Array.isArray(list) ? list.map(o => ({
+          id: o.id,
           orderId: o.order_number,
           product_id: o.product_id,
           product_name: o.product_name,
@@ -257,15 +258,6 @@ export default function OrdersPage() {
     }
   }
 
-  // Handlers for update and delete order from OrdersTable
-  function handleUpdateOrder(id, newStatus) {
-    setOrders(prev => prev.map(o => o.id === id ? { ...o, status: newStatus } : o));
-  }
-
-  function handleDeleteOrder(id) {
-    setOrders(prev => prev.filter(o => o.id !== id));
-  }
-
   return (
     <div className="orders-page">
       <div className="page-top">
@@ -328,8 +320,12 @@ export default function OrdersPage() {
           search={search}
           platform={platform}
           status={status}
-          onUpdateOrder={handleUpdateOrder}
-          onDeleteOrder={handleDeleteOrder}
+          onUpdateOrder={(id, newStatus) => {
+            setOrders(prev => prev.map(o => o.id === id ? { ...o, status: newStatus } : o));
+          }}
+          onDeleteOrder={(id) => {
+            setOrders(prev => prev.filter(o => o.id !== id));
+          }}
         />
       </div>
       {/* Button Create New Order */}

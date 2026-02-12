@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from 'react';
+import { LuPencilLine } from "react-icons/lu";
+import { CiTrash } from "react-icons/ci";
 import '../styles/orders.css';
 import { updateOrderStatus, deleteOrder } from '../utils/api';
 import { validateOrderPayload } from '../utils/validators';
+import DeleteConfirmModalOrders from './DeleteConfirmModalOrders.jsx';
+import EditStatusModalOrders from './EditStatusModalOrders.jsx';
 
 export default function OrdersTable({
   orders = [],
@@ -25,7 +29,7 @@ export default function OrdersTable({
 
       // normalize minimal fields for UI consistency
       const normalized = {
-        id: newOrder.id ?? null,
+        id: newOrder.id,
         orderId: newOrder.order_number ?? newOrder.orderId ?? '',
         customer: newOrder.customer_name ?? newOrder.customer ?? '',
         platform: newOrder.platform ?? 'Unknown',
@@ -55,34 +59,11 @@ export default function OrdersTable({
   }, [onAddOrder]);
 
   // Handler for edit status and delete order
-  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [editOrder, setEditOrder] = useState(null);
+  const [deleteOrderTarget, setDeleteOrderTarget] = useState(null);
 
-  async function openEditStatus(order) {
-    const newStatus = prompt("Enter new status (pending/shipping/completed):", order.status);
-    if (!newStatus) return;
-    try {
-      const updated = await updateOrderStatus(order.id, newStatus.toLowerCase());
-      if (typeof onUpdateOrder === "function") {
-        onUpdateOrder(order.id, updated.status);
-      }
-      setSelectedOrder(null);
-    } catch (err) {
-      console.error("Update status failed", err);
-    }
-  }
-
-  async function handleDeleteOrder(order) {
-    if (!window.confirm(`Delete order ${order.orderId}?`)) return;
-    try {
-      await deleteOrder(order.id);
-      if (typeof onDeleteOrder === "function") {
-        onDeleteOrder(order.id);
-      }
-      setSelectedOrder(null);
-    } catch (err) {
-      console.error("Delete order failed", err);
-    }
-  }
+  console.log("Deleting order target:", deleteOrderTarget);
+  console.log("Deleting order id:", deleteOrderTarget?.id);
 
   return (
     <div className="card">
@@ -100,6 +81,7 @@ export default function OrdersTable({
               <th>Price</th>
               <th>Status</th>
               <th>Created At</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -122,7 +104,7 @@ export default function OrdersTable({
                 }
 
                 return (
-                  <tr key={key} onClick={() => setSelectedOrder(o)}>
+                  <tr key={key}>
                     <td className="mono">{o.orderId || o.id || '-'}</td>
                     <td>{o.product_id != null ? o.product_id : '-'}</td>
                     <td>{o.product_name != null ? o.product_name : '-'}</td>
@@ -140,18 +122,66 @@ export default function OrdersTable({
                     <td>
                       {o.created_at ? new Date(o.created_at).toLocaleString() : '-'}
                     </td>
+                     {/* Actions Column */}
+                    <td className="center actions-cell">
+                      <button
+                        className="icon-btn edit-btn"
+                        onClick={() => setEditOrder(o)}
+                        title="Edit Status"
+                      >
+                        <LuPencilLine />
+                      </button>
+                      <button
+                        className="icon-btn delete-btn"
+                        onClick={() => setDeleteOrderTarget(o)}
+                        title="Delete Order"
+                      >
+                        <CiTrash />
+                      </button>
+                    </td>
                   </tr>
                 );
               })
             )}
           </tbody>
         </table>
-        {selectedOrder && (
-          <div className="row-actions">
-            <button onClick={() => openEditStatus(selectedOrder)}>Edit Status</button>
-            <button onClick={() => handleDeleteOrder(selectedOrder)}>Delete Order</button>
-          </div>
-        )}
+        {editOrder && (
+        <EditStatusModalOrders
+          order={editOrder}
+          onClose={() => setEditOrder(null)}
+          onSave={async (id, status) => {
+            console.log("Updating order id:", id, "to status:", status);
+
+            const updated = await updateOrderStatus(id, status);
+            if (typeof onUpdateOrder === "function") {
+              onUpdateOrder(id, updated.status);
+            }
+            setEditOrder(null);
+          }}
+        />
+      )}
+
+      {deleteOrderTarget && (
+        <DeleteConfirmModalOrders
+          order={deleteOrderTarget}
+          onClose={() => setDeleteOrderTarget(null)}
+          onConfirm={async () => {
+            console.log("DeleteConfirm triggered, target:", deleteOrderTarget);
+            console.log("DeleteConfirm id:", deleteOrderTarget?.id);
+
+            if (!deleteOrderTarget?.id) {
+              console.error("Missing order id, cannot delete:", deleteOrderTarget);
+              return;
+            }
+
+            await deleteOrder(deleteOrderTarget.id);
+            if (typeof onDeleteOrder === "function") {
+              onDeleteOrder(deleteOrderTarget.id);
+            }
+            setDeleteOrderTarget(null);
+          }}
+        />
+      )}
       </div>
     </div>
   );

@@ -35,14 +35,24 @@ button[disabled] {
   font-weight: bold;
 }
 
-/* Row actions for edit status and delete */
-.row-actions {
-  margin-top: 12px;
+.actions-cell {
   display: flex;
   gap: 8px;
+  justify-content: center;
 }
-.row-actions button {
-  padding: 6px 10px;
-  border-radius: 6px;
+
+/* Action Buttons */
+.icon-btn {
+  background: transparent;
+  border: none;
   cursor: pointer;
+  font-size: 16px;
+}
+
+.icon-btn.edit-btn:hover {
+  color: var(--accent);
+}
+
+.icon-btn.delete-btn:hover {
+  color: red;
 }
