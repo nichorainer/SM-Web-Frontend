@@ -57,12 +57,14 @@ export default function OrdersTable({
         <table className="orders-table">
           <thead>
             <tr>
-              <th>Order ID</th>
+              <th>Order Number</th>
+              <th>Product ID</th>
               <th>Created At</th>
               <th>Customer Name</th>
               <th>Platform</th>
               <th>Destination</th>
               <th>Total Amount</th>
+              <th>Price</th>
               <th>Status</th>
             </tr>
           </thead>
@@ -89,11 +91,13 @@ export default function OrdersTable({
                 return (
                   <tr key={key}>
                     <td className="mono">{o.orderId || o.id || '-'}</td>
+                    <td>{o.product_id != null ? o.product_id : '-'}</td>
                     <td>{o.created_at ? new Date(o.created_at).toLocaleString() : '-'}</td>
                     <td>{o.customer || '-'}</td>
                     <td>{o.platform || '-'}</td>
                     <td>{o.destination || '-'}</td>
                     <td className="center">{o.total_amount != null ? o.total_amount : '-'}</td>
+                    <td className="center">{o.price_idr != null ? o.price_idr : '-'}</td>
                     <td className="center">
                       <span className={`status ${statusClass}`}>
                         {statusValue.charAt(0).toUpperCase() + statusValue.slice(1)}
