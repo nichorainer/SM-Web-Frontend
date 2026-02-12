@@ -4,6 +4,29 @@
   font-weight: 600; 
 }
 
+.orders-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  position: sticky;
+  bottom: 0;
+  background: var(--card);
+}
+
+.orders-table {
+  width: 100%;
+  min-width: 1400px;
+  border-collapse: collapse;
+}
+
+.orders-table-wrap::-webkit-scrollbar {
+  height: 8px;
+}
+.orders-table-wrap::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 4px;
+}
+
 .form-error {
   color: #b00020;
   background: #fff0f0;

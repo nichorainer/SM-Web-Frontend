@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import Router from './routes/Router';
 import ErrorBoundary from './components/ErrorBoundary';
 import './App.css';
+import { ChakraProvider } from '@chakra-ui/react';
 
 console.log('main.jsx start');
 
@@ -22,7 +23,9 @@ createRoot(rootEl).render(
   <React.StrictMode>
     <ErrorBoundary>
       <BrowserRouter>
-        <Router />
+      <ChakraProvider>
+          <Router />
+      </ChakraProvider>
       </BrowserRouter>
     </ErrorBoundary>
   </React.StrictMode>

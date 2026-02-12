@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useToast } from "@chakra-ui/react";
 import { LuPencilLine } from "react-icons/lu";
 import { CiTrash } from "react-icons/ci";
 import '../styles/orders.css';
@@ -57,6 +58,8 @@ export default function OrdersTable({
     window.addEventListener('orders:add', handleAdd);
     return () => window.removeEventListener('orders:add', handleAdd);
   }, [onAddOrder]);
+
+  const toast = useToast();
 
   // Handler for edit status and delete order
   const [editOrder, setEditOrder] = useState(null);
@@ -150,11 +153,26 @@ export default function OrdersTable({
           order={editOrder}
           onClose={() => setEditOrder(null)}
           onSave={async (id, status) => {
-            console.log("Updating order id:", id, "to status:", status);
-
-            const updated = await updateOrderStatus(id, status);
-            if (typeof onUpdateOrder === "function") {
-              onUpdateOrder(id, updated.status);
+            try {
+              const updated = await updateOrderStatus(id, status);
+              if (typeof onUpdateOrder === "function") {
+                onUpdateOrder(id, updated.status);
+              }
+              toast({
+                title: `Order #${id} updated`,
+                description: `Status changed to ${updated.status}`,
+                status: "success",
+                duration: 3000,
+                isClosable: true,
+              });
+            } catch (err) {
+              toast({
+                title: "Update failed",
+                description: err.message,
+                status: "error",
+                duration: 3000,
+                isClosable: true,
+              });
             }
             setEditOrder(null);
           }}
@@ -166,17 +184,26 @@ export default function OrdersTable({
           order={deleteOrderTarget}
           onClose={() => setDeleteOrderTarget(null)}
           onConfirm={async () => {
-            console.log("DeleteConfirm triggered, target:", deleteOrderTarget);
-            console.log("DeleteConfirm id:", deleteOrderTarget?.id);
-
-            if (!deleteOrderTarget?.id) {
-              console.error("Missing order id, cannot delete:", deleteOrderTarget);
-              return;
-            }
-
-            await deleteOrder(deleteOrderTarget.id);
-            if (typeof onDeleteOrder === "function") {
-              onDeleteOrder(deleteOrderTarget.id);
+            try {
+              await deleteOrder(deleteOrderTarget.id);
+              if (typeof onDeleteOrder === "function") {
+                onDeleteOrder(deleteOrderTarget.id);
+              }
+              toast({
+                title: `Order #${deleteOrderTarget.orderId} deleted`,
+                description: "The order has been removed successfully.",
+                status: "success",
+                duration: 3000,
+                isClosable: true,
+              });
+            } catch (err) {
+              toast({
+                title: "Delete failed",
+                description: err.message,
+                status: "error",
+                duration: 3000,
+                isClosable: true,
+              });
             }
             setDeleteOrderTarget(null);
           }}
