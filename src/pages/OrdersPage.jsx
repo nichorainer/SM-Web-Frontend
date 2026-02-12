@@ -206,7 +206,7 @@ export default function OrdersPage() {
   });
 
   // HELPERS
-  // Untuk cek validitas form saat mengetik
+  // Check form validation status before enabling save button
   const isFormValid = useMemo(() => {
     const check = validateOrderPayload({
       order_number: newOrder.order_number,
@@ -215,10 +215,28 @@ export default function OrdersPage() {
       destination: newOrder.destination,
       total_amount: newOrder.total_amount,
       status: newOrder.status,
-      created_at: newOrder.created_at,
+      created_at: newOrder.created_at, // wajib ada
+      id_from_product: newOrder.id_from_product ? Number(newOrder.id_from_product) : null, // wajib ada
+      product_id: newOrder.product_id,
+      product_name: newOrder.product_name,
+      price_idr: newOrder.price_idr ? Number(newOrder.price_idr) : 0,
     });
-    return check.ok;
-  }, [newOrder]);
+
+  // To make sure all required fields are filled
+  const allFilled =
+    !!newOrder.order_number &&
+    !!newOrder.customer_name &&
+    !!newOrder.platform &&
+    !!newOrder.destination &&
+    !!newOrder.total_amount &&
+    !!newOrder.status &&
+    !!newOrder.created_at &&
+    !!newOrder.id_from_product &&
+    !!newOrder.product_id &&
+    !!newOrder.product_name;
+
+  return check.ok && allFilled;
+}, [newOrder]);
 
   // Reset func for search bar
   const resetFilters = () => {
@@ -416,32 +434,45 @@ export default function OrdersPage() {
 
                 {/* Date Form (Created At) */}
                 <div className="form-row">
-                  <FormControl>
-                    <FormLabel>Created At</FormLabel>
-                    <DatePicker
-                      selected={newOrder.created_at ? new Date(newOrder.created_at) : null}
-                      onChange={date => updateField('created_at', date ? date.toISOString() : '')}
-                      maxDate={new Date()}
-                      showTimeSelect
-                      dateFormat="Pp"
-                      customInput={<Input />}
-                    />
+                  <label className="form-label">Created At</label>
+                  <DatePicker
+                    selected={newOrder.created_at ? new Date(newOrder.created_at) : null}
+                    onChange={date => updateField('created_at', date ? date.toISOString() : '')}
+                    maxDate={new Date()}
+                    showTimeSelect
+                    dateFormat="Pp"
+                    customInput={<input className="control-input" />}
+                  />
                     <HStack mt={2}>
-                      <Button size="sm" onClick={() => updateField('created_at', new Date().toISOString())}>
+                      <Button
+                        className="btn-modal btn-primary-modal"
+                        size="sm" 
+                        onClick={() => updateField('created_at', new Date().toISOString())}
+                      >
                         Today
                       </Button>
-                      <Button size="sm" variant="outline" onClick={() => updateField('created_at', '')}>
+                      <Button 
+                        className="btn-modal btn-outline-modal" 
+                        size="sm" 
+                        onClick={() => updateField('created_at', '')}
+                      >
                         Clear
                       </Button>
                     </HStack>
-                  </FormControl>
                 </div>
 
                 {formError && <div className="form-error">{formError}</div>}
 
                 <div className="modal-actions">
-                  <button onClick={closeCreate} disabled={saving}>Cancel</button>
+                  <button 
+                    className="btn-modal btn-outline-modal" 
+                    onClick={closeCreate} 
+                    disabled={saving}
+                  >
+                    Cancel
+                  </button>
                   <button
+                    className={`btn-modal btn-primary-modal`}
                     onClick={handleCreateOrderSave}
                     disabled={saving || !isFormValid}
                   >
