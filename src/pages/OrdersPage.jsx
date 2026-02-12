@@ -1,7 +1,16 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import DatePicker from 'react-datepicker';
+import {
+  FormControl,
+  FormLabel,
+  Input,
+  Button,
+  HStack
+} from "@chakra-ui/react";
+import "react-datepicker/dist/react-datepicker.css";
 import OrdersTable from '../components/OrdersTable.jsx';
 import '../styles/orders-page.css';
-import { getOrders, createOrders } from '../utils/api.js';
+import { getOrders, createOrders, getProducts, fetchNextOrderNumber } from '../utils/api.js';
 import { validateOrderPayload } from '../utils/validators.js';
 
 export default function OrdersPage() {
@@ -15,6 +24,9 @@ export default function OrdersPage() {
   const [error, setError] = useState(null);
   // state untuk menampilkan pesan validasi
   const [formError, setFormError] = useState(null);
+
+  // For product selection in create order form
+  const [products, setProducts] = useState([]);
 
   // Modal or form state
   const [showCreate, setShowCreate] = useState(false);
@@ -40,12 +52,15 @@ export default function OrdersPage() {
         if (!mounted) return;
         setOrders(Array.isArray(list) ? list.map(o => ({
           orderId: o.order_number,
+          product_id: o.product_id,
+          product_name: o.product_name,
           customer: o.customer_name,
           platform: o.platform,
           destination: o.destination,
           total_amount: o.total_amount,
           status: o.status,
-          created_at: o.created_at ? new Date(o.created_at).toLocaleString() : null,
+          price_idr: o.price_idr,
+          created_at: o.created_at ? new Date(o.created_at).toLocaleString() : null
         })) : []);
 
       } catch (err) {
@@ -59,16 +74,34 @@ export default function OrdersPage() {
     return () => { mounted = false; };
   }, []);
 
+  // Load products for selection in create order form from backend on mount
+  useEffect(() => {
+    async function loadProducts() {
+      try {
+        const list = await getProducts();
+        setProducts(Array.isArray(list) ? list : []);
+      } catch (err) {
+        console.error("Failed to load products", err);
+      }
+    }
+    loadProducts();
+  }, []);
+
   // Open/close modal
-  const openCreate = () => {
+  const openCreate = async () => {
+    const nextOrderNumber = await generateOrderId();
     setNewOrder({
-      order_number: generateOrderId(),
+      order_number: nextOrderNumber || '',
       customer_name: '',
       platform: 'Tokipedia',
       destination: '',
       total_amount: 1,
       status: 'Pending',
       created_at: new Date().toISOString(),
+      id_from_product: null,
+      product_id: '',
+      product_name: '',
+      price_idr: 0,
     });
     setShowCreate(true);
     setError(null);
@@ -87,9 +120,10 @@ export default function OrdersPage() {
       customer_name: newOrder.customer_name,
       platform: newOrder.platform,
       destination: newOrder.destination,
-      total_amount: newOrder.total_amount,
-      status: newOrder.status,
+      total_amount: Number(newOrder.total_amount) || 1,
+      status: newOrder.status.toLowerCase(),
       created_at: newOrder.created_at,
+      id_from_product: newOrder.id_from_product ? Number(newOrder.id_from_product) : null,
     });
 
     if (!check.ok) {
@@ -99,7 +133,7 @@ export default function OrdersPage() {
 
     setSaving(true);
     try {
-      // Build payload expected by backend. Sesuaikan nama field dengan API server.
+      // Build payload expected by backend
       const payload = {
         order_number: newOrder.order_number,
         customer_name: newOrder.customer_name,
@@ -108,25 +142,29 @@ export default function OrdersPage() {
         total_amount: Number(newOrder.total_amount) || 1,
         status: newOrder.status.toLowerCase(),
         created_at: newOrder.created_at,
-
+        id_from_product: newOrder.id_from_product ? Number(newOrder.id_from_product) : null,
+        product_id: newOrder.product_id,
+        price_idr: newOrder.price_idr ? Number(newOrder.price_idr) : 0,
       };
 
       const created = await createOrders(payload);
 
       // Map response: use created_at from backend
       const mapped = {
-        id: created.id ?? generateOrderId(),
-        orderId: created.order_number ?? payload.order_number,
+        id: created.id,
+        orderId: created.order_number,
         customer: created.customer_name ?? payload.customer_name,
         platform: created.platform ?? payload.platform,
         destination: created.destination ?? payload.destination,
         total_amount: created.total_amount ?? payload.total_amount,
         status: created.status ?? payload.status.toLowerCase(),
-        created_at: created.created_at     
+        created_at: created.created_at
           ? new Date(created.created_at).toLocaleString()
           : new Date(payload.created_at).toLocaleString(),
+        product_id: created.product_id ?? newOrder.product_id,
+        product_name: created.product_name ?? newOrder.product_name,
+        price_idr: created.price_idr ?? newOrder.price_idr,
       };
-
       setOrders(prev => [mapped, ...prev]);
       setShowCreate(false);
     } catch (err) {
@@ -145,7 +183,6 @@ export default function OrdersPage() {
       // Order ID: prefix match
       const cleanOrderId = o.orderId ? String(o.orderId).replace(/^#/, '').toLowerCase() : '';
       const orderIdMatch = cleanOrderId.startsWith(s);
-
 
       // Customer Name: substring match
       const customerMatch = o.customer && String(o.customer).toLowerCase().includes(s);
@@ -194,10 +231,15 @@ export default function OrdersPage() {
     setNewOrder(prev => ({ ...prev, [field]: value }));
   }
 
-  // Generate next Order ID in format
-  function generateOrderId() {
-    const base = Math.floor(Math.random() * 900000) + 100000;
-    return `#${String(base).slice(0, 6)}`;
+  // Generate next Order ID in format (real-time from BE)
+  async function generateOrderId() {
+    try {
+      const nextOrderNumber = await fetchNextOrderNumber();
+      return nextOrderNumber;
+    } catch (err) {
+      console.error("Failed to fetch next order number", err);
+      return null;
+    }
   }
 
   return (
@@ -237,7 +279,7 @@ export default function OrdersPage() {
           >
             <option value="all">All status</option>
             <option value="pending">Pending</option>
-            <option value="shipping">Shipped</option>
+            <option value="shipping">Shipping</option>
             <option value="completed">Completed</option>
           </select>
 
@@ -279,21 +321,50 @@ export default function OrdersPage() {
                 <div className="form-row">
                   <label>Order Number</label>
                   <input
-                    input value={newOrder.order_number}
+                    value={newOrder.order_number || generateOrderId() || ''}
                     onChange={e => updateField('order_number', e.target.value)}
                     required
                   />
                 </div>
+
+                {/* Products Selection */}
+                <div className="form-row">
+                  <label>Product</label>
+                  <select
+                    value={newOrder.id_from_product || ''}
+                    onChange={e => {
+                      const selectedId = Number(e.target.value);
+                      const product = products.find(p => p.id === selectedId);
+                      setNewOrder(prev => ({
+                        ...prev,
+                        id_from_product: selectedId, 
+                        product_id: product?.product_id || '',
+                        product_name: product?.product_name || '',
+                        price_idr: product?.price_idr || 0,
+                      }))
+                    }}
+                    required
+                  >
+                    <option value="">-- Select Product --</option>
+                    {products.map(p => (
+                      <option key={p.id} value={p.id}>
+                        {p.product_name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
                 {/* Customer Name */}
                 <div className="form-row">
                   <label>Customer Name</label>
                   <input
-                    input value={newOrder.customer_name}
+                    value={newOrder.customer_name}
                     onChange={e => updateField('customer_name', e.target.value)}
                     required
                   />
                 </div>
-
+                
+                {/* Platform Selection */}
                 <div className="form-row">
                   <label>Platform</label>
                   <select
@@ -307,6 +378,7 @@ export default function OrdersPage() {
                   </select>
                 </div>
 
+                {/* Destination Form */}
                 <div className="form-row">
                   <label>Destination</label>
                   <input
@@ -316,6 +388,7 @@ export default function OrdersPage() {
                   />
                 </div>
 
+                {/* Total Amount Form */}
                 <div className="form-row">
                   <label>Total Amount</label>
                   <input
@@ -327,6 +400,7 @@ export default function OrdersPage() {
                   />
                 </div>
 
+                {/* Status Selection */}
                 <div className="form-row">
                   <label>Status</label>
                   <select
@@ -335,21 +409,32 @@ export default function OrdersPage() {
                     required
                   >
                     <option value="pending">Pending</option>
-                    <option value="shipping">Shipped</option>
+                    <option value="shipping">Shipping</option>
                     <option value="completed">Completed</option>
                   </select>
                 </div>
 
+                {/* Date Form (Created At) */}
                 <div className="form-row">
-                  <label>Date</label>
-                  <input
-                    type="datetime-local"
-                    className="control-input"
-                    value={newOrder.created_at
-                      ? new Date(newOrder.created_at).toISOString().slice(0,16) // format ke yyyy-MM-ddTHH:mm
-                      : new Date().toISOString().slice(0,16)}
-                    onChange={e => updateField('created_at', new Date(e.target.value).toISOString())}
-                  />
+                  <FormControl>
+                    <FormLabel>Created At</FormLabel>
+                    <DatePicker
+                      selected={newOrder.created_at ? new Date(newOrder.created_at) : null}
+                      onChange={date => updateField('created_at', date ? date.toISOString() : '')}
+                      maxDate={new Date()}
+                      showTimeSelect
+                      dateFormat="Pp"
+                      customInput={<Input />}
+                    />
+                    <HStack mt={2}>
+                      <Button size="sm" onClick={() => updateField('created_at', new Date().toISOString())}>
+                        Today
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => updateField('created_at', '')}>
+                        Clear
+                      </Button>
+                    </HStack>
+                  </FormControl>
                 </div>
 
                 {formError && <div className="form-error">{formError}</div>}

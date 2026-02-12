@@ -23,7 +23,7 @@ export default function OrdersTable({
       // normalize minimal fields for UI consistency
       const normalized = {
         id: newOrder.id ?? null,
-        orderId: newOrder.order_number ?? newOrder.orderId ?? null,
+        orderId: newOrder.order_number ?? newOrder.orderId ?? '',
         customer: newOrder.customer_name ?? newOrder.customer ?? '',
         platform: newOrder.platform ?? 'Unknown',
         destination: newOrder.destination ?? '',
@@ -59,13 +59,14 @@ export default function OrdersTable({
             <tr>
               <th>Order Number</th>
               <th>Product ID</th>
-              <th>Created At</th>
+              <th>Product Name</th>
               <th>Customer Name</th>
               <th>Platform</th>
               <th>Destination</th>
               <th>Total Amount</th>
               <th>Price</th>
               <th>Status</th>
+              <th>Created At</th>
             </tr>
           </thead>
           <tbody>
@@ -92,16 +93,20 @@ export default function OrdersTable({
                   <tr key={key}>
                     <td className="mono">{o.orderId || o.id || '-'}</td>
                     <td>{o.product_id != null ? o.product_id : '-'}</td>
-                    <td>{o.created_at ? new Date(o.created_at).toLocaleString() : '-'}</td>
+                    <td>{o.product_name != null ? o.product_name : '-'}</td>
                     <td>{o.customer || '-'}</td>
                     <td>{o.platform || '-'}</td>
                     <td>{o.destination || '-'}</td>
                     <td className="center">{o.total_amount != null ? o.total_amount : '-'}</td>
-                    <td className="center">{o.price_idr != null ? o.price_idr : '-'}</td>
+                    <td className="center">
+                      IDR {o.price_idr != null ? o.price_idr : '-'} K</td>
                     <td className="center">
                       <span className={`status ${statusClass}`}>
                         {statusValue.charAt(0).toUpperCase() + statusValue.slice(1)}
                       </span>
+                    </td>
+                    <td>
+                      {o.created_at ? new Date(o.created_at).toLocaleString() : '-'}
                     </td>
                   </tr>
                 );

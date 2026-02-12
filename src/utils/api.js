@@ -72,3 +72,9 @@ export async function createOrders(payload) {
   const body = await res.json();
   return body?.data ?? body;
 }
+
+export async function fetchNextOrderNumber() {
+  const res = await fetch(`http://localhost:8080/orders/order-number`);
+  const data = await res.json();
+  return data.order_number;
+}
