@@ -87,10 +87,10 @@ export default function OrdersTable({
               <th>Actions</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="orders-table">
             {orders.length === 0 ? (
-              <tr className="empty-row">
-                <td colSpan="10" className="empty-cell">No orders found</td>
+              <tr>
+                <td colSpan="10">No orders found</td>
               </tr>
             ) : (
               orders.map((o, idx) => {

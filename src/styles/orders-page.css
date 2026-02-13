@@ -17,13 +17,21 @@
 
 .actions-group { display:flex; gap:10px; align-items:center; }
 .control-input { padding:8px 12px; border-radius:8px; border:1px solid #e6e9ef; min-width:220px; }
-.control-select { padding:8px 10px; border-radius:8px; border:1px solid #e6e9ef; background:white; }
+.control-select {
+  padding:8px 10px; 
+  border-radius:8px; 
+  border:1px solid #e6e9ef; 
+  background:white; 
+  font-size: 13px;
+}
 
 .btn {   padding: 8px 12px;
   border-radius: 8px;
   cursor: pointer;
   border: 0; 
+  font-size: 13px;
 }
+
 .btn-outline { 
   background: transparent;
   border: 1px solid #e6e9ef;
@@ -34,6 +42,7 @@
   background: var(--accent);
   color: white;
   box-shadow: 0 6px 18px rgba(79,70,229,0.12);
+  font-size: 13px;
 }
 
 .orders-card { 

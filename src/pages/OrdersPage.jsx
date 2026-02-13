@@ -299,11 +299,15 @@ export default function OrdersPage() {
             <option value="completed">Completed</option>
           </select>
 
-          <button className="btn btn-outline" onClick={resetFilters}>
+          <button 
+            className="btn btn-outline" 
+            onClick={resetFilters}
+          >
             Reset
           </button>
 
-          <button className="btn btn-primary"
+          <button 
+            className="btn btn-primary"
             onClick={openCreate}
           >
             Create New Order
@@ -367,7 +371,7 @@ export default function OrdersPage() {
                     }}
                     required
                   >
-                    <option value="">-- Select Product --</option>
+                    <option value="">Select Product</option>
                     {products.map(p => (
                       <option key={p.id} value={p.id}>
                         {p.product_name}

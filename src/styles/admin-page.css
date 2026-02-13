@@ -166,6 +166,7 @@
   display: inline-flex;
   align-items: center;
   gap: 12px;
+  font-size: 14px;
 }
 
 .staff-cell .chakra-avatar {
@@ -200,7 +201,7 @@
 .perm-pill {
   padding: 4px 8px;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: 14px;
   color: #374151;
   background: #f3f4f6;
   border: 1px solid #e5e7eb;
@@ -230,8 +231,8 @@
 }
 
 .btn-subtle:hover {
-  background-color: #f3f3f3;
-  color: #333;
+  background-color: #6b46c1;
+  color: white;
 }
 
 .btn-primary {

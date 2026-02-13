@@ -79,11 +79,12 @@ export default function ProfilePage() {
     // avatar handler
     useEffect(() => {
       const avatarHandler = (e) => {
-        const { id, dataUrl } = e?.detail ?? {};
-        if (!user || id === user.id) {
-          setAvatarUrl(dataUrl || '');
-          setForm((prev) => ({ ...prev, avatarUrl: dataUrl || '' }));
-          setUser((prev) => (prev ? { ...prev, avatar_url: dataUrl || null } : prev));
+        const payload = e?.detail ?? null;
+        const id = payload?.id;
+        const dataUrl = payload?.dataUrl ?? null;
+        // update only if id matches or no id provided
+        if (!id || id === userIdRef.current) {
+          setAvatarSrc(dataUrl); // dataUrl mungkin null -> Avatar akan tampil initials
         }
       };
 
@@ -181,57 +182,66 @@ export default function ProfilePage() {
     reader.readAsDataURL(file);
   };
 
-  // Handler to remove avatar (FE-only)
-  const removeAvatar = () => {
-    if (!user?.id) {
-      toast({
-        title: 'User not loaded',
-        description: 'Cannot remove avatar before user is loaded.',
-        status: 'error',
-        duration: 4000,
-        isClosable: true,
-        position: 'top-right',
-      });
-      return;
-    }
+// Handler to remove avatar (FE-only)
+const removeAvatar = () => {
+  const uid = user?.id || userId;
+  if (!uid) {
+    toast({
+      title: 'User not loaded',
+      description: 'Cannot remove avatar before user is loaded.',
+      status: 'error',
+      duration: 4000,
+      isClosable: true,
+      position: 'top-right',
+    });
+    return;
+  }
 
+  try {
+    // Persist removal via helper (should remove key or set null)
+    setLocalAvatarAndEmit(uid, null);
+
+    // Remove any legacy key if present
     try {
-      // Remove via utils helper (per-user)
-      setLocalAvatarAndEmit(user.id, null);
-      // Also remove legacy key
-      try {
-        localStorage.removeItem('user-avatar');
-      } catch (err) {
-        // ignore
-      }
-      // Dispatch legacy window event
-      try {
-        window.dispatchEvent(new CustomEvent('avatar-updated', { detail: null }));
-      } catch (err) {
-        // error
-      }
-
-      setAvatarUrl('');
-      toast({
-        title: 'Avatar removed',
-        description: 'Your avatar has been cleared.',
-        status: 'info',
-        duration: 4000,
-        isClosable: true,
-        position: 'top-right',
-      });
+      localStorage.removeItem('user-avatar');
+      localStorage.removeItem(`avatar:${uid}`);
     } catch (err) {
-      toast({
-        title: 'Failed to remove avatar',
-        description: 'Something went wrong while removing.',
-        status: 'error',
-        duration: 4000,
-        isClosable: true,
-        position: 'top-right',
-      });
+      console.warn('removeAvatar: localStorage cleanup failed', err);
     }
-  };
 
+    // Dispatch a consistent window event with id + dataUrl null
+    try {
+      window.dispatchEvent(new CustomEvent('avatar-updated', {
+        detail: { id: uid, dataUrl: null }
+      }));
+    } catch (err) {
+      console.warn('removeAvatar: dispatch avatar-updated failed', err);
+    }
+
+    // Update local UI state to null (not empty string) so Avatar shows initials immediately
+    // gunakan setter state yang sesuai di komponenmu (snippetmu pakai setAvatarUrl)
+    setAvatarUrl(null);
+
+    toast({
+      title: 'Avatar removed',
+      description: 'Your avatar has been cleared.',
+      status: 'info',
+      duration: 4000,
+      isClosable: true,
+      position: 'top-right',
+    });
+  } catch (err) {
+    console.error('removeAvatar error', err);
+    toast({
+      title: 'Failed to remove avatar',
+      description: 'Something went wrong while removing.',
+      status: 'error',
+      duration: 4000,
+      isClosable: true,
+      position: 'top-right',
+    });
+  }
+};
 
   return (
     <div className="profile-page">
@@ -266,7 +276,7 @@ export default function ProfilePage() {
             <h3 className="name">{user?.full_name || "Guest"}</h3>
 
             {/* Upload to change avatar */}
-            <div style={{ marginTop: 12 }}>
+            <div className="profile-avatar-actions" style={{ marginTop: 12 }}>
               <input
                 type="file"
                 accept="image/*"

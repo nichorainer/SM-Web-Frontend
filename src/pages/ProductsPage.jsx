@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { CiCircleMinus, CiCirclePlus } from 'react-icons/ci';
 import AddProductModal from '../components/AddProductModal';
+import ProductRow from '../components/ProductRow';
 import '../styles/products-page.css';
-import { getProducts, createProduct } from '../utils/api';
+import { getProducts, createProduct, updateProductStock } from '../utils/api';
 
 export default function ProductsPage() {
   const [products, setProducts] = useState([]);
@@ -10,6 +12,14 @@ export default function ProductsPage() {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
+
+  const [pendingMap, setPendingMap] = useState({});
+
+  const isMounted = useRef(true);
+  useEffect(() => {
+    isMounted.current = true;
+    return () => { isMounted.current = false; };
+  }, []);
 
   // Filter search across all columns
   const q = searchTerm.toLowerCase();
@@ -67,15 +77,17 @@ export default function ProductsPage() {
       setError(null);
       try {
         const list = await getProducts();
+        console.log('loaded products from API', list);
         if (!mounted) return;
         // Ensure consistent shape: map backend fields to frontend if needed
           setProducts(Array.isArray(list) ? list.map(p => ({
+            id: p.id,
             name: p.product_name ?? p.name,
             productId: p.product_id ?? p.productId,
             supplierName: p.supplier_name ?? p.supplierName,
             category: p.category,
             price: p.price_idr ?? p.price,
-            stock: p.stock,
+            stock: Number(p.stock ?? 0),
           })) : []);
       } catch (err) {
         console.error('Failed to load products', err);
@@ -112,12 +124,13 @@ export default function ProductsPage() {
     try {
       const created = await createProduct(payload);
       const mapped = {
+        id: created.id,
         name: created.product_name ?? created.name,
         productId: created.product_id ?? created.productId ?? `P-${Date.now()}`,
         supplierName: created.supplier_name ?? created.supplierName,
         category: created.category,
         price: created.price_idr ?? created.price,
-        stock: created.stock,
+        stock: Number(created.stock ?? 0),
       };
 
       // Add to UI
@@ -130,6 +143,69 @@ export default function ProductsPage() {
       // show user feedback (toast) if you have one
     }
   }
+
+  // Optimistic stock change handler
+  async function changeStock(id, delta) {
+    console.log('changeStock called', { id, delta });
+    if (typeof id === 'undefined' || id === null) {
+      console.warn('changeStock called with invalid id', { id, delta });
+      return;
+    }
+
+    const idx = products.findIndex(p => p.id === id);
+    if (idx === -1) {
+      console.warn('product id not found in local state', { id });
+      return;
+    }
+
+    setError(null);
+
+    const prev = products[idx];
+    const prevStock = Number(prev.stock ?? 0);
+    const newStock = prevStock + delta;
+    if (newStock < 0) {
+      setError('Stock cannot be negative');
+      return;
+    }
+
+    // optimistic update
+    setProducts(prevList => {
+      const copy = [...prevList];
+      copy[idx] = { ...copy[idx], stock: newStock };
+      return copy;
+    });
+
+    setPendingMap(m => ({ ...m, [id]: true }));
+
+    try {
+      console.debug('changeStock: calling API', { id, delta, prevStock, newStock });
+      const updated = await updateProductStock(id, delta);
+
+      if (!isMounted.current) return;
+
+      setProducts(prevList => prevList.map(p => p.id === id ? {
+        ...p,
+        stock: Number(updated?.stock ?? newStock),
+      } : p));
+    } catch (err) {
+      console.error('changeStock failed', { id, delta, err });
+      if (isMounted.current) {
+        setProducts(prevList => prevList.map(p => p.id === id ? { ...p, stock: prevStock } : p));
+        setError(err?.message || 'Failed to update stock');
+      }
+    } finally {
+      if (isMounted.current) {
+        setPendingMap(m => {
+          const copy = { ...m };
+          delete copy[id];
+          return copy;
+        });
+      }
+    }
+  }
+
+  const onPlus = (id) => changeStock(id, 1);
+  const onMinus = (id) => changeStock(id, -1);
 
   return (
     <div className="products-page">
@@ -167,23 +243,22 @@ export default function ProductsPage() {
               <th>Category</th>
               <th>Price</th>
               <th>Stock</th>
+              <th className="actions">Actions</th>
             </tr>
           </thead>
           <tbody>
             {filteredProducts.length > 0 ? (
               filteredProducts.map((p, idx) => (
-                <tr key={p.productId ?? p.product_id ?? p.id ?? `product-${idx}`}>
-                  <td>{p.name ?? p.product_name}</td>
-                  <td>{p.productId ?? p.product_id ?? p.id}</td>
-                  <td>{p.supplierName ?? p.supplier_name}</td>
-                  <td>{p.category}</td>
-                  <td>IDR {p.price ?? p.price_idr}</td>
-                  <td>{p.stock}</td>
-                </tr>
-              ))
+              <ProductRow
+                key={p.id ?? `product-${idx}`}
+                product={p}
+                pending={Boolean(pendingMap[p.id])}
+                onChangeDelta={(id, delta) => changeStock(id, delta)}
+              />
+            ))
             ) : (
               <tr>
-                <td colSpan="6" style={{ textAlign: 'center' }}>
+                <td colSpan="7" style={{ textAlign: 'center' }}>
                   No products found.
                 </td>
               </tr>

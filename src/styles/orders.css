@@ -1,30 +1,107 @@
-.orders-table thead th {
-  text-transform: uppercase;
-  letter-spacing: 0.02em; 
-  font-weight: 600; 
-}
-
 .orders-table-wrap {
   width: 100%;
-  overflow-x: auto;
-  overflow-y: hidden;
-  position: sticky;
-  bottom: 0;
-  background: var(--card);
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .orders-table {
   width: 100%;
-  min-width: 1400px;
+  min-width: 1100px;
   border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 13px;
+  font-weight: 450;
 }
 
-.orders-table-wrap::-webkit-scrollbar {
-  height: 8px;
+.orders-table thead th,
+.orders-table tbody td {
+  padding: 8px 10px;
+  vertical-align: middle;
+  box-sizing: border-box;
 }
-.orders-table-wrap::-webkit-scrollbar-thumb {
-  background: #ccc;
-  border-radius: 4px;
+
+/* Header cells */
+.orders-table thead th {
+  text-transform: uppercase;
+  font-size: 12.5px;
+  vertical-align: middle;
+  letter-spacing: 0.01em; 
+  font-weight: 550;
+  justify-content: center;
+  background: transparent;
+  color: var(--muted);
+  box-sizing: border-box;
+}
+
+/* Body cells */
+.orders-table tbody td {
+  font-size: 13px;
+  padding: 8px 10px;
+  vertical-align: middle;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-sizing: border-box;
+}
+
+/* Class helper: center untuk kolom numerik / aksi */
+.orders-table th.center,
+.orders-table td.center {
+  text-align: center;
+}
+
+/* Class helper: right untuk angka yang butuh rata kanan (opsional) */
+.orders-table th.right,
+.orders-table td.right {
+  text-align: right;
+  padding-right: 12px;
+}
+
+/* Pastikan monospace kolom order id tetap rapi */
+.orders-table th.mono,
+.orders-table td.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", monospace;
+  text-align: left;
+}
+
+/* Jika pakai sticky header, beri background dan z-index agar tidak transparan */
+.orders-table thead th {
+  position: sticky;
+  top: 0;
+  background: rgb(238, 236, 236);
+  z-index: 3;
+}
+
+/* Jika ada ellipsis, tetap center alignment tidak terganggu */
+.orders-table tbody td {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Actions kolom */
+.orders-table td.actions-cell {
+  width: 110px;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* Reduce overall spacing on small screens */
+@media (max-width: 1200px) {
+  .orders-table { min-width: 900px; }
+  .orders-table thead th,
+  .orders-table tbody td { font-size: 12px; padding: 6px 8px; }
+}
+
+/* Hide less important columns on narrow screens */
+@media (max-width: 900px) {
+  .orders-table { min-width: 700px; }
+  /* sembunyikan kolom Destination dan Platform pada layar kecil */
+  .orders-table th:nth-child(5),
+  .orders-table td:nth-child(5),
+  .orders-table th:nth-child(6),
+  .orders-table td:nth-child(6) {
+    display: none;
+  }
 }
 
 .form-error {
@@ -44,18 +121,21 @@ button[disabled] {
   background-color: green;
   color: white;
   font-weight: bold;
+  font-size: 12px;
 }
 
 .status.shipping {
   background-color: gray;
   color: white;
   font-weight: bold;
+  font-size: 12px;
 }
 
 .status.pending {
   background-color: red;
   color: white;
   font-weight: bold;
+  font-size: 12px;
 }
 
 .actions-cell {

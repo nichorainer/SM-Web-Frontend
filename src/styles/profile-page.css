@@ -123,49 +123,50 @@
 .email-meta { font-size: 12px; color: #6b7280; }
 
 /* buttons */
-.btn-primary {
-  background: linear-gradient(90deg,#7c3aed,#06b6d4);
-  color: #fff;
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: 0;
-  cursor: pointer;
+/* wrapper untuk tombol avatar */
+.profile-avatar-actions {
+  display: flex;
+  gap: 8px;               /* jarak antar tombol */
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;        /* agar tidak overlap di layar kecil */
+  margin-top: 12px;
 }
 
+.btn-outline-add,
 .btn-outline-remove {
-  background-color: transparent;
-  color: #6b46c1;       
   padding: 6px 10px;
-  border: 1px solid #6b46c1;     
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  font-size: 13px;
+  line-height: 1;
+  height: 36px;
+  min-width: 120px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  /* tambahkan border yang jelas dan subtle shadow */
+  border: 1px solid rgba(107, 70, 193, 0.95); /* #6b46c1 */
+  box-shadow: 0 1px 0 rgba(0,0,0,0.03);
+  background-clip: padding-box;
 }
 
-.btn-outline-remove:hover {
-  background-color: #6b46c1;   
-  color: white;                       
-}
-
-.btn-outline-add {
-  background: transparent;
-  color: #6b46c1; 
-  padding: 6px 10px;
-  border: 1px solid #6b46c1;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
+/* hover tetap seperti sebelumnya */
+.btn-outline-remove:hover,
 .btn-outline-add:hover {
   background-color: #6b46c1;
   color: white;
 }
 
-
-/* responsive */
-@media (max-width: 900px) {
-  .profile-card { flex-direction: column; }
-  .profile-form { grid-template-columns: 1fr; }
-  .profile-left { width: 100%; flex-direction: row; align-items: center; }
+/* responsive: pada layar sempit, susun vertikal */
+@media (max-width: 480px) {
+  .profile-avatar-actions {
+    flex-direction: column;
+    gap: 6px;
+  }
+  .btn-outline-add,
+  .btn-outline-remove {
+    width: 160px; /* atau 100% jika mau full width */
+    min-width: unset;
+  }
 }

@@ -1,8 +1,8 @@
 /* Page container */
 .products-page {
-  height: 100vh;              /* full viewport height */
-  overflow-y: auto;           /* scroll only if needed */
-  overflow-x: hidden;         /* prevent horizontal scroll */
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
   padding: 24px;
   background-color: #f9f9f9;
   font-family: 'Segoe UI', sans-serif;
@@ -121,6 +121,7 @@ body {
   text-align: left;
   border-bottom: 1px solid #eee;
   font-size: 0.95rem;
+  vertical-align: middle;
 }
 
 .products-table th {
@@ -135,6 +136,20 @@ body {
 
 .products-table td {
   color: #333;
+}
+
+.products-table th.actions,
+.products-table td.actions {
+  width: 200px;               /* sesuaikan: 180-220px */
+  text-align: center;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+/* center alignment helper */
+.products-table th.center,
+.products-table td.center {
+  text-align: center;
 }
 
 /* Responsive tweaks */
@@ -156,4 +171,64 @@ body {
   .btn-primary {
     width: 100%;
   }
+}
+
+/* stock action buttons */
+.stock-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+}
+
+.stock-actions .chakra-stack,
+.stock-actions .hstack {
+  gap: 6px;
+  justify-content: center;
+  align-items: center;
+}
+
+.icon-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.12s ease, transform 0.08s ease;
+}
+
+.icon-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.icon-btn.plus:hover:not(:disabled) {
+  background: rgba(34,197,94,0.08); /* subtle green */
+  transform: translateY(-1px);
+}
+
+.icon-btn.minus:hover:not(:disabled) {
+  background: rgba(239,68,68,0.08); /* subtle red */
+  transform: translateY(-1px);
+}
+
+/* Chakra NumberInput: smaller width and compact field */
+.chakra-numberinput {
+  width: 72px;                /* ukuran kotak input */
+  --chakra-space-2: 6px;
+}
+
+/* Hide the visual stepper arrows (we'll keep keyboard support) */
+.chakra-numberinput__stepper {
+  display: none;
+}
+
+/* If Chakra renders different class names, fallback selector */
+.chakra-numberinput .chakra-numberinput__stepper,
+.chakra-numberinput__stepper {
+  display: none !important;
 }

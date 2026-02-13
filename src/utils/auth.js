@@ -117,17 +117,6 @@ export async function getUser(userId) {
   }
 }
 
-// Read avatar dataURL from localStorage for a given user id
-export function readLocalAvatar(userId) {
-  if (!userId) return null;
-  try {
-    return localStorage.getItem(`${AVATAR_KEY_PREFIX}${userId}`);
-  } catch (err) {
-    console.error("readLocalAvatar error:", err);
-    return null;
-  }
-}
-
 // Write avatar dataURL to localStorage for a given user id
 export function writeLocalAvatar(userId, dataUrl) {
   if (!userId) return;
@@ -139,6 +128,18 @@ export function writeLocalAvatar(userId, dataUrl) {
     }
   } catch (err) {
     console.error("writeLocalAvatar error:", err);
+  }
+}
+
+// Read avatar dataURL from localStorage for a given user id
+export function readLocalAvatar(id) {
+  try {
+    const key = `avatar:${id}`;
+    const v = localStorage.getItem(key);
+    return v === null ? null : v;
+  } catch (e) {
+    console.warn('readLocalAvatar error', e);
+    return null;
   }
 }
 
@@ -161,15 +162,25 @@ export function emitAuthEvent(name, detail) {
 }
 
 /** Convenience: set local avatar and emit avatar:changed */
-export function setLocalAvatarAndEmit(userId, dataUrl) {
-  writeLocalAvatar(userId, dataUrl);
-  emitAuthEvent("avatar:changed", { user_id: userId, dataUrl });
-}
+export function setLocalAvatarAndEmit(id, dataUrl) {
+  const key = `avatar:${id}`;
+  try {
+    if (dataUrl == null) {
+      localStorage.removeItem(key);
+    } else {
+      localStorage.setItem(key, dataUrl);
+    }
+  } catch (e) {
+    console.warn('setLocalAvatarAndEmit localStorage error', e);
+  }
 
-/** Convenience: remove local avatar and emit avatar:changed with null */
-export function removeLocalAvatarAndEmit(userId) {
-  writeLocalAvatar(userId, null);
-  emitAuthEvent("avatar:changed", { user_id: userId, dataUrl: null });
+  // Emit internal emitter if ada
+  try { onAuthEvent?.('avatar:changed', { id, dataUrl }); } catch (e) {}
+
+  // Emit window event with consistent payload
+  try {
+    window.dispatchEvent(new CustomEvent('avatar-updated', { detail: { id, dataUrl } }));
+  } catch (e) {}
 }
 
 /** Convenience: emit name changed */

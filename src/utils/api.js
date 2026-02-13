@@ -14,7 +14,6 @@ export async function getProducts() {
   const res = await fetch(url, {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
   });
   if (!res.ok) {
     const body = await safeJson(res);
@@ -29,7 +28,6 @@ export async function createProduct(payload) {
   const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
     body: JSON.stringify(payload),
   });
   if (!res.ok) {
@@ -38,6 +36,20 @@ export async function createProduct(payload) {
   }
   const body = await res.json();
   return body?.data ?? body;
+}
+
+export async function updateProductStock(id, delta) {
+  const url = `http://localhost:8080/products/${encodeURIComponent(id)}/stock`;
+  const res = await fetch(url, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ delta }),
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(text || `HTTP ${res.status}`);
+  }
+  return res.json();
 }
 
 // ORDERS

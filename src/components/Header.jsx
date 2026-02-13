@@ -23,6 +23,14 @@ export default function Header() {
   const [open, setOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
 
+  const triggerFileSelect = () => {
+    if (!fileInputRef.current) {
+      console.warn('file input ref not ready');
+      return;
+    }
+    fileInputRef.current.click();
+};
+
   // user display state
   const [avatarSrc, setAvatarSrc] = useState(null);
   const [displayName, setDisplayName] = useState("Guest");
@@ -257,8 +265,14 @@ export default function Header() {
                   className="menu-item"
                   onClick={() => {
                     setOpen(false);
+                    // jika belum ada userId, beri feedback kecil
+                    if (!userId) {
+                      console.warn('No user id yet, cannot change avatar');
+                      return;
+                    }
                     triggerFileSelect();
                   }}
+                  disabled={!userId}
                 >
                   Change avatar
                 </button>
