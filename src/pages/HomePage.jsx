@@ -115,7 +115,6 @@ const completedOrders = orders.filter(o => {
 
 // --- compute revenue ---
 const totalRevenueNumber = completedOrders.reduce((sum, o) => sum + getOrderTotal(o), 0);
-
 const formattedRevenue = new Intl.NumberFormat('id-ID', {
   style: 'currency',
   currency: 'IDR',
@@ -144,7 +143,7 @@ const formattedRevenue = new Intl.NumberFormat('id-ID', {
         {/* Total Revenue Card */}
         <div className="stat-card">
           <div className="stat-label">Total Revenue (This Month)</div>
-          <div className="stat-value">{formattedRevenue} K</div>
+          <div className="stat-value">{formattedRevenue}</div>
         </div>
       </div>
 
@@ -201,7 +200,7 @@ const formattedRevenue = new Intl.NumberFormat('id-ID', {
                     <span
                       className={`badge-orders ${o.status === "pending" ? "danger" : "success"}`}
                     >
-                      {o.status}
+                      {o.status} K
                     </span>
                   </td>
                 </tr>
