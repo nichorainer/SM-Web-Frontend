@@ -77,7 +77,7 @@ export default function ProductsPage() {
       setError(null);
       try {
         const list = await getProducts();
-        console.log('loaded products from API', list);
+        // console.log('loaded products from API', list);
         if (!mounted) return;
         // Ensure consistent shape: map backend fields to frontend if needed
           setProducts(Array.isArray(list) ? list.map(p => ({

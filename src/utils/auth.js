@@ -214,11 +214,7 @@ export async function getProfile() {
 
     if (resp.ok) {
       const body = await resp.json();
-      console.log("Raw body from BE:", body);
-
       const profile = body?.data || body;
-      console.log("Profile before normalize:", profile);
-
       if (profile) {
         try {
           localStorage.setItem("user", JSON.stringify(profile));
@@ -253,8 +249,6 @@ export async function getProfile() {
  */
 function normalizeProfile(profile) {
   if (!profile) return null;
-  console.log("normalizeProfile input:", profile);
-
   return {
     id: profile.id || profile.user_id || null,
     user_id: profile.user_id || null,

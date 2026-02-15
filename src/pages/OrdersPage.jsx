@@ -87,7 +87,16 @@ export default function OrdersPage() {
 
   // Open/close modal
   const openCreate = async () => {
-    const nextOrderNumber = await generateOrderId();
+    // const nextOrderNumber = await generateOrderId();
+    let nextOrderNumber = '';
+    try {
+      const raw = await generateOrderId();
+      nextOrderNumber = raw == null ? '' : String(raw);
+    } catch (err) {
+      console.error('generateOrderId failed', err);
+      nextOrderNumber = '';
+    }
+
     setNewOrder({
       order_number: nextOrderNumber || '',
       customer_name: '',
@@ -255,6 +264,20 @@ export default function OrdersPage() {
   };
 
   function updateField(field, value) {
+    // jika value adalah Promise/thenable, resolve dulu
+    if (value && typeof value.then === 'function') {
+      Promise.resolve(value)
+        .then(resolved => {
+          setNewOrder(prev => ({ ...prev, [field]: resolved == null ? '' : resolved }));
+        })
+        .catch(err => {
+          console.error('Failed to resolve value for updateField', err);
+          setNewOrder(prev => ({ ...prev, [field]: '' }));
+        });
+      return;
+    }
+
+    // normal case
     setNewOrder(prev => ({ ...prev, [field]: value }));
   }
 

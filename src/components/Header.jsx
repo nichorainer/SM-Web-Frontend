@@ -55,7 +55,6 @@ export default function Header() {
     async function init() {
       try {
         const profile = await getProfile();
-        console.log("Header init profile:", profile);
         if (!mounted || !profile) return;
 
         setUserId(profile.id);

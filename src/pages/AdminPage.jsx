@@ -100,7 +100,7 @@ export default function AdminPage() {
     async function init() {
       try {
         const profile = await getProfile();
-        console.log('Admin init profile:', profile);
+        // console.log('Admin init profile:', profile);
         if (!mounted || !profile) return;
 
         userIdRef.current = profile.id;
