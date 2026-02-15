@@ -10,13 +10,44 @@
   border-bottom: 1px solid #e6e9ef;
 }
 
-.page-top { display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap; }
-.title-group { display:flex; flex-direction:column; }
-.page-title { margin:0; font-size:20px; font-weight:700; }
-.page-sub { margin:4px 0 0; color:var(--muted); font-size:13px; }
+.page-top { 
+  display:flex; 
+  justify-content:space-between; 
+  align-items:center; 
+  gap:16px; 
+  flex-wrap:wrap; 
+}
 
-.actions-group { display:flex; gap:10px; align-items:center; }
-.control-input { padding:8px 12px; border-radius:8px; border:1px solid #e6e9ef; min-width:220px; }
+.title-group { 
+  display:flex; 
+  flex-direction:column; 
+}
+
+.page-title { 
+  margin:0; 
+  font-size:20px; 
+  font-weight:700; 
+}
+
+.page-sub { 
+  margin:4px 0 0; 
+  color:var(--muted); 
+  font-size:13px; 
+}
+
+.actions-group { 
+  display:flex; 
+  gap:10px; 
+  align-items:center; 
+}
+
+.control-input { 
+  padding:8px 12px; 
+  border-radius:8px; 
+  border:1px solid #e6e9ef; 
+  min-width:220px; 
+}
+
 .control-select {
   padding:8px 10px; 
   border-radius:8px; 
@@ -67,19 +98,23 @@
   inset: 0;
   background: rgba(15, 23, 42, 0.4);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   z-index: 100;
+  padding: 1.25rem;
 }
 
 .modal-card {
-  /* background: #fff; */
+  width: 35%;
+  max-width: 50%;
+  max-height: calc(100vh - 2.5rem);
   background: var(--card);
   border-radius: 12px;
   padding: 20px;
-  width: 480px;
-  max-width: 92%;
   box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .modal-head {
@@ -87,6 +122,8 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 14px;
+  padding: 1rem 1.25rem;
+  flex: 0 0 auto;
 }
 
 .modal-body {
@@ -94,6 +131,10 @@
   flex-direction: column;
   gap: 14px;
   margin-bottom: 16px;
+  padding: 1rem 1.25rem;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  flex: 1 1 auto;
 }
 
 .order-form .form-row {

@@ -7,6 +7,7 @@
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  padding: 1rem;
 }
 
 .modal-content {
@@ -16,6 +17,27 @@
   width: 480px;
   max-width: 95%;
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto; 
+}
+
+/* scrollbar tipis */
+.modal-content::-webkit-scrollbar {
+  width: 6px;
+}
+.modal-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+.modal-content::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.25);
+  border-radius: 3px;
+}
+.modal-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(0,0,0,0.4);
+}
+.modal-content {
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: rgba(0,0,0,0.25) transparent;
 }
 
 .modal-content h3 {
@@ -61,9 +83,9 @@
 
 /* Subtle button (used for Cancel) */
 .btn-subtle {
-  background-color: transparent;   /* no fill */
-  color: #555;                     /* softer text color */
-  border: 1px solid #ddd;          /* light border */
+  background-color: transparent;
+  color: #555;
+  border: 1px solid #ddd;
   padding: 8px 16px;
   border-radius: 6px;
   font-size: 0.95rem;
@@ -72,6 +94,20 @@
 }
 
 .btn-subtle:hover {
-  background-color: #f3f3f3;       /* light gray hover */
-  color: #333;                     /* slightly darker text */
+  background-color: #f3f3f3;
+  color: #333;
+}
+
+.error {
+  display: block;
+  margin-bottom: 8px;
+  color: #b00020;
+  background: rgba(176, 0, 32, 0.04);
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 1.25;
+  max-width: 100%;
+  box-sizing: border-box;
+  word-break: break-word;
 }

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useToast } from "@chakra-ui/react";
 import { LuPencilLine } from "react-icons/lu";
 import { CiTrash } from "react-icons/ci";
-import '../styles/orders.css';
+import '../styles/orders-table.css';
 import { updateOrderStatus, deleteOrder } from '../utils/api';
 import { validateOrderPayload } from '../utils/validators';
 import DeleteConfirmModalOrders from './DeleteConfirmModalOrders.jsx';
@@ -14,10 +14,9 @@ export default function OrdersTable({
   onUpdateOrder,
   onDeleteOrder,
 }) {
-
+  // Toast for notifications
   const toast = useToast();
 
-  
   // Add order handler
   useEffect(() => {
     async function handleAdd(e) {

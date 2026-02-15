@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { CiCircleMinus, CiCirclePlus } from 'react-icons/ci';
 import AddProductModal from '../components/AddProductModal';
 import ProductRow from '../components/ProductRow';
 import '../styles/products-page.css';
 import { getProducts, createProduct, updateProductStock } from '../utils/api';
+import { validateProductPayload } from '../utils/validators';
 
 export default function ProductsPage() {
   const [products, setProducts] = useState([]);
@@ -61,6 +61,7 @@ export default function ProductsPage() {
     return productIdMatch || productNameMatch || supplierMatch || categoryMatch || priceMatch;
   });
 
+  // Handlers for search and reset search
   function handleSearchChange(e) {
     setSearchTerm(e.target.value);
   }
@@ -120,6 +121,22 @@ export default function ProductsPage() {
       price_idr: Number(newProduct.price) || 0,
       stock: Number(newProduct.stock) || 0,
     };
+    
+    const check = validateProductPayload({
+    name: payload.product_name,
+    productId: payload.product_id,
+    supplierName: payload.supplier_name,
+    category: payload.category,
+    price: payload.price_idr,
+    stock: payload.stock,
+  });
+
+  if (!check.ok) {
+    // set error di parent atau kirim kembali ke modal
+    setError('Please fill all required fields correctly');
+    // optionally pass errors back to modal via props or event
+    return;
+  }
 
     try {
       const created = await createProduct(payload);

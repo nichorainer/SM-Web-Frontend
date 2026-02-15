@@ -1,4 +1,5 @@
 // Validasi Order Fields
+
 export function validateOrderPayload(o) {
   // required fields: order_number/orderId, customer_name/customer, platform, destination, total_amount (>0), status,
   if (!o) return { ok: false, reason: 'missing order' };
@@ -18,4 +19,33 @@ export function validateOrderPayload(o) {
   if (!status || String(status).trim() === '') return { ok: false, reason: 'status is required' };
 
   return { ok: true };
+}
+
+// utils/validators.js  (atau di atas ProductsPage.jsx)
+export function validateProductPayload(payload) {
+  const errors = {};
+
+  if (!payload.name || String(payload.name).trim() === '') {
+    errors.name = 'Product name is required';
+  }
+  if (!payload.productId || String(payload.productId).trim() === '') {
+    errors.productId = 'Product ID is required';
+  }
+  if (!payload.supplierName || String(payload.supplierName).trim() === '') {
+    errors.supplierName = 'Supplier name is required';
+  }
+  if (!payload.category || String(payload.category).trim() === '') {
+    errors.category = 'Category is required';
+  }
+  if (payload.price == null || Number.isNaN(Number(payload.price)) || Number(payload.price) < 0) {
+    errors.price = 'Price must be a non-negative number';
+  }
+  if (payload.stock == null || Number.isNaN(Number(payload.stock)) || Number(payload.stock) < 0) {
+    errors.stock = 'Stock must be a non-negative integer';
+  }
+
+  return {
+    ok: Object.keys(errors).length === 0,
+    errors,
+  };
 }

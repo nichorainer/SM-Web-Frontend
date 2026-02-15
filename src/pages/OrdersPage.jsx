@@ -1,9 +1,13 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import DatePicker from 'react-datepicker';
+import React, { 
+  useState, 
+  useEffect, 
+  useMemo 
+} from 'react';
 import {
   Button,
   HStack
 } from "@chakra-ui/react";
+import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import OrdersTable from '../components/OrdersTable.jsx';
 import '../styles/orders-page.css';
@@ -21,6 +25,24 @@ export default function OrdersPage() {
   const [error, setError] = useState(null);
   // state untuk menampilkan pesan validasi
   const [formError, setFormError] = useState(null);
+
+  // State to track if we're currently generating an order ID to prevent multiple simultaneous calls
+  const [generatingId, setGeneratingId] = useState(false);
+
+  const handleRegenerateId = async () => {
+    setGeneratingId(true);
+    try {
+      const raw = await generateOrderId();
+      const next = raw == null ? '' : String(raw);
+      setNewOrder(prev => ({ ...prev, order_number: next }));
+    } catch (err) {
+      console.error('Regenerate order id failed', err);
+      toast({ title: 'Failed to generate ID', status: 'error', duration: 3000 });
+      setNewOrder(prev => ({ ...prev, order_number: '' }));
+    } finally {
+      setGeneratingId(false);
+    }
+  };
 
   // For product selection in create order form
   const [products, setProducts] = useState([]);
@@ -370,10 +392,19 @@ export default function OrdersPage() {
                 <div className="form-row">
                   <label>Order Number</label>
                   <input
-                    value={newOrder.order_number || generateOrderId() || ''}
+                    value={newOrder.order_number || ''}
                     onChange={e => updateField('order_number', e.target.value)}
                     required
                   />
+                  <Button
+                    size="sm"
+                    onClick={handleRegenerateId}
+                    isLoading={generatingId}
+                    loadingText="Generating"
+                    type="button"
+                  >
+                    Regenerate
+                  </Button>
                 </div>
 
                 {/* Products Selection */}
