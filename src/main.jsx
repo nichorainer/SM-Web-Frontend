@@ -7,7 +7,6 @@ import './App.css';
 import { ChakraProvider } from '@chakra-ui/react';
 
 console.log('main.jsx start');
-
 const rootEl = document.getElementById('root');
 if (!rootEl) console.error('root element not found');
 
