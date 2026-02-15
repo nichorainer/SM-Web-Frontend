@@ -222,8 +222,10 @@ export default function OrdersPage() {
       const s = search.toLowerCase();
 
       // Order ID: prefix match
-      const cleanOrderId = o.orderId ? String(o.orderId).replace(/^#/, '').toLowerCase() : '';
-      const orderIdMatch = cleanOrderId.startsWith(s);
+      const cleanOrderId = o.orderId
+        ? String(o.orderId).replace(/^#/, '').toLowerCase()
+        : '';
+      const orderIdMatch = cleanOrderId.includes(s);
 
       // Customer Name: substring match
       const customerMatch = o.customer && String(o.customer).toLowerCase().includes(s);
@@ -231,8 +233,18 @@ export default function OrdersPage() {
       // Destination: substring match
       const destinationMatch = o.destination && String(o.destination).toLowerCase().includes(s);
 
+      // Product ID: prefix match
+      const productIdMatch = o.product_id 
+        ? String(o.product_id).toLowerCase().startsWith(s) 
+        : false;
+
+      // Price IDR: prefix match
+      const priceMatch = o.price_idr 
+        ? String(o.price_idr).startsWith(s) 
+        : false;
+
       // Created At: not filtered, always shown all
-      if (!(orderIdMatch || customerMatch || destinationMatch)) {
+      if (!(orderIdMatch || customerMatch || destinationMatch || productIdMatch || priceMatch)) {
         return false;
       }
     }

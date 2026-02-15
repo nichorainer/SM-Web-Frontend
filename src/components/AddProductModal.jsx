@@ -107,11 +107,16 @@ export default function AddProductModal({ isOpen, onClose, onSave, existingProdu
 
   // Helper for auto-generating productId button
   function makePrefixFromName(name = '') {
-    const cleaned = String(name).trim();
-    const words = cleaned.split(/\s+/).filter(Boolean);
+    const words = String(name).trim().split(/\s+/).filter(Boolean);
+
     if (words.length >= 2) {
-      return (words[0][0] + words[1][0]).toUpperCase();
+      const first = words[0][0] || '';
+      const second = words[1][0] || '';
+      const third = words[2] ? words[2][0] : '';
+
+      return (first + second + third).toUpperCase();
     }
+
     const w = words[0] || '';
     return (w.slice(0, 2)).toUpperCase() || 'PR';
   }
