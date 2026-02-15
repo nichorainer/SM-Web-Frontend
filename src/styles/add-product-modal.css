@@ -61,6 +61,11 @@
   border-radius: 6px;
 }
 
+.modal-form input::placeholder {
+  font-style: italic;
+  color: #888;
+}
+
 .modal-actions {
   display: flex;
   justify-content: flex-end;
@@ -78,7 +83,8 @@
 }
 
 .btn-primary:hover {
-  background-color: #553c9a;
+  background-color: #333 !important;
+  color: #ffffff !important;
 }
 
 /* Subtle button (used for Cancel) */
@@ -94,8 +100,8 @@
 }
 
 .btn-subtle:hover {
-  background-color: #f3f3f3;
-  color: #333;
+  background-color: #333 !important;
+  color: #ffffff !important;
 }
 
 .error {
@@ -110,4 +116,28 @@
   max-width: 100%;
   box-sizing: border-box;
   word-break: break-word;
+}
+
+/* button generate product id */
+.generate-btn-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+
+.btn-generate {
+  background-color: var(--accent) !important;
+  color: #fff !important;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-size: 13px !important;
+}
+
+.btn-generate:hover {
+  background-color: #333 !important;
+  color: #fff !important;
+  cursor: pointer;
+  font-size: 13px !important;
 }

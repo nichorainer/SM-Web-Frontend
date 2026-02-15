@@ -171,20 +171,38 @@
   width: 100%;
 }
 
-/* default style for select */
-.form-row select {
-  width: 100%;
-  margin-bottom: 12px;
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 14px;
-  color: #333;
-}
-
-.form-row select option[disabled] {
+.form-row input::placeholder {
   font-style: italic;
   color: #888;
+}
+
+/* default select */
+.control-select {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #e6e9ef;
+  background: white;
+  font-size: 13px;
+  color: #333;            /* normal text color */
+  font-style: normal;     /* normal by default */
+}
+
+/* placeholder option (in dropdown list) */
+.control-select option[disabled] {
+  font-style: italic;
+  color: #888;
+}
+
+/* when select currently has placeholder value, style the closed select display */
+.control-select.is-placeholder {
+  color: #888;            /* closed select shows grey */
+  font-style: italic;     /* closed select shows italic */
+}
+
+/* ensure options (when dropdown opened) keep normal style except disabled placeholder */
+.control-select option {
+  font-style: normal;
+  color: #333;
 }
 
 .form-actions {
@@ -208,6 +226,37 @@
   border: 0;
 }
 
+.btn-modal.btn-primary-modal {
+  background: var(--accent);
+  color: white;
+  box-shadow: 0 6px 18px rgba(79,70,229,0.12);
+  border: 1px solid #e6e9ef;
+  width: fit-content;
+}
+
+.btn-modal.btn-outline-modal {
+  background: transparent;
+  color: gray;
+  box-shadow: 0 6px 18px rgba(79,70,229,0.12);
+  border: 1px solid #e6e9ef;
+  width: fit-content;
+}
+
+.btn-modal.btn-save {
+  background: var(--accent);
+  color: white;
+  box-shadow: 0 6px 18px rgba(79,70,229,0.12);
+  width: fit-content;
+}
+
+.btn-modal.btn-cancel {
+  background: transparent;
+  border: 1px solid #e6e9ef;
+  color: gray;
+  box-shadow: 0 6px 18px rgba(79,70,229,0.12);
+  width: fit-content;
+}
+
 .btn-outline-modal {
   background: transparent;
   border: 1px solid #e6e9ef;
@@ -218,4 +267,13 @@
   background: var(--accent);
   color: white;
   box-shadow: 0 6px 18px rgba(79,70,229,0.12);
+}
+
+.btn-modal.btn-regenerate {
+  background: var(--accent);
+  border: 1px solid #e6e9ef;
+  color: white;
+  font-size: 14px;
+  width: fit-content;
+  left: 28%;
 }

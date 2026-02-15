@@ -221,14 +221,3 @@ body {
   width: 72px;                /* ukuran kotak input */
   --chakra-space-2: 6px;
 }
-
-/* Hide the visual stepper arrows (we'll keep keyboard support) */
-.chakra-numberinput__stepper {
-  display: none;
-}
-
-/* If Chakra renders different class names, fallback selector */
-.chakra-numberinput .chakra-numberinput__stepper,
-.chakra-numberinput__stepper {
-  display: none !important;
-}

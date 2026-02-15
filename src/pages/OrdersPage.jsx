@@ -128,7 +128,7 @@ export default function OrdersPage() {
       total_amount: '',
       status: '',
       created_at: new Date().toISOString(),
-      id_from_product: null,
+      id_from_product: '',
       product_id: '',
       product_name: '',
       price_idr: 0,
@@ -396,6 +396,7 @@ export default function OrdersPage() {
                     value={newOrder.order_number || ''}
                     onChange={e => updateField('order_number', e.target.value)}
                     required
+                    placeholder="Example: #00100"
                   />
                   <Button
                     size="sm"
@@ -403,6 +404,7 @@ export default function OrdersPage() {
                     isLoading={generatingId}
                     loadingText="Generating"
                     type="button"
+                    className="btn-modal btn-regenerate"
                   >
                     Regenerate Order Number
                   </Button>
@@ -412,6 +414,7 @@ export default function OrdersPage() {
                 <div className="form-row">
                   <label>Product</label>
                   <select
+                  className={`control-select ${newOrder.id_from_product === '' ? 'is-placeholder' : ''}`}
                     value={newOrder.id_from_product || ''}
                     onChange={e => {
                       const selectedId = Number(e.target.value);
@@ -443,10 +446,6 @@ export default function OrdersPage() {
                     onChange={e => updateField('customer_name', e.target.value)}
                     required
                     placeholder="Enter customer name"
-                    style={{ 
-                      fontStyle: newOrder.customer_name === "" ? "italic" : "normal", 
-                      color: newOrder.customer_name === "" ? "#888" : "#333" 
-                    }}
                   />
                 </div>
                 
@@ -454,6 +453,7 @@ export default function OrdersPage() {
                 <div className="form-row">
                   <label>Platform</label>
                   <select
+                    className={`control-select ${newOrder.platform === '' ? 'is-placeholder' : ''}`}
                     value={newOrder.platform}
                     onChange={e => updateField('platform', e.target.value)}
                     required
@@ -475,10 +475,6 @@ export default function OrdersPage() {
                     onChange={e => updateField('destination', e.target.value)}
                     required
                     placeholder="Enter destination"
-                      style={{ 
-                      fontStyle: newOrder.destination === "" ? "italic" : "normal", 
-                      color: newOrder.destination === "" ? "#888" : "#333" 
-                    }}
                   />
                 </div>
 
@@ -492,10 +488,6 @@ export default function OrdersPage() {
                     onChange={e => updateField('total_amount', e.target.value)}
                     required
                     placeholder="Enter total amount"
-                      style={{ 
-                      fontStyle: newOrder.total_amount === "" ? "italic" : "normal", 
-                      color: newOrder.total_amount === "" ? "#888" : "#333" 
-                    }}
                   />
                 </div>
 
@@ -503,6 +495,7 @@ export default function OrdersPage() {
                 <div className="form-row">
                   <label>Status</label>
                   <select
+                    className={`control-select ${newOrder.status === '' ? 'is-placeholder' : ''}`}
                     value={newOrder.status}
                     onChange={e => updateField('status', e.target.value)}
                     required
@@ -547,14 +540,14 @@ export default function OrdersPage() {
 
                 <div className="modal-actions">
                   <button 
-                    className="btn-modal btn-outline-modal" 
+                    className="btn-modal btn-cancel" 
                     onClick={closeCreate} 
                     disabled={saving}
                   >
                     Cancel
                   </button>
                   <button
-                    className={`btn-modal btn-primary-modal`}
+                    className={`btn-modal btn-save`}
                     onClick={handleCreateOrderSave}
                     disabled={saving || !isFormValid}
                   >

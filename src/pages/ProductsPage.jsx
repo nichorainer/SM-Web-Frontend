@@ -221,9 +221,6 @@ export default function ProductsPage() {
     }
   }
 
-  const onPlus = (id) => changeStock(id, 1);
-  const onMinus = (id) => changeStock(id, -1);
-
   return (
     <div className="products-page">
       <div className="page-header">
