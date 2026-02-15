@@ -26,9 +26,9 @@ function formatDate(str) {
 const MOCK_STAFF = [
   {
     id: 'u1',
-    name: 'Nielson',
-    username: 'niel',
-    email: 'nielson@example.com',
+    name: 'Mike Kurnia',
+    username: 'mk0023',
+    email: 'mike.kurnia@example.com',
     role: 'admin',
     avatarUrl: '',
     permissions: { products: true, orders: true, users: true, reports: true },
@@ -57,7 +57,7 @@ const MOCK_LOGS = [
   { id: '001', action: 'Role changed', detail: 'Role Ayu changed into admin', when: formatDate('2026-01-11T14:03:00') },
   { id: '002', action: 'Permission toggled', detail: 'Citra edit order permission enabled', when: formatDate('2026-01-12T08:22:00') },
   { id: '003', action: 'User created', detail: 'Budi Pratama created', when: formatDate('2026-01-10T09:12:00') },
-  { id: '004', action: 'User created', detail: 'Nielson created', when: formatDate('2026-01-09T11:11:00') },
+  { id: '004', action: 'User created', detail: 'Mike Kurnia created', when: formatDate('2026-01-09T11:11:00') },
 ];
 
 export default function AdminPage() {

@@ -9,8 +9,9 @@ import {
   onAuthEvent, 
   offAuthEvent, 
   setLocalAvatarAndEmit,
-  logout 
+  logout
 } from '../utils/auth';
+import { getOrders } from '../utils/api';
 
 export default function Header() {
   const navigate = useNavigate();
@@ -19,7 +20,7 @@ export default function Header() {
   const fileInputRef = useRef(null);
 
   const [notifOpen, setNotifOpen] = useState(false);
-  const [notifCount] = useState(0); // keep your existing logic
+  const [notifCount, setNotifCount] = useState(0);
   const [open, setOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
 
@@ -29,7 +30,11 @@ export default function Header() {
       return;
     }
     fileInputRef.current.click();
-};
+  };
+
+  // declare for orders notification
+  const [pendingOrders, setPendingOrders] = useState([]);
+  const [loadingPending, setLoadingPending] = useState(false);
 
   // user display state
   const [avatarSrc, setAvatarSrc] = useState(null);
@@ -37,6 +42,52 @@ export default function Header() {
   const [displayRole, setDisplayRole] = useState(""); // keep if you set role elsewhere
   const [userId, setUserId] = useState(null);
   const userIdRef = useRef(null);
+
+  // Fetch pending orders when notif menu opens
+  async function loadPendingOrders() {
+    setLoadingPending(true);
+    try {
+      const list = await getOrders();
+      if (!Array.isArray(list)) {
+        setPendingOrders([]);
+        return;
+      }
+      // filter pending (case-insensitive)
+      const pendings = list.filter(o => {
+        const s = String(o.status || '').toLowerCase();
+        return s.includes('pending');
+      });
+
+      // ort by created_at desc so newest appear first
+      pendings.sort((a, b) => {
+        const ta = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const tb = b.created_at ? new Date(b.created_at).getTime() : 0;
+        return tb - ta;
+      });
+
+      // limit to 10 items
+      setPendingOrders(pendings.slice(0, 10));
+      setNotifCount(pendings.length);
+    } catch (err) {
+      console.error('Failed to load pending orders for notifications', err);
+      setPendingOrders([]);
+    } finally {
+      setLoadingPending(false);
+    }
+  }
+
+  useEffect(() => {
+    loadPendingOrders();
+  }, []);
+
+  // Open notification menu
+  const toggleNotif = async () => {
+    const next = !notifOpen;
+    setNotifOpen(next);
+    if (next) {
+      await loadPendingOrders();
+    }
+  };
 
   // Close both notification and profile pop up when outside click
   useEffect(() => {
@@ -190,7 +241,7 @@ export default function Header() {
       // redirect ke login
       navigate('/login', { replace: true });
 
-      // fallback redirect paksa
+      // fallback force redirect
       setTimeout(() => {
         if (window.location.pathname !== '/login') {
           window.location.href = '/login';
@@ -210,16 +261,43 @@ export default function Header() {
         <div ref={notifRef} className="notification-container">
           <button
             className="notification-btn"
-            onClick={() => setNotifOpen(!notifOpen)}
+            onClick={toggleNotif}
+            aria-expanded={notifOpen}
+            aria-haspopup="true"
+            aria-controls="notif-menu"
           >
             <IoNotificationsOutline size={22} />
-            {notifCount > 0 && (
-              <span className="notif-badge">{notifCount}</span>
-            )}
+            {notifCount > 0 && <span className="notif-badge">{notifCount}</span>}
           </button>
+
           {notifOpen && (
-            <div className="notif-menu" role="menu" aria-label="Notifications menu">
-              <div className="notif-item muted">No new notifications right now</div>
+            <div id="notif-menu" className="notif-menu" role="menu" aria-label="Notifications menu">
+              {loadingPending ? (
+                <div className="notif-item muted">Loading notifications…</div>
+              ) : pendingOrders.length === 0 ? (
+                <div className="notif-item muted">No notifications right now</div>
+              ) : (
+                pendingOrders.map((ord) => {
+                  const raw = ord.order_number || ord.orderId || ord.id || '';
+                  const orderNumber = String(raw).startsWith('#') ? raw : `#${raw}`;
+                  const onClickOrder = () => {
+                    setNotifOpen(false);
+                    navigate('/orders');
+                  };
+                  return (
+                    <button
+                      key={ord.id || orderNumber}
+                      type="button"
+                      className="notif-item warning"
+                      role="menuitem"
+                      onClick={onClickOrder}
+                      onKeyDown={(e) => { if (e.key === 'Enter') onClickOrder(); }}
+                    >
+                      <strong>Pending Order:</strong> Order Number {orderNumber}!
+                    </button>
+                  );
+                })
+              )}
             </div>
           )}
         </div>
