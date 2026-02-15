@@ -7,6 +7,7 @@ import {
   Button,
   HStack
 } from "@chakra-ui/react";
+import { IoCloseSharp } from "react-icons/io5";
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import OrdersTable from '../components/OrdersTable.jsx';
@@ -122,10 +123,10 @@ export default function OrdersPage() {
     setNewOrder({
       order_number: nextOrderNumber || '',
       customer_name: '',
-      platform: 'Tokipedia',
+      platform: '',
       destination: '',
-      total_amount: 1,
-      status: 'Pending',
+      total_amount: '',
+      status: '',
       created_at: new Date().toISOString(),
       id_from_product: null,
       product_id: '',
@@ -383,7 +384,7 @@ export default function OrdersPage() {
           <div className="modal-card">
             <div className="modal-head">
               <h2>Create New Order</h2>
-              <button className="btn-close" onClick={closeCreate} aria-label="Close">✕</button>
+              <button className="btn-close" onClick={closeCreate} aria-label="Close"><IoCloseSharp /></button>
             </div>
 
             <div className="modal-body">
@@ -403,7 +404,7 @@ export default function OrdersPage() {
                     loadingText="Generating"
                     type="button"
                   >
-                    Regenerate
+                    Regenerate Order Number
                   </Button>
                 </div>
 
@@ -425,7 +426,7 @@ export default function OrdersPage() {
                     }}
                     required
                   >
-                    <option value="">Select Product</option>
+                    <option value="" disabled>Select Product</option>
                     {products.map(p => (
                       <option key={p.id} value={p.id}>
                         {p.product_name}
@@ -441,6 +442,11 @@ export default function OrdersPage() {
                     value={newOrder.customer_name}
                     onChange={e => updateField('customer_name', e.target.value)}
                     required
+                    placeholder="Enter customer name"
+                    style={{ 
+                      fontStyle: newOrder.customer_name === "" ? "italic" : "normal", 
+                      color: newOrder.customer_name === "" ? "#888" : "#333" 
+                    }}
                   />
                 </div>
                 
@@ -452,6 +458,9 @@ export default function OrdersPage() {
                     onChange={e => updateField('platform', e.target.value)}
                     required
                   >
+                    <option value="" disabled>
+                      Select Platform
+                    </option>
                     <option value="Tokipedia">Tokipedia</option>
                     <option value="Shoopa">Shoopa</option>
                     <option value="Lazado">Lazado</option>
@@ -465,6 +474,11 @@ export default function OrdersPage() {
                     value={newOrder.destination}
                     onChange={e => updateField('destination', e.target.value)}
                     required
+                    placeholder="Enter destination"
+                      style={{ 
+                      fontStyle: newOrder.destination === "" ? "italic" : "normal", 
+                      color: newOrder.destination === "" ? "#888" : "#333" 
+                    }}
                   />
                 </div>
 
@@ -477,6 +491,11 @@ export default function OrdersPage() {
                     value={newOrder.total_amount}
                     onChange={e => updateField('total_amount', e.target.value)}
                     required
+                    placeholder="Enter total amount"
+                      style={{ 
+                      fontStyle: newOrder.total_amount === "" ? "italic" : "normal", 
+                      color: newOrder.total_amount === "" ? "#888" : "#333" 
+                    }}
                   />
                 </div>
 
@@ -488,6 +507,7 @@ export default function OrdersPage() {
                     onChange={e => updateField('status', e.target.value)}
                     required
                   >
+                    <option value="" disabled>Select Status</option>
                     <option value="pending">Pending</option>
                     <option value="shipping">Shipping</option>
                     <option value="completed">Completed</option>

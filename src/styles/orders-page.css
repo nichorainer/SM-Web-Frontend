@@ -137,6 +137,20 @@
   flex: 1 1 auto;
 }
 
+.modal-body::-webkit-scrollbar {
+  width: 6px;
+}
+.modal-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+.modal-body::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.25);
+  border-radius: 3px;
+}
+.modal-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(0,0,0,0.4);
+}
+
 .order-form .form-row {
   display: flex;
   flex-direction: column;
@@ -155,6 +169,22 @@
   border: 1px solid #e6e9ef;
   font-size: 14px;
   width: 100%;
+}
+
+/* default style for select */
+.form-row select {
+  width: 100%;
+  margin-bottom: 12px;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #333;
+}
+
+.form-row select option[disabled] {
+  font-style: italic;
+  color: #888;
 }
 
 .form-actions {
