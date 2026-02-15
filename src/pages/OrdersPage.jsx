@@ -107,6 +107,17 @@ export default function OrdersPage() {
   const closeCreate = () => {
     setShowCreate(false);
   };
+  
+  // Generate next Order ID in format (real-time from BE)
+  async function generateOrderId() {
+    try {
+      const nextOrderNumber = await fetchNextOrderNumber();
+      return nextOrderNumber;
+    } catch (err) {
+      console.error("Failed to fetch next order number", err);
+      return null;
+    }
+  }
 
   // Save handler for new order -> call backend and update UI
   async function handleCreateOrderSave() {
@@ -245,17 +256,6 @@ export default function OrdersPage() {
 
   function updateField(field, value) {
     setNewOrder(prev => ({ ...prev, [field]: value }));
-  }
-
-  // Generate next Order ID in format (real-time from BE)
-  async function generateOrderId() {
-    try {
-      const nextOrderNumber = await fetchNextOrderNumber();
-      return nextOrderNumber;
-    } catch (err) {
-      console.error("Failed to fetch next order number", err);
-      return null;
-    }
   }
 
   return (

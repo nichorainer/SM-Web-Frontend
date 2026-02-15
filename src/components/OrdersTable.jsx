@@ -15,11 +15,27 @@ export default function OrdersTable({
   onDeleteOrder,
 }) {
 
+  const toast = useToast();
+
+  
   // Add order handler
   useEffect(() => {
-    function handleAdd(e) {
+    async function handleAdd(e) {
       const newOrder = e?.detail;
       if (!newOrder) return;
+
+      // If order_number might be a Promise, resolve it safely
+      let resolvedOrderNumber = '';
+      try {
+        // Promise.resolve will wrap non-promises; awaiting it is safe
+        resolvedOrderNumber = await Promise.resolve(newOrder.order_number ?? newOrder.orderId ?? '');
+        // ensure string
+        if (resolvedOrderNumber == null) resolvedOrderNumber = '';
+        resolvedOrderNumber = String(resolvedOrderNumber);
+      } catch (err) {
+        console.warn('Failed to resolve order_number promise', err);
+        resolvedOrderNumber = '';
+      }
 
       // validate payload shape and required fields
       const check = validateOrderPayload(newOrder);
@@ -30,8 +46,9 @@ export default function OrdersTable({
 
       // normalize minimal fields for UI consistency
       const normalized = {
-        id: newOrder.id,
-        orderId: newOrder.order_number ?? newOrder.orderId ?? '',
+        id: newOrder.id ?? null,
+        // prefer resolvedOrderNumber; fallback to raw fields coerced to string; final fallback ''
+        orderId: resolvedOrderNumber || String(newOrder.order_number ?? newOrder.orderId ?? '') || '',
         customer: newOrder.customer_name ?? newOrder.customer ?? '',
         platform: newOrder.platform ?? 'Unknown',
         destination: newOrder.destination ?? '',
@@ -43,6 +60,8 @@ export default function OrdersTable({
         __raw: newOrder,
       };
 
+      // debug: show resolved order id for verification (remove in production)
+      console.debug('orders:add normalized', { resolvedOrderNumber, normalized });
 
       // optionally notify parent (do not call parent to re-add to backend)
       if (typeof onAddOrder === 'function') {
@@ -59,14 +78,9 @@ export default function OrdersTable({
     return () => window.removeEventListener('orders:add', handleAdd);
   }, [onAddOrder]);
 
-  const toast = useToast();
-
   // Handler for edit status and delete order
   const [editOrder, setEditOrder] = useState(null);
   const [deleteOrderTarget, setDeleteOrderTarget] = useState(null);
-
-  console.log("Deleting order target:", deleteOrderTarget);
-  console.log("Deleting order id:", deleteOrderTarget?.id);
 
   return (
     <div className="card">
@@ -94,7 +108,8 @@ export default function OrdersTable({
               </tr>
             ) : (
               orders.map((o, idx) => {
-                const key = o.orderId || o.id || `order-${idx}`;
+                // key: gunakan orderId jika ada, fallback ke id atau index
+                const key = o.orderId ?? o.order_number ?? o.id ?? `order-${idx}`;
                 // status class for 3 options
                 const statusValue = (o.status || '').toLowerCase();
                 let statusClass = '';
@@ -108,7 +123,7 @@ export default function OrdersTable({
 
                 return (
                   <tr key={key}>
-                    <td className="mono">{o.orderId || o.id || '-'}</td>
+                    <td className="mono">{o.orderId ?? o.order_number ?? o.id ?? '-'}</td>
                     <td>{o.product_id != null ? o.product_id : '-'}</td>
                     <td>{o.product_name != null ? o.product_name : '-'}</td>
                     <td>{o.customer || '-'}</td>

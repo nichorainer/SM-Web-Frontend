@@ -55,7 +55,6 @@ export default function ProfilePage() {
       }
 
       setUser(profile);
-      console.log("User set in ProfilePage:", profile);
       setForm({
         fullName: profile.full_name || '',
         username: profile.username || '',
