@@ -160,20 +160,20 @@ export default function UsersPage() {
       try {
         const res = await fetch(`http://localhost:8080/users`);
         const json = await res.json();
-        console.log("Raw users response:", json);
         
         // transform permissions array ["orders:true","products:false"] -> object {orders:true, products:false}
-        const normalized = json.data.map(u => {
-          const permsObj = {};
+        const normalized = (json.data || []).map(u => {
           if (Array.isArray(u.permissions)) {
+            const permsObj = {};
             u.permissions.forEach(p => {
               const [key, val] = p.split(":");
               permsObj[key] = val === "true";
             });
+            return { ...u, permissions: permsObj };
           }
-          return { ...u, permissions: permsObj };
+          // if already object, just return as-is
+          return u;
         });
-        console.log("Normalized users:", normalized);
         setUser(normalized);
       } catch (err) {
         console.error("Failed to load users:", err);
@@ -182,7 +182,7 @@ export default function UsersPage() {
       }
     }
 
-    // load logs from localStorage (optional)
+    // load logs from localStorage
     const savedLogs = localStorage.getItem("user-logs");
     if (savedLogs) {
       setLogs(JSON.parse(savedLogs));
@@ -193,6 +193,10 @@ export default function UsersPage() {
 
   function handleSearch(e) {
     setQ(e.target.value);
+  }
+
+  function openEdit(id) {
+    setSelectedId(id);
   }
 
   function closeEdit() {
