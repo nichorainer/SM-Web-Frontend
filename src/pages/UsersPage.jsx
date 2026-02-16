@@ -247,7 +247,7 @@ export default function UsersPage() {
           {
             id: `l${Date.now()}`,
             action: "Permission toggled",
-            detail: `${targetUser.name} ${permKey} ${newValue ? "enabled" : "disabled"}`,
+            detail: `${targetUser.full_name || targetUser.username} ${permKey} ${newValue ? "enabled" : "disabled"}`,
             when: new Date().toLocaleString(),
           },
           ...prev,
@@ -274,7 +274,7 @@ export default function UsersPage() {
           <Avatar
             name={userData?.full_name || 'User'}
             src={avatarSrc || undefined}
-            boxSize="40px"
+            boxSize="30px"
           />
 
           <div style={{ marginLeft: 8 }} className="admin-user-info">
@@ -322,8 +322,12 @@ export default function UsersPage() {
                   {filteredUser.map((s) => (
                     <tr key={s.id}>
                       <td className="staff-cell">
-                        <Avatar size="sm" name={s.name} src={s.avatarUrl} />
-                        <div className="staff-name">{s.name}</div>
+                        <Avatar
+                          size="sm"
+                          name={s.full_name}
+                          src={s.avatarUrl}
+                        />
+                        <div className="staff-name">{s.full_name}</div>
                       </td>
                       <td>{s.username}</td>
                       <td>{s.email}</td>
@@ -371,15 +375,23 @@ export default function UsersPage() {
               <div className="muted">No logs yet</div>
             ) : (
               <ul>
-                {logs.map((l) => (
-                  <li key={l.id} className="log-item">
-                    <div>
-                      <div className="log-action">{l.action}</div>
-                      <div className="log-detail muted">{l.detail}</div>
-                    </div>
-                    <div className="log-meta muted">{l.when}</div>
-                  </li>
-                ))}
+                {logs.map((l) => {
+                  // cari user dari daftar users berdasarkan user_id
+                  const targetUser = filteredUser.find(u => u.id === l.user_id);
+                  const userLabel = targetUser ? targetUser.username : l.user_id;
+
+                  return (
+                    <li key={l.id} className="log-item">
+                      <div>
+                        <div className="log-action">{l.action}</div>
+                        <div className="log-detail muted">
+                          {userLabel} toggled {l.permission} {l.enabled ? "enabled" : "disabled"}
+                        </div>
+                      </div>
+                      <div className="log-meta muted">{l.when}</div>
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </div>
