@@ -16,7 +16,7 @@ function capitalizeRole(role) {
 }
 
 export default function UsersPage() {
-  const [staff, setStaff] = useState([]);
+  const [user, setUser] = useState([]);
   const [q, setQ] = useState('');
   const [loadingUsers, setLoadingUsers] = useState(false);
 
@@ -141,27 +141,40 @@ export default function UsersPage() {
   }, []);
 
   // derived filtered list
-  const filteredStaff = useMemo(() => {
+  const filteredUser = useMemo(() => {
     const term = q.trim().toLowerCase();
-    if (!term) return staff;
-    return staff.filter((s) =>
+    if (!term) return user;
+    return user.filter((s) =>
       (s.name || '').toLowerCase().includes(term) ||
       (s.username || '').toLowerCase().includes(term) ||
       (s.email || '').toLowerCase().includes(term) ||
       (s.role || '').toLowerCase().includes(term)
     );
-  }, [q, staff]);
+  }, [q, user]);
 
   // * TO EDIT USERS *
   useEffect(() => {
     setLoadingUsers(true);
-    setLoadingLogs(true);
 
     async function loadUsers() {
       try {
-        const res = await fetch("/users"); // endpoint BE
-        const data = await res.json();
-        setStaff(data); // asumsi API return array user dengan field permissions
+        const res = await fetch(`http://localhost:8080/users`);
+        const json = await res.json();
+        console.log("Raw users response:", json);
+        
+        // transform permissions array ["orders:true","products:false"] -> object {orders:true, products:false}
+        const normalized = json.data.map(u => {
+          const permsObj = {};
+          if (Array.isArray(u.permissions)) {
+            u.permissions.forEach(p => {
+              const [key, val] = p.split(":");
+              permsObj[key] = val === "true";
+            });
+          }
+          return { ...u, permissions: permsObj };
+        });
+        console.log("Normalized users:", normalized);
+        setUser(normalized);
       } catch (err) {
         console.error("Failed to load users:", err);
       } finally {
@@ -169,49 +182,54 @@ export default function UsersPage() {
       }
     }
 
-    async function loadLogs() {
-      try {
-        const res = await fetch("/logs"); // kalau ada endpoint logs
-        const data = await res.json();
-        setLogs(data);
-      } catch (err) {
-        console.error("Failed to load logs:", err);
-      } finally {
-        setLoadingLogs(false);
-      }
+    // load logs from localStorage (optional)
+    const savedLogs = localStorage.getItem("user-logs");
+    if (savedLogs) {
+      setLogs(JSON.parse(savedLogs));
     }
 
     loadUsers();
-    loadLogs();
   }, []);
+
+  function handleSearch(e) {
+    setQ(e.target.value);
+  }
 
   function closeEdit() {
     setSelectedId(null);
   }
 
-  const selected = staff.find((s) => s.id === selectedId) || null;
+  const selected = user.find((s) => s.id === selectedId) || null;
 
+  // Change user permissions
   async function changePermission(userId, permKey) {
     setSaving(true);
     try {
-      const user = staff.find(u => u.id === userId);
-      const newValue = !user.permissions[permKey];
+      const targetUser = user.find(u => u.id === userId);
+
+      // safety check
+      if (!targetUser || !targetUser.permissions) {
+        setSaving(false);
+        return;
+      }
+
+      const newValue = !targetUser.permissions[permKey];
 
       // call API update
-      await fetch("/users/permissions", {
+      await fetch(`http://localhost:8080/users/users/permissions`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           user_id: userId,
           permissions: {
-            ...user.permissions,
+            ...targetUser.permissions,
             [permKey]: newValue,
           },
         }),
       });
 
       // update local state after success
-      setStaff(prev =>
+      setUser(prev =>
         prev.map(u =>
           u.id === userId
             ? { ...u, permissions: { ...u.permissions, [permKey]: newValue } }
@@ -220,15 +238,19 @@ export default function UsersPage() {
       );
 
       // optional: update logs UI
-      setLogs(prev => [
-        {
-          id: `l${Date.now()}`,
-          action: "Permission toggled",
-          detail: `${user.name} ${permKey} ${newValue ? "enabled" : "disabled"}`,
-          when: new Date().toLocaleString(),
-        },
-        ...prev,
-      ]);
+      setLogs(prev => {
+        const newLogs = [
+          {
+            id: `l${Date.now()}`,
+            action: "Permission toggled",
+            detail: `${targetUser.name} ${permKey} ${newValue ? "enabled" : "disabled"}`,
+            when: new Date().toLocaleString(),
+          },
+          ...prev,
+        ];
+        localStorage.setItem("user-logs", JSON.stringify(newLogs));
+        return newLogs;
+      });
     } catch (err) {
       console.error("Failed to update permission:", err);
     } finally {
@@ -293,7 +315,7 @@ export default function UsersPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredStaff.map((s) => (
+                  {filteredUser.map((s) => (
                     <tr key={s.id}>
                       <td className="staff-cell">
                         <Avatar size="sm" name={s.name} src={s.avatarUrl} />
@@ -319,7 +341,7 @@ export default function UsersPage() {
                       </td>
                     </tr>
                   ))}
-                  {filteredStaff.length === 0 && (
+                  {filteredUser.length === 0 && (
                     <tr>
                       <td colSpan="6" className="muted">No users found</td>
                     </tr>
@@ -365,7 +387,7 @@ export default function UsersPage() {
         <div className="edit-drawer">
           <div className="drawer-card">
             <div className="drawer-head">
-              <h4>Edit Staff</h4>
+              <h4>Edit User</h4>
             </div>
 
             <div className="drawer-body">
