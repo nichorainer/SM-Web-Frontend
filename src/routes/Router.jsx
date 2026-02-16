@@ -5,7 +5,7 @@ import HomePage from '../pages/HomePage';
 import OrdersPage from '../pages/OrdersPage';
 import ProductsPage from '../pages/ProductsPage';
 import ProfilePage from '../pages/ProfilePage';
-import AdminPage from '../pages/AdminPage';
+import UsersPage from '../pages/UsersPage';
 import LoginPage from '../pages/Login';
 import RegisterPage from '../pages/Register';
 import { getUserLocal } from '../utils/auth';
@@ -48,8 +48,8 @@ export default function Router() {
         <Route path="home" element={<HomePage />} />
         <Route path="orders" element={<OrdersPage />} />
         <Route path="products" element={<ProductsPage />} />
+        <Route path="users" element={<UsersPage />} />
         <Route path="profile" element={<ProfilePage />} />
-        <Route path="admin" element={<AdminPage />} />
       </Route>
 
       {/* Fallback */}

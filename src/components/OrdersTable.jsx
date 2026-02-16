@@ -112,7 +112,7 @@ export default function OrdersTable({
                 // status class for 3 options
                 const statusValue = (o.status || '').toLowerCase();
                 let statusClass = '';
-                if (statusValue === 'completed') {
+                if (statusValue === 'completed' || statusValue === 'complete') {
                   statusClass = 'completed';   // green
                 } else if (statusValue === 'shipping' || statusValue === 'shipped') {
                   statusClass = 'shipping';    // gray

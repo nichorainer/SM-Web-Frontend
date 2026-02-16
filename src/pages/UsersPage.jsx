@@ -7,8 +7,7 @@ import {
   onAuthEvent, 
   offAuthEvent, 
 } from '../utils/auth';
-import '../styles/admin-page.css';
-import { form } from 'framer-motion/client';
+import '../styles/users-page.css';
 
 /* AdminPage (no API) */
 // Helper: Capitalize first letter, lowercase the rest
@@ -60,7 +59,7 @@ const MOCK_LOGS = [
   { id: '004', action: 'User created', detail: 'Mike Kurnia created', when: formatDate('2026-01-09T11:11:00') },
 ];
 
-export default function AdminPage() {
+export default function UsersPage() {
   const [staff, setStaff] = useState(MOCK_STAFF);
   const [q, setQ] = useState('');
   const [loadingStaff, setLoadingStaff] = useState(false);
@@ -295,8 +294,8 @@ export default function AdminPage() {
     <div className="admin-page">
       <header className="admin-header">
         <div>
-          <h2 className="admin-title">Admin Panel</h2>
-          <p className="admin-sub">Manage staff roles, permissions, and view system audit logs</p>
+          <h2 className="admin-title">Edit User Permissions</h2>
+          <p className="admin-sub">Manage other user roles, permissions, and view system audit logs</p>
         </div>
 
         <div className="admin-user">
@@ -321,11 +320,11 @@ export default function AdminPage() {
       <div className="admin-grid">
         <section className="card staff-section">
           <div className="section-head">
-            <h3>Staff Directory</h3>
+            <h3>User Directory</h3>
             <div className="section-actions">
               <input
                 className="search-input"
-                placeholder="Search staff..."
+                placeholder="Search users..."
                 value={q}
                 onChange={handleSearch}
               />
@@ -334,12 +333,12 @@ export default function AdminPage() {
 
           <div className="staff-table-wrap">
             {loadingStaff ? (
-              <div className="muted">Loading staff…</div>
+              <div className="muted">Loading users...</div>
             ) : (
               <table className="staff-table">
                 <thead>
                   <tr>
-                    <th>Staff</th>
+                    <th>User</th>
                     <th>Username</th>
                     <th>Email</th>
                     <th>Role</th>
@@ -371,7 +370,7 @@ export default function AdminPage() {
                   ))}
                   {filteredStaff.length === 0 && (
                     <tr>
-                      <td colSpan="6" className="muted">No staff found</td>
+                      <td colSpan="6" className="muted">No users found</td>
                     </tr>
                   )}
                 </tbody>

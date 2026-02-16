@@ -25,7 +25,7 @@ export default function Sidebar() {
         <NavLink to="/home" className={linkClass} end>Home</NavLink>
         <NavLink to="/orders" className={linkClass}>Orders</NavLink>
         <NavLink to="/products" className={linkClass}>Products</NavLink>
-        <NavLink to="/admin" className={linkClass}>Admin</NavLink>
+        <NavLink to="/users" className={linkClass}>Users</NavLink>
         <NavLink to="/profile" className={linkClass}>Profile</NavLink>
       </nav>
       <div className="sidebar-bottom">
