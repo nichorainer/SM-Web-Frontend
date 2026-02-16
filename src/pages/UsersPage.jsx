@@ -9,62 +9,18 @@ import {
 } from '../utils/auth';
 import '../styles/users-page.css';
 
-/* AdminPage (no API) */
 // Helper: Capitalize first letter, lowercase the rest
 function capitalizeRole(role) {
   if (!role) return '';
   return String(role).charAt(0).toUpperCase() + String(role).slice(1).toLowerCase();
 }
 
-// Helper format date for mock logs
-function formatDate(str) {
-  return new Date(str).toLocaleString();
-}
-
-// Mock Data
-const MOCK_STAFF = [
-  {
-    id: 'u1',
-    name: 'Mike Kurnia',
-    username: 'mk0023',
-    email: 'mike.kurnia@example.com',
-    role: 'admin',
-    avatarUrl: '',
-    permissions: { products: true, orders: true, users: true, reports: true },
-  },
-  {
-    id: 'u2',
-    name: 'Budi Pratama',
-    username: 'budi.p',
-    email: 'budi@example.com',
-    role: 'staff',
-    avatarUrl: '',
-    permissions: { products: true, orders: false, users: false, reports: false },
-  },
-  {
-    id: 'u3',
-    name: 'Citra Dewi',
-    username: 'citra.d',
-    email: 'citra@example.com',
-    role: 'staff',
-    avatarUrl: '',
-    permissions: { products: true, orders: true, users: false, reports: false },
-  },
-];
-
-const MOCK_LOGS = [
-  { id: '001', action: 'Role changed', detail: 'Role Ayu changed into admin', when: formatDate('2026-01-11T14:03:00') },
-  { id: '002', action: 'Permission toggled', detail: 'Citra edit order permission enabled', when: formatDate('2026-01-12T08:22:00') },
-  { id: '003', action: 'User created', detail: 'Budi Pratama created', when: formatDate('2026-01-10T09:12:00') },
-  { id: '004', action: 'User created', detail: 'Mike Kurnia created', when: formatDate('2026-01-09T11:11:00') },
-];
-
 export default function UsersPage() {
-  const [staff, setStaff] = useState(MOCK_STAFF);
+  const [staff, setStaff] = useState([]);
   const [q, setQ] = useState('');
-  const [loadingStaff, setLoadingStaff] = useState(false);
+  const [loadingUsers, setLoadingUsers] = useState(false);
 
-  const [logs, setLogs] = useState(MOCK_LOGS);
+  const [logs, setLogs] = useState([]);
   const [loadingLogs, setLoadingLogs] = useState(false);
 
   const [selectedId, setSelectedId] = useState(null);
@@ -77,18 +33,6 @@ export default function UsersPage() {
     // // read per-user key lazily in effect; initial fallback to legacy key or getUser()
     localStorage.getItem('user-avatar') || (getUser()?.avatarUrl || null)
   );
-  
-  // derived filtered list
-  const filteredStaff = useMemo(() => {
-    const term = q.trim().toLowerCase();
-    if (!term) return staff;
-    return staff.filter((s) =>
-      (s.name || '').toLowerCase().includes(term) ||
-      (s.username || '').toLowerCase().includes(term) ||
-      (s.email || '').toLowerCase().includes(term) ||
-      (s.role || '').toLowerCase().includes(term)
-    );
-  }, [q, staff]);
 
   // Sync initial and listen for updates — mirror Header logic
   useEffect(() => {
@@ -194,46 +138,52 @@ export default function UsersPage() {
       window.removeEventListener('user-updated', onUserUpdatedWindow);
       window.removeEventListener('avatar-updated', onAvatarUpdatedWindow);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // * TO EDIT STAFF *
+  // derived filtered list
+  const filteredStaff = useMemo(() => {
+    const term = q.trim().toLowerCase();
+    if (!term) return staff;
+    return staff.filter((s) =>
+      (s.name || '').toLowerCase().includes(term) ||
+      (s.username || '').toLowerCase().includes(term) ||
+      (s.email || '').toLowerCase().includes(term) ||
+      (s.role || '').toLowerCase().includes(term)
+    );
+  }, [q, staff]);
+
+  // * TO EDIT USERS *
   useEffect(() => {
-    // simulate loading briefly (no API)
-    setLoadingStaff(true);
+    setLoadingUsers(true);
     setLoadingLogs(true);
 
-    // load localStorage for staffData
-    const stored = localStorage.getItem("staffData");
-    if (stored) {
-      setStaff(JSON.parse(stored));
-    } else {
-      setStaff(MOCK_STAFF);
+    async function loadUsers() {
+      try {
+        const res = await fetch("/users"); // endpoint BE
+        const data = await res.json();
+        setStaff(data); // asumsi API return array user dengan field permissions
+      } catch (err) {
+        console.error("Failed to load users:", err);
+      } finally {
+        setLoadingUsers(false);
+      }
     }
 
-    // load logs from localStorage
-    const storedLogs = localStorage.getItem("logsData");
-    if (storedLogs) {
-      setLogs(JSON.parse(storedLogs));
-    } else {
-      setLogs(MOCK_LOGS);
+    async function loadLogs() {
+      try {
+        const res = await fetch("/logs"); // kalau ada endpoint logs
+        const data = await res.json();
+        setLogs(data);
+      } catch (err) {
+        console.error("Failed to load logs:", err);
+      } finally {
+        setLoadingLogs(false);
+      }
     }
 
-    // timeout simulation
-    const t = setTimeout(() => {
-      setLoadingStaff(false);
-      setLoadingLogs(false);
-    }, 250);
-    return () => clearTimeout(t);
+    loadUsers();
+    loadLogs();
   }, []);
-
-  function handleSearch(e) {
-    setQ(e.target.value);
-  }
-
-  function openEdit(id) {
-    setSelectedId(id);
-  }
 
   function closeEdit() {
     setSelectedId(null);
@@ -241,53 +191,49 @@ export default function UsersPage() {
 
   const selected = staff.find((s) => s.id === selectedId) || null;
 
-  function changePermission(userId, permKey) {
+  async function changePermission(userId, permKey) {
     setSaving(true);
-
-    // Delay simulation (dummy data)
-    setTimeout(() => {
-      setStaff(prev => {
-        const updated = prev.map(u =>
-        u.id === userId
-          ? {
-              ...u,
-              permissions: {
-                ...u.permissions,
-                [permKey]: !u.permissions[permKey],
-              },
-            }
-          : u
-      );
-
-      // save changes to local storage
-      localStorage.setItem("staffData", JSON.stringify(updated));
-
-      return updated;
-    });
-
-      // Get the user
+    try {
       const user = staff.find(u => u.id === userId);
       const newValue = !user.permissions[permKey];
 
-      // Add logs
-      setLogs(prev => {
-        const updatedLogs = [
-          {
-            id: `l${Date.now()}`,
-            action: 'Permission toggled',
-            detail: `${user.name} ${permKey} ${newValue ? 'enabled' : 'disabled'}`,
-            when: new Date().toLocaleString(),
+      // call API update
+      await fetch("/users/permissions", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id: userId,
+          permissions: {
+            ...user.permissions,
+            [permKey]: newValue,
           },
-          ...prev,
-        ];
+        }),
+      });
 
-      localStorage.setItem("logsData", JSON.stringify(updatedLogs));
+      // update local state after success
+      setStaff(prev =>
+        prev.map(u =>
+          u.id === userId
+            ? { ...u, permissions: { ...u.permissions, [permKey]: newValue } }
+            : u
+        )
+      );
 
-      return updatedLogs;
-    });
-
+      // optional: update logs UI
+      setLogs(prev => [
+        {
+          id: `l${Date.now()}`,
+          action: "Permission toggled",
+          detail: `${user.name} ${permKey} ${newValue ? "enabled" : "disabled"}`,
+          when: new Date().toLocaleString(),
+        },
+        ...prev,
+      ]);
+    } catch (err) {
+      console.error("Failed to update permission:", err);
+    } finally {
       setSaving(false);
-    }, 200);
+    }
   }
 
   return (
@@ -332,7 +278,7 @@ export default function UsersPage() {
           </div>
 
           <div className="staff-table-wrap">
-            {loadingStaff ? (
+            {loadingUsers ? (
               <div className="muted">Loading users...</div>
             ) : (
               <table className="staff-table">
@@ -358,8 +304,13 @@ export default function UsersPage() {
                       <td>{capitalizeRole(s.role)}</td>
                       <td>
                         <div className="perm-list">
-                          {Object.keys(s.permissions || {}).map((k) => (
-                            <span key={k} className={`perm-pill ${s.permissions[k] ? 'on' : 'off'}`}>{k}</span>
+                          {['orders', 'products', 'users'].map((k) => (
+                            <span
+                              key={k}
+                              className={`perm-pill ${s.permissions?.[k] ? 'on' : 'off'}`}
+                            >
+                              {k}
+                            </span>
                           ))}
                         </div>
                       </td>
@@ -439,7 +390,7 @@ export default function UsersPage() {
 
                 <label style={{ marginTop: 12 }}>Permissions</label>
                 <div className="permissions-grid">
-                  {['products', 'orders', 'users', 'reports'].map((key) => (
+                  {['products', 'orders', 'users'].map((key) => (
                     <label key={key} className="perm-toggle">
                       <input
                         type="checkbox"
