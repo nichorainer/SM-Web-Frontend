@@ -39,7 +39,7 @@ export default function Header() {
   // user display state
   const [avatarSrc, setAvatarSrc] = useState(null);
   const [displayName, setDisplayName] = useState("Guest");
-  const [displayRole, setDisplayRole] = useState(""); // keep if you set role elsewhere
+  const [displayRole, setDisplayRole] = useState("");
   const [userId, setUserId] = useState(null);
   const userIdRef = useRef(null);
 

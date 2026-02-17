@@ -26,9 +26,7 @@ export default function OrdersTable({
       // If order_number might be a Promise, resolve it safely
       let resolvedOrderNumber = '';
       try {
-        // Promise.resolve will wrap non-promises; awaiting it is safe
         resolvedOrderNumber = await Promise.resolve(newOrder.order_number ?? newOrder.orderId ?? '');
-        // ensure string
         if (resolvedOrderNumber == null) resolvedOrderNumber = '';
         resolvedOrderNumber = String(resolvedOrderNumber);
       } catch (err) {

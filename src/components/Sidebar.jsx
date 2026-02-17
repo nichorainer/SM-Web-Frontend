@@ -4,7 +4,7 @@ import { logout } from '../utils/auth';
 
 export default function Sidebar() {
   const linkClass = ({ isActive }) => `nav-item ${isActive ? 'active' : ''}`;
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   
   const handleLogout = () => {
     logout()
