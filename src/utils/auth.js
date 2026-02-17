@@ -1,5 +1,3 @@
-import { data } from "framer-motion/client";
-
 const USER_KEY = "user";
 // Call for avatar
 const AVATAR_KEY_PREFIX = "fe_avatar_user_";

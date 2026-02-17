@@ -73,18 +73,17 @@ export default function Router() {
           }
         />
 
-        <Route path="profile" element={<ProfilePage />} />
+        <Route path="profile" element={<ProfilePage />} /> 
+        <Route 
+          path="/unauthorized" 
+          element={<Unauthorized />} 
+        />
       </Route>
 
       {/* Fallback */}
       <Route
         path="*"
         element={<Navigate to={getUserLocal() ? '/' : '/login'} replace />}
-      />
-
-      <Route 
-        path="/unauthorized" 
-        element={<Unauthorized />} 
       />
     </Routes>
   );

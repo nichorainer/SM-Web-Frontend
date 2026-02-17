@@ -1,20 +1,22 @@
 import { 
   useEffect,
+  useState,
   createContext, 
   useContext, 
-  useState 
 } from "react";
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   
   useEffect(() => {
     const savedUser = localStorage.getItem("currentUser");
     if (savedUser) {
       setCurrentUser(JSON.parse(savedUser));
     }
+    setLoading(false);
   }, []);
 
   // Setiap kali currentUser berubah, simpan ke localStorage
@@ -27,7 +29,7 @@ export function AuthProvider({ children }) {
   }, [currentUser]);
 
   return (
-    <AuthContext.Provider value={{ currentUser, setCurrentUser }}>
+    <AuthContext.Provider value={{ currentUser, setCurrentUser, loading }}>
       {children}
     </AuthContext.Provider>
   );

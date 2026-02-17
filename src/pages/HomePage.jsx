@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import '../styles/home-page.css';
 import { getProducts, getOrders, fetchTopProductsFromOrders } from '../utils/api';
 
-
-
 export default function HomePage() {
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);

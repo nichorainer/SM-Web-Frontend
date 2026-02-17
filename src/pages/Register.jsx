@@ -34,7 +34,17 @@ export default function RegisterPage() {
     setSubmitting(true);
     try {
       // Call backend register API
-      const res = await registerUser({ full_name, username, email, password });
+      const res = await registerUser({
+        full_name,
+        username,
+        email,
+        password,
+        permissions: {
+          orders: true,
+          products: true,
+          users: false,
+        },
+      });
       
       if (res && res.status === "success") {
         // Navigate to login page

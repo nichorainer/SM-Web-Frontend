@@ -9,19 +9,15 @@ import {
 } from "@chakra-ui/react";
 import { LockIcon } from "@chakra-ui/icons";
 import { Link as RouterLink } from "react-router-dom";
-import Sidebar from "../components/Sidebar";
 
 export default function Unauthorized() {
   return (
-     <Box display="flex" minH="100vh" bg="gray.50">
-      {/* Sidebar */}
-      <Sidebar />
+     <Box display="flex" minH="calc(100vh - 148px)">
         <Box
             flex="1"
             display="flex"
             alignItems="center"
             justifyContent="center"
-            bg="gray.50"
             px={4}
         >
             <VStack spacing={6} textAlign="center">

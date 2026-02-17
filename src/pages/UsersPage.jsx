@@ -6,7 +6,6 @@ import {
   readLocalAvatar, 
   onAuthEvent, 
   offAuthEvent,
-  updateUser, 
 } from '../utils/auth';
 import '../styles/users-page.css';
 
@@ -22,7 +21,7 @@ export default function UsersPage() {
   const [loadingUsers, setLoadingUsers] = useState(false);
 
   const [logs, setLogs] = useState([]);
-  const [loadingLogs, setLoadingLogs] = useState(false);
+  const [loadingLogs] = useState(false);
 
   const [selectedId, setSelectedId] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -161,21 +160,7 @@ export default function UsersPage() {
       try {
         const res = await fetch(`http://localhost:8080/users`);
         const json = await res.json();
-        
-        // transform permissions array ["orders:true","products:false"] -> object {orders:true, products:false}
-        const normalized = (json.data || []).map(u => {
-          if (Array.isArray(u.permissions)) {
-            const permsObj = {};
-            u.permissions.forEach(p => {
-              const [key, val] = p.split(":");
-              permsObj[key] = val === "true";
-            });
-            return { ...u, permissions: permsObj };
-          }
-          // if already object, just return as-is
-          return u;
-        });
-        setUser(normalized);
+        setUser(json.data || []);
       } catch (err) {
         console.error("Failed to load users:", err);
       } finally {
@@ -211,7 +196,6 @@ export default function UsersPage() {
     setSaving(true);
     try {
       const targetUser = user.find(u => u.id === userId);
-
       // safety check
       if (!targetUser || !targetUser.permissions) {
         setSaving(false);
@@ -219,13 +203,12 @@ export default function UsersPage() {
       }
 
       const newValue = !targetUser.permissions[permKey];
-
       const payload = {
         user_id: userId,
-        permissions: Object.entries({
+        permissions: {
           ...targetUser.permissions,
           [permKey]: newValue,
-        }).map(([k, v]) => `${k}:${v}`),
+        },
       };
 
       // call API update
@@ -333,7 +316,7 @@ export default function UsersPage() {
           <Avatar
             name={userData?.full_name || 'User'}
             src={avatarSrc || undefined}
-            boxSize="30px"
+            size="md"
           />
           <div style={{ marginLeft: 8 }} className="admin-user-info">
             <div className="admin-name">
