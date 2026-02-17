@@ -19,6 +19,7 @@ export default function OrdersPage() {
   const [search, setSearch] = useState('');
   const [platform, setPlatform] = useState('all');
   const [status, setStatus] = useState('all');
+  const [dateRange, setDateRange] = useState('all');
 
   // Orders state
   const [orders, setOrders] = useState([]);
@@ -255,6 +256,30 @@ export default function OrdersPage() {
     // Status filter
     if (status !== 'all' && o.status !== status) return false;
 
+    // Date filter
+    if (dateRange !== 'all' && o.created_at) {
+      const created = new Date(o.created_at);
+      const now = new Date();
+
+      if (dateRange === 'today') {
+        const sameDay = created.toDateString() === now.toDateString();
+        if (!sameDay) return false;
+      }
+      if (dateRange === 'week') {
+        const startOfWeek = new Date(now);
+        startOfWeek.setDate(now.getDate() - now.getDay()); // Sunday
+        if (created < startOfWeek) return false;
+      }
+      if (dateRange === 'month') {
+        if (created.getMonth() !== now.getMonth() || created.getFullYear() !== now.getFullYear()) {
+          return false;
+        }
+      }
+      if (dateRange === 'year') {
+        if (created.getFullYear() !== now.getFullYear()) return false;
+      }
+    }
+
     return true;
   });
 
@@ -357,6 +382,19 @@ export default function OrdersPage() {
             <option value="completed">Completed</option>
           </select>
 
+          <select
+            className="control-select"
+            value={dateRange}
+            onChange={e => setDateRange(e.target.value)}
+            aria-label="Filter by date"
+          >
+            <option value="all">All dates</option>
+            <option value="today">Today</option>
+            <option value="week">This Week</option>
+            <option value="month">This Month</option>
+            <option value="year">This Year</option>
+          </select>
+
           <button 
             className="btn btn-outline" 
             onClick={resetFilters}
@@ -364,12 +402,12 @@ export default function OrdersPage() {
             Reset
           </button>
 
-          <button 
+          <Button 
             className="btn btn-primary"
             onClick={openCreate}
           >
             Create New Order
-          </button>
+          </Button>
         </div>
       </div>
 
