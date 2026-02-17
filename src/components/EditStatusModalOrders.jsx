@@ -1,11 +1,22 @@
-import React from "react";
+import React, { useEffect } from "react";
+import { IoCloseSharp } from "react-icons/io5";
 
 export default function EditStatusModalOrders({ order, onClose, onSave }) {
   const [status, setStatus] = React.useState(order.status);
+  useEffect(() => {
+    setStatus(order.status);
+  }, [order]);
 
-  function handleSubmit(e) {
+  const [saving, setSaving] = React.useState(false);
+
+  async function handleSubmit(e) {
     e.preventDefault();
-    onSave(order.id, status);
+    setSaving(true);
+    try {
+      await onSave(order.id, status);
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -13,7 +24,14 @@ export default function EditStatusModalOrders({ order, onClose, onSave }) {
       <div className="modal-card">
         <div className="modal-head">
           <h3>Edit Status</h3>
-          <button className="btn-close" onClick={onClose}>×</button>
+          <button
+            className="btn-close" 
+            onClick={onClose}
+            aria-label="Close status edit modal"
+            type="button"
+            >
+              <IoCloseSharp />
+            </button>
         </div>
         <form onSubmit={handleSubmit} className="modal-body">
           <label className="form-label">Status</label>

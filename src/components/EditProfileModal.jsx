@@ -20,13 +20,12 @@ export default function EditProfileModal({ isOpen, onClose, user, onUserUpdated}
   // Reset form everytime Edit Profile Modal opens
   useEffect(() => {
     if (isOpen && user) {
-      const storedAvatar = localStorage.getItem("avatar");
       setForm({
         fullName: user.full_name || '',
         username: user.username || '',
         email: user.email || '',
         password: '',
-        avatarUrl: storedAvatar || ''
+        avatarUrl: user.avatarUrl || ''
       });
     }
   }, [isOpen, user]);
@@ -56,12 +55,15 @@ export default function EditProfileModal({ isOpen, onClose, user, onUserUpdated}
         full_name: form.fullName,
         username: form.username,
         email: form.email,
-        password: form.password || "",
       };
+
+    // Hanya tambah password jika user input
+    if (form.password && form.password.trim()) {
+      payload.password = form.password;
+    }
 
       // Panggil helper updateUser dari auth.js
       const result = await updateUser(userId, payload);
-
       if (result.status === "error") {
         throw new Error(result.message);
       }
@@ -78,7 +80,7 @@ export default function EditProfileModal({ isOpen, onClose, user, onUserUpdated}
       console.error("handleSave error:", err);
       alert("Error updating profile");
     } finally {
-      setTimeout(() => setLoading(false), 5000);
+      setTimeout(() => setLoading(false), 1000);
     }
   };
 
@@ -131,6 +133,13 @@ export default function EditProfileModal({ isOpen, onClose, user, onUserUpdated}
           />
           {/* Save Button and Cancel Button */}
           <div className="modal-actions">
+            <button
+              className="btn-subtle" 
+              onClick={onClose}
+              disabled={loading}
+            >
+              Cancel
+            </button>
             <button 
               className="btn-primary" 
               onClick={handleSave}
@@ -143,13 +152,6 @@ export default function EditProfileModal({ isOpen, onClose, user, onUserUpdated}
               ) : (
                 "Save"
               )}
-            </button>
-            <button
-            className="btn-subtle" 
-            onClick={onClose}
-            disabled={loading}
-            >
-              Cancel
             </button>
           </div>
         </div>

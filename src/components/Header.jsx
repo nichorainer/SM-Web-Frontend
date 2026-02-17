@@ -35,6 +35,7 @@ export default function Header() {
   // declare for orders notification
   const [pendingOrders, setPendingOrders] = useState([]);
   const [loadingPending, setLoadingPending] = useState(false);
+  const [loadingNotif, setLoadingNotif] = useState(false);
 
   // user display state
   const [avatarSrc, setAvatarSrc] = useState(null);
@@ -58,7 +59,7 @@ export default function Header() {
         return s.includes('pending');
       });
 
-      // ort by created_at desc so newest appear first
+      // Sort by created_at desc so newest appear first
       pendings.sort((a, b) => {
         const ta = a.created_at ? new Date(a.created_at).getTime() : 0;
         const tb = b.created_at ? new Date(b.created_at).getTime() : 0;
@@ -82,10 +83,16 @@ export default function Header() {
 
   // Open notification menu
   const toggleNotif = async () => {
+    if (loadingNotif) return; // Prevent multiple clicks
     const next = !notifOpen;
     setNotifOpen(next);
     if (next) {
-      await loadPendingOrders();
+      setLoadingNotif(true);
+      try {
+        await loadPendingOrders();
+      } finally {
+        setLoadingNotif(false);
+      }
     }
   };
 
@@ -244,7 +251,7 @@ export default function Header() {
         if (window.location.pathname !== '/login') {
           window.location.href = '/login';
         }
-      }, 200);
+      }, 500);
     } catch (err) {
       console.warn('logout error', err);
     }
@@ -302,62 +309,63 @@ export default function Header() {
 
         {/* Profile dropdown */}
         <div className="profile" ref={profileRef}>
-          <div className="profile">
-            <button 
-              className="profile-btn"
-              onClick={() => setOpen(!open)} 
-              aria-haspopup="true"
-            >
-              <Avatar
-                name={displayName}
-                src={avatarSrc || undefined}
-                boxSize="36px"
-                className="avatar"
-              />
-              <div className="profile-info">
-                <span className="profile-name">{displayName}</span>
-                <span className="profile-role">
-                  {displayRole
-                  ? `${displayRole.charAt(0).toUpperCase()}${displayRole.slice(1)}`
-                  : ''}
-              </span>
-              </div>
-            </button>
+          <button 
+            className="profile-btn"
+            onClick={() => setOpen(!open)} 
+            aria-haspopup="true"
+            aria-expanded={open}
+          >
+            <Avatar
+              name={displayName}
+              src={avatarSrc || undefined}
+              boxSize="36px"
+              className="avatar"
+            />
+            <div className="profile-info">
+              <span className="profile-name">{displayName}</span>
+              <span className="profile-role">
+                {displayRole
+                ? `${displayRole.charAt(0).toUpperCase()}${displayRole.slice(1)}`
+                : ''}
+            </span>
+            </div>
+          </button>
 
-            {open && (
-              <div className="profile-menu" role="menu">
-                <button
-                  className="menu-item"
-                  onClick={() => {
-                    setOpen(false);
-                    navigate("/profile");
-                  }}
-                >
-                  Profile
-                </button>
+          {open && (
+            <div className="profile-menu" role="menu">
+              <button
+                className="menu-item"
+                onClick={() => {
+                  setOpen(false);
+                  navigate("/profile");
+                }}
+              >
+                Profile
+              </button>
 
-                <button
-                  className="menu-item"
-                  onClick={() => {
-                    setOpen(false);
-                    // jika belum ada userId, beri feedback kecil
-                    if (!userId) {
-                      console.warn('No user id yet, cannot change avatar');
-                      return;
-                    }
-                    triggerFileSelect();
-                  }}
-                  disabled={!userId}
-                >
-                  Change avatar
-                </button>
+              <button
+                className="menu-item"
+                onClick={() => {
+                  setOpen(false);
+                  if (!userId) {
+                    console.warn('No user id yet, cannot change avatar');
+                    return;
+                  }
+                  triggerFileSelect();
+                }}
+                disabled={!userId}
+              >
+                Change avatar
+              </button>
 
-                <button className="menu-item" onClick={handleLogout}>
-                  Logout
-                </button>
-              </div>
-            )}
-          </div>
+              <button 
+                className="menu-item" 
+                onClick={handleLogout}
+              >
+                Logout
+              </button>
+            </div>
+          )}
 
           <input
             type="file"
@@ -365,7 +373,7 @@ export default function Header() {
             ref={fileInputRef}
             onChange={handleFileChange}
             style={{ display: "none" }}
-            aria-hidden
+            aria-hidden="true"
           />
         </div>
       </div>

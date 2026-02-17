@@ -26,7 +26,6 @@ export default function AddProductModal({ isOpen, onClose, onSave, existingProdu
     setForm(prev => ({ ...prev, productId: newId }));
   };
 
-
   useEffect(() => {
     if (!isOpen) {
       setForm({ name: '', productId: '', supplierName: '', category: '', price: '', stock: '' });
@@ -224,22 +223,22 @@ export default function AddProductModal({ isOpen, onClose, onSave, existingProdu
           {errors._global && <div className="error">{errors._global}</div>}
 
           <div className="modal-actions">
-            <button
+            <Button
               type="button"
               className="btn-subtle"
               onClick={onClose}
               disabled={saving}
             >
               Cancel
-            </button>
+            </Button>
 
-            <button
+            <Button
               type="submit"
               className="btn-primary"
               disabled={saving}
             >
               {saving ? 'Saving...' : 'Save'}
-            </button>
+            </Button>
           </div>
         </form>
       </div>

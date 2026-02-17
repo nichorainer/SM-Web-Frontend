@@ -26,6 +26,7 @@ export default function OrdersTable({
       // If order_number might be a Promise, resolve it safely
       let resolvedOrderNumber = '';
       try {
+        // Promise.resolve will wrap non-promises; awaiting it is safe
         resolvedOrderNumber = await Promise.resolve(newOrder.order_number ?? newOrder.orderId ?? '');
         if (resolvedOrderNumber == null) resolvedOrderNumber = '';
         resolvedOrderNumber = String(resolvedOrderNumber);
@@ -56,9 +57,6 @@ export default function OrdersTable({
           : new Date().toLocaleString(),
         __raw: newOrder,
       };
-
-      // debug: show resolved order id for verification (remove in production)
-      console.debug('orders:add normalized', { resolvedOrderNumber, normalized });
 
       // optionally notify parent (do not call parent to re-add to backend)
       if (typeof onAddOrder === 'function') {
@@ -101,7 +99,7 @@ export default function OrdersTable({
           <tbody className="orders-table">
             {orders.length === 0 ? (
               <tr>
-                <td colSpan="10">No orders found</td>
+                <td colSpan="11">No orders found</td>
               </tr>
             ) : (
               orders.map((o, idx) => {
@@ -137,12 +135,13 @@ export default function OrdersTable({
                     <td>
                       {o.created_at ? new Date(o.created_at).toLocaleString() : '-'}
                     </td>
-                     {/* Actions Column */}
+                    {/* Actions Column */}
                     <td className="center actions-cell">
                       <button
                         className="icon-btn edit-btn"
                         onClick={() => setEditOrder(o)}
                         title="Edit Status"
+                        aria-label="Edit order status"
                       >
                         <LuPencilLine />
                       </button>
@@ -150,6 +149,7 @@ export default function OrdersTable({
                         className="icon-btn delete-btn"
                         onClick={() => setDeleteOrderTarget(o)}
                         title="Delete Order"
+                        aria-label="Delete order status"
                       >
                         <CiTrash />
                       </button>
