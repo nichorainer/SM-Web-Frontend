@@ -72,8 +72,7 @@ export function logout() {
     localStorage.removeItem(USER_KEY);
     // clear localStorage data
     localStorage.removeItem("user-avatar");
-    localStorage.removeItem("staffData");
-    localStorage.removeItem("logsData");
+    localStorage.removeItem("currentUser");
 
   } catch (err) {
     console.warn("logout error", err);

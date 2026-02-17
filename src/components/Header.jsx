@@ -229,16 +229,14 @@ export default function Header() {
   function handleLogout() {
     try {
       logout();
-      
-      // beri tahu komponen lain
       window.dispatchEvent(new CustomEvent('user-logged-out'));
 
-      // bersihkan avatar / state lokal
+      // clean avatar / local state
       setAvatarSrc(null);
       setDisplayName("Guest");
       setDisplayRole("");
 
-      // redirect ke login
+      // redirect to login
       navigate('/login', { replace: true });
 
       // fallback force redirect
