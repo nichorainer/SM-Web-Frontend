@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Avatar } from '@chakra-ui/react';
+import { Avatar, Button } from '@chakra-ui/react';
 import { 
   getUser, 
   getProfile,
   readLocalAvatar, 
   onAuthEvent, 
-  offAuthEvent, 
+  offAuthEvent,
+  updateUser, 
 } from '../utils/auth';
 import '../styles/users-page.css';
 
@@ -219,18 +220,24 @@ export default function UsersPage() {
 
       const newValue = !targetUser.permissions[permKey];
 
+      const payload = {
+        user_id: userId,
+        permissions: Object.entries({
+          ...targetUser.permissions,
+          [permKey]: newValue,
+        }).map(([k, v]) => `${k}:${v}`),
+      };
+
       // call API update
-      await fetch(`http://localhost:8080/users/users/permissions`, {
+      const res = await fetch(`http://localhost:8080/users/permissions`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          user_id: userId,
-          permissions: {
-            ...targetUser.permissions,
-            [permKey]: newValue,
-          },
-        }),
+        body: JSON.stringify(payload),
       });
+
+      if (!res.ok) {
+        throw new Error(`UpdatePermissions failed: ${res.status}`);
+      }
 
       // update local state after success
       setUser(prev =>
@@ -241,13 +248,13 @@ export default function UsersPage() {
         )
       );
 
-      // optional: update logs UI
+      // update logs UI
       setLogs(prev => {
         const newLogs = [
           {
             id: `l${Date.now()}`,
             action: "Permission toggled",
-            detail: `${targetUser.full_name || targetUser.username} ${permKey} ${newValue ? "enabled" : "disabled"}`,
+            detail: `${targetUser.full_name || targetUser.username} -> ${permKey} ${newValue ? "enabled" : "disabled"}`,
             when: new Date().toLocaleString(),
           },
           ...prev,
@@ -257,6 +264,58 @@ export default function UsersPage() {
       });
     } catch (err) {
       console.error("Failed to update permission:", err);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function changeRole(userId, newRole) {
+    setSaving(true);
+    try {
+      const targetUser = user.find(u => u.id === userId);
+      if (!targetUser) {
+        setSaving(false);
+        return;
+      }
+
+      const payload = {
+        id: userId,
+        role: newRole,
+      };
+
+      const res = await fetch(`http://localhost:8080/users/role`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        throw new Error(`UpdateRole failed: ${res.status}`);
+      }
+
+      // update local state
+      setUser(prev =>
+        prev.map(u =>
+          u.id === userId ? { ...u, role: newRole } : u
+        )
+      );
+
+      // update logs
+      setLogs(prev => {
+        const newLogs = [
+          {
+            id: `l${Date.now()}`,
+            action: "Role updated",
+            detail: `${targetUser.full_name || targetUser.username} -> ${newRole}`,
+            when: new Date().toLocaleString(),
+          },
+          ...prev,
+        ];
+        localStorage.setItem("user-logs", JSON.stringify(newLogs));
+        return newLogs;
+      });
+    } catch (err) {
+      console.error("Failed to update role:", err);
     } finally {
       setSaving(false);
     }
@@ -276,7 +335,6 @@ export default function UsersPage() {
             src={avatarSrc || undefined}
             boxSize="30px"
           />
-
           <div style={{ marginLeft: 8 }} className="admin-user-info">
             <div className="admin-name">
               {userData?.full_name || 'Guest'}
@@ -290,8 +348,8 @@ export default function UsersPage() {
       </header>
 
       <div className="admin-grid">
-        <section className="card staff-section">
-          <div className="section-head">
+        <section className="card user-section">
+          <div className="section-head-user">
             <h3>User Directory</h3>
             <div className="section-actions">
               <input
@@ -300,14 +358,20 @@ export default function UsersPage() {
                 value={q}
                 onChange={handleSearch}
               />
+              <Button
+                className="btn-subtle"
+                onClick={() => setQ("")}
+              >
+                Reset
+              </Button>
             </div>
           </div>
 
-          <div className="staff-table-wrap">
+          <div className="user-table-wrap">
             {loadingUsers ? (
               <div className="muted">Loading users...</div>
             ) : (
-              <table className="staff-table">
+              <table className="user-table">
                 <thead>
                   <tr>
                     <th>User</th>
@@ -321,13 +385,13 @@ export default function UsersPage() {
                 <tbody>
                   {filteredUser.map((s) => (
                     <tr key={s.id}>
-                      <td className="staff-cell">
+                      <td className="user-cell">
                         <Avatar
                           size="sm"
                           name={s.full_name}
                           src={s.avatarUrl}
                         />
-                        <div className="staff-name">{s.full_name}</div>
+                        <div className="user-name">{s.full_name}</div>
                       </td>
                       <td>{s.username}</td>
                       <td>{s.email}</td>
@@ -363,9 +427,6 @@ export default function UsersPage() {
         <section className="card logs-section">
           <div className="section-head">
             <h3>Audit Logs</h3>
-            <div className="section-actions">
-              <button className="btn-ghost" onClick={() => setLogs(MOCK_LOGS)}>Reset</button>
-            </div>
           </div>
 
           <div className="logs-list">
@@ -376,16 +437,13 @@ export default function UsersPage() {
             ) : (
               <ul>
                 {logs.map((l) => {
-                  // cari user dari daftar users berdasarkan user_id
                   const targetUser = filteredUser.find(u => u.id === l.user_id);
-                  const userLabel = targetUser ? targetUser.username : l.user_id;
-
                   return (
                     <li key={l.id} className="log-item">
                       <div>
                         <div className="log-action">{l.action}</div>
                         <div className="log-detail muted">
-                          {userLabel} toggled {l.permission} {l.enabled ? "enabled" : "disabled"}
+                          {l.detail}
                         </div>
                       </div>
                       <div className="log-meta muted">{l.when}</div>
@@ -394,6 +452,17 @@ export default function UsersPage() {
                 })}
               </ul>
             )}
+          </div>
+          <div className="table-actions">
+            <Button
+              className="btn-subtle"
+              onClick={() => {
+                setLogs([]);
+                localStorage.removeItem("user-logs");
+              }}
+            >
+              Clear Logs
+            </Button>
           </div>
         </section>
       </div>
@@ -408,9 +477,9 @@ export default function UsersPage() {
 
             <div className="drawer-body">
               <div className="edit-row">
-                <Avatar size="lg" name={selected.name} src={selected.avatarUrl} />
+                <Avatar size="lg" name={selected.full_name} src={selected.avatarUrl} />
                 <div style={{ marginLeft: 12 }}>
-                  <div style={{ fontWeight: 700 }}>{selected.name}</div>
+                  <div style={{ fontWeight: 700 }}>{selected.full_name}</div>
                   <div className="muted">@{selected.username}</div>
                   <div className="muted">{selected.email}</div>
                 </div>
@@ -441,14 +510,19 @@ export default function UsersPage() {
                 </div>
 
                 <div style={{ marginTop: 12, display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-                  <button className="btn-ghost" onClick={closeEdit}>Close</button>
-                  <button 
+                  <Button
+                    className="btn-ghost" 
+                    onClick={closeEdit}
+                  >
+                    Close
+                  </Button>
+                  <Button 
                     className="btn-primary" 
                     disabled={saving}
                     onClick={closeEdit}
                     >
-                      {saving ? 'Saving...' : 'Close'}
-                    </button>
+                      {saving ? 'Saving...' : 'Save'}
+                    </Button>
                 </div>
               </div>
             </div>

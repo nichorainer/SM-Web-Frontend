@@ -117,3 +117,16 @@ export async function deleteOrder(id) {
   if (!res.ok) throw new Error('Failed to delete order');
   return res.json();
 }
+
+export async function fetchTopProductsFromOrders() {
+  try {
+    const res = await fetch(`http://localhost:8080/orders/top-products`);
+    if (!res.ok) {
+      throw new Error(`Failed to fetch top products: ${res.status}`);
+    }
+    return await res.json();
+  } catch (err) {
+    console.error("Error fetching top products:", err);
+    throw err;
+  }
+}

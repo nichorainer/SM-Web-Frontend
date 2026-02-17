@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { loginUser, saveUser } from '../utils/auth';
 import '../utils/auth.css';
+import { useAuth } from '../utils/AuthContext';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -9,6 +10,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const { setCurrentUser } = useAuth();
 
   // listen event dari ProfilePage
   useEffect(() => {
@@ -39,6 +41,12 @@ export default function LoginPage() {
       if (res && res.status === "success") {
         // Simpan user info ke localStorage
         saveUser(res.data);
+
+        console.log("Setting currentUser:", res.data);
+
+        // Update AuthContext supaya ProtectedRoute bisa cek permissions
+        setCurrentUser(res.data);
+
         // Redirect ke home
         navigate('/home', { replace: true });
       } else {

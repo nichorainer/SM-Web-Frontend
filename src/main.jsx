@@ -5,6 +5,7 @@ import Router from './routes/Router';
 import ErrorBoundary from './components/ErrorBoundary';
 import './App.css';
 import { ChakraProvider } from '@chakra-ui/react';
+import { AuthProvider } from './utils/AuthContext';
 
 console.log('main.jsx start');
 const rootEl = document.getElementById('root');
@@ -22,9 +23,11 @@ createRoot(rootEl).render(
   <React.StrictMode>
     <ErrorBoundary>
       <BrowserRouter>
-      <ChakraProvider>
-          <Router />
-      </ChakraProvider>
+        <ChakraProvider>
+          <AuthProvider>
+            <Router />
+          </AuthProvider>
+        </ChakraProvider>
       </BrowserRouter>
     </ErrorBoundary>
   </React.StrictMode>

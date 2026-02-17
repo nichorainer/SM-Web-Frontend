@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/home-page.css';
-import { getProducts, getOrders } from '../utils/api';
+import { getProducts, getOrders, fetchTopProductsFromOrders } from '../utils/api';
+
+
 
 export default function HomePage() {
   const [products, setProducts] = useState([]);
@@ -175,6 +177,21 @@ export default function HomePage() {
     }).format(v);
   })();
 
+  const [topProducts, setTopProducts] = useState([]);
+
+  useEffect(() => {
+    async function loadTopProducts() {
+      try {
+        const data = await fetchTopProductsFromOrders();
+        setTopProducts(data);
+      } catch (err) {
+        // bisa tambahin error UI
+      }
+    }
+    loadTopProducts();
+  }, []);
+
+
   return (
     <div className="home-page">
       <div className="dashboard-header">
@@ -205,23 +222,23 @@ export default function HomePage() {
         {/* Short List Products */}
         <div className="card">
           <div className="card-header">
-            <h3>Your Products</h3>
+            <h3>Top Products</h3>
             <span className="badge success">Selling</span>
           </div>
           <table className="simple-table">
             <thead>
               <tr>
-                <th>Product Name</th>
                 <th>Product ID</th>
-                <th>Stock</th>
+                <th>Product Name</th>
+                <th>Total Sold</th>
               </tr>
             </thead>
             <tbody>
-              {randomProducts.map((p) => (
-                <tr key={p.id}>
-                  <td>{p.product_name || p.name}</td>
-                  <td>{p.product_id || p.id}</td>
-                  <td>{p.stock}</td>
+              {topProducts.map((p) => (
+                <tr key={p.product_id}>
+                  <td>{p.product_id}</td>
+                  <td>{p.product_name}</td>
+                  <td>{p.total_sold}</td>
                 </tr>
               ))}
             </tbody>

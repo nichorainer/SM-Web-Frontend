@@ -1,9 +1,10 @@
-import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import '../styles/sidebar.css';
 import { logout } from '../utils/auth';
+import { useAuth } from '../utils/AuthContext';
 
 export default function Sidebar() {
+  const { currentUser } = useAuth();
   const linkClass = ({ isActive }) => `nav-item ${isActive ? 'active' : ''}`;
   const navigate = useNavigate()
   

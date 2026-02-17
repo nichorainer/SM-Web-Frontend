@@ -71,6 +71,7 @@
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
   padding: 16px;
   border: 1px solid #e6edf3;
+  height: 90%;
 }
 
 /* Section head */
@@ -78,7 +79,16 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin: 12px;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 8px;
+}
+
+.section-head-user {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 8px;
 }
 
 .section-head h3 {
@@ -99,29 +109,49 @@
   border: 1px solid #d1d5db;
   background: #fff;
   font-size: 14px;
-  min-width: 200px;
+  min-width: 140px;
+  width: 95%;
 }
 
-/* Staff table */
-.staff-section {
+/* user table */
+.user-section {
   display: flex;
   flex-direction: column;
   min-height: 0;
 }
 
-.staff-table-wrap {
-  overflow: auto;
+.user-table-wrap {
   max-height: calc(100vh - 320px);
+  overflow-y: scroll;
+  overflow-x: hidden;
+  padding: 0.75rem;
+  background-color: #fff;
+
+  -ms-overflow-style: none;  /* IE dan Edge lama */
+  scrollbar-width: none;
 }
 
-.staff-table {
+.user-table-wrap::-webkit-scrollbar {
+  width: 6px;
+}
+
+.user-table-wrap::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.user-table-wrap::-webkit-scrollbar-thumb {
+  background-color: rgba(0,0,0,0.25);
+  border-radius: 3px;
+}
+
+.user-table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0 10px;
   font-size: 14px;
 }
 
-.staff-table thead th {
+.user-table thead th {
   text-align: center;
   white-space: nowrap;
   padding: 12px 18px;
@@ -130,13 +160,13 @@
   border-bottom: 1px solid #eef2f6;
 }
 
-.staff-table tbody td {
+.user-table tbody td {
   padding: 12px 16px;
   vertical-align: middle;
   border-bottom: 1px solid #f3f6f9;
 }
 
-.staff-table tbody td.staff-cell {
+.user-table tbody td.user-cell {
   display: flex;
   align-items: center;
   gap: 20px;
@@ -146,48 +176,48 @@
 }
 
 /* Make each row look like a soft card */
-.staff-table tbody tr {
+.user-table tbody tr {
   background: #fff;
   border-radius: 8px;
   box-shadow: 0 1px 0 rgba(16,24,40,0.04);
 }
 
 /* Keep rounded corners visible on cells */
-.staff-table tbody tr td:first-child {
+.user-table tbody tr td:first-child {
   border-top-left-radius: 8px;
   border-bottom-left-radius: 8px;
 }
-.staff-table tbody tr td:last-child {
+.user-table tbody tr td:last-child {
   border-top-right-radius: 8px;
   border-bottom-right-radius: 8px;
 }
 
-/* Avatar + name spacing inside staff cell */
-.staff-cell {
+/* Avatar + name spacing inside user cell */
+.user-cell {
   display: inline-flex;
   align-items: center;
   gap: 12px;
   font-size: 14px;
 }
 
-.staff-cell .chakra-avatar {
+.user-cell .chakra-avatar {
   width: 40px;
   height: 40px;
   flex-shrink: 0;
 }
 
-.staff-name {
+.user-name {
   font-weight: 600;
   line-height: 25px;
   align-items: center;
 }
 
-.staff-table td {
+.user-table td {
   vertical-align: middle;
 }
 
 /* Make action column narrower and centered */
-.staff-table td:last-child {
+.user-table td:last-child {
   width: 120px;
   text-align: center;
 }
@@ -237,7 +267,7 @@
 }
 
 .btn-primary {
-  background: #0ea5a4;
+  background: transparent;
   color: #fff;
   border: none;
   padding: 8px 12px;
@@ -246,24 +276,63 @@
 }
 
 .btn-primary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+  opacity: 0.6;            /* biar kelihatan redup */
+  cursor: not-allowed;     /* pointer berubah */
+  color: #555;             /* pastikan teks tetap terlihat */
+  border-color: #ddd;      /* konsisten dengan normal */
+  background-color: transparent;
 }
 
 /* Logs list */
-.logs-list {
+.logs-section {
   max-height: 520px;
-  overflow: auto;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 6px; 
+  background-color: #fff;  
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08); 
 }
+
+.logs-list {
+  height: 75%;
+  overflow-y: scroll;
+  overflow-x: hidden;
+
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0,0,0,0.25) transparent;
+
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  margin: 12px;
+}
+
+.logs-list::-webkit-scrollbar {
+  width: 6px;
+  display: none;
+}
+
+.logs-list::-webkit-scrollbar-track {
+  background: transparent;
+  display: none;
+}
+
+.logs-list::-webkit-scrollbar-thumb {
+  background-color: rgba(0,0,0,0.25);
+  border-radius: 3px;
+  display: none;
+}
+
 .log-item {
   display: flex;
   justify-content: space-between;
   padding: 10px 6px;
   border-bottom: 1px solid #f3f6f9;
 }
+
 .log-action {
   font-weight: 600;
 }
+
 .log-detail {
   font-size: 13px;
 }
@@ -353,17 +422,24 @@
     width: auto;
   }
 
-  .staff-table thead th,
-  .staff-table tbody td {
+  .user-table thead th,
+  .user-table tbody td {
     padding: 10px 12px;
   }
 
-  .staff-cell .chakra-avatar {
+  .user-cell .chakra-avatar {
     width: 36px;
     height: 36px;
   }
 
-  .staff-table tbody tr {
+  .user-table tbody tr {
     border-radius: 6px;
   }
+}
+
+.table-actions {
+  margin: 10px;
+  display: flex;
+  gap: 8px;
+  justify-content: center;
 }

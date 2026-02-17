@@ -9,6 +9,8 @@ import UsersPage from '../pages/UsersPage';
 import LoginPage from '../pages/Login';
 import RegisterPage from '../pages/Register';
 import { getUserLocal } from '../utils/auth';
+import ProtectedRoute from './ProtectedRoute';
+import Unauthorized from '../pages/Unauthorized';
 
 // RequireAuth wrapper
 function RequireAuth({ children }) {
@@ -35,7 +37,6 @@ export default function Router() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
 
-      {/* Protected routes */}
       <Route
         path="/"
         element={
@@ -46,9 +47,32 @@ export default function Router() {
       >
         <Route index element={<HomePage />} />
         <Route path="home" element={<HomePage />} />
-        <Route path="orders" element={<OrdersPage />} />
-        <Route path="products" element={<ProductsPage />} />
-        <Route path="users" element={<UsersPage />} />
+        {/* Protected Routes */}
+        <Route
+          path="orders"
+          element={
+            <ProtectedRoute permission="orders">
+              <OrdersPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="products"
+          element={
+            <ProtectedRoute permission="products">
+              <ProductsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="users"
+          element={
+            <ProtectedRoute permission="users">
+              <UsersPage />
+            </ProtectedRoute>
+          }
+        />
+
         <Route path="profile" element={<ProfilePage />} />
       </Route>
 
@@ -56,6 +80,11 @@ export default function Router() {
       <Route
         path="*"
         element={<Navigate to={getUserLocal() ? '/' : '/login'} replace />}
+      />
+
+      <Route 
+        path="/unauthorized" 
+        element={<Unauthorized />} 
       />
     </Routes>
   );

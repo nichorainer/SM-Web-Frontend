@@ -30,13 +30,15 @@ export async function loginUser(data) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
-
+  
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new Error(err.message || "Failed to login");
   }
 
-  return res.json();
+  const result = await res.json();
+  console.log("Login response from backend:", result);
+  return result;
 }
 
 // Save user object to localStorage

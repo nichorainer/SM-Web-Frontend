@@ -2,8 +2,8 @@
   padding: 24px;
   background-color: #f9f9f9;
   min-height: 100vh;
-  max-height: 100vh;         /* lock to viewport height */
-  overflow-y: auto;          /* scroll only if content exceeds */
+  max-height: 100vh;
+  overflow-y: auto;
   overflow-x: hidden;
   font-family: 'Segoe UI', sans-serif;
   box-sizing: border-box;
@@ -71,8 +71,17 @@
   background: #fff;
   border-radius: 8px;
   box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-  overflow: hidden;
+  overflow: auto;
+  min-height: 380px;
+
+  scrollbar-width: none; 
+  -ms-overflow-style: none;
 }
+
+.card::-webkit-scrollbar {
+  display: none;
+}
+
 
 .card-header {
   display: flex;
