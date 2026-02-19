@@ -1,3 +1,5 @@
+import { API_URL } from "./config";
+
 const USER_KEY = "user";
 // Call for avatar
 const AVATAR_KEY_PREFIX = "fe_avatar_user_";
@@ -5,7 +7,7 @@ const AVATAR_KEY_PREFIX = "fe_avatar_user_";
 // Register user via backend
 export async function registerUser(data) {
   try {
-    const res = await fetch("http://localhost:8080/register", {
+    const res = await fetch(`${API_URL}/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
@@ -23,7 +25,7 @@ export async function registerUser(data) {
 
 // Login user via backend
 export async function loginUser(data) {
-  const res = await fetch("http://localhost:8080/login", {
+  const res = await fetch(`${API_URL}/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
@@ -90,7 +92,7 @@ export async function getUser(userId) {
     }
 
     // Panggil backend
-    const res = await fetch(`http://localhost:8080/users/${userId}`, {
+    const res = await fetch(`${API_URL}/users/${userId}`, {
       headers: { "Content-Type": "application/json" },
     });
 
@@ -206,7 +208,7 @@ export async function getProfile() {
     }
 
     // Fetch from BE
-    const resp = await fetch(`http://localhost:8080/users/me?id=${userId}`, {
+    const resp = await fetch(`${API_URL}/users/me?id=${userId}`, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
     });
@@ -268,7 +270,7 @@ function normalizeProfile(profile) {
 // Update user profile
 export async function updateUser(userId, data) {
   try {
-    const res = await fetch(`http://localhost:8080/users/${userId}`, {
+    const res = await fetch(`${API_URL}/users/${userId}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -281,4 +283,43 @@ export async function updateUser(userId, data) {
   } catch (err) {
     return { status: "error", message: err.message };
   }
+}
+
+// List users
+export async function fetchUsers() {
+  const res = await fetch(`${API_URL}/users`);
+  if (!res.ok) {
+    throw new Error(`Failed to fetch users: ${res.status}`);
+  }
+  return res.json();
+}
+
+// Update user permissions
+export async function updatePermissions(payload) {
+  const res = await fetch(`${API_URL}/users/permissions`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    throw new Error(`UpdatePermissions failed: ${res.status}`);
+  }
+
+  return res.json();
+}
+
+// Update user role
+export async function updateRole(payload) {
+  const res = await fetch(`${API_URL}/users/role`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    throw new Error(`UpdateRole failed: ${res.status}`);
+  }
+
+  return res.json();
 }

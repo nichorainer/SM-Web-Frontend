@@ -1,3 +1,5 @@
+import { API_URL } from './config';
+
 // PRODUCTS
 
 async function safeJson(res) {
@@ -10,8 +12,7 @@ async function safeJson(res) {
 }
 
 export async function getProducts() {
-  const url = `http://localhost:8080/products`;
-  const res = await fetch(url, {
+  const res = await fetch(`${API_URL}/products`, {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' },
   });
@@ -24,8 +25,7 @@ export async function getProducts() {
 }
 
 export async function createProduct(payload) {
-  const url = `http://localhost:8080/products`;
-  const res = await fetch(url, {
+  const res = await fetch(`${API_URL}/products`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
@@ -39,8 +39,7 @@ export async function createProduct(payload) {
 }
 
 export async function updateProductStock(id, delta) {
-  const url = `http://localhost:8080/products/${encodeURIComponent(id)}/stock`;
-  const res = await fetch(url, {
+  const res = await fetch(`${API_URL}/products/${encodeURIComponent(id)}/stock`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ delta }),
@@ -56,8 +55,7 @@ export async function updateProductStock(id, delta) {
 
 // Get Orders
 export async function getOrders() {
-  const url = `http://localhost:8080/orders`;
-  const res = await fetch(url, {
+  const res = await fetch(`${API_URL}/orders`, {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
@@ -72,8 +70,7 @@ export async function getOrders() {
 
 // Create Orders
 export async function createOrders(payload) {
-  const url = `http://localhost:8080/orders`;
-  const res = await fetch(url, {
+  const res = await fetch(`${API_URL}/orders`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
@@ -89,15 +86,14 @@ export async function createOrders(payload) {
 
 // For Order ID (Order Number) generation
 export async function fetchNextOrderNumber() {
-  const res = await fetch(`http://localhost:8080/orders/order-number`);
+  const res = await fetch(`${API_URL}/orders/order-number`);
   const data = await res.json();
   return data.order_number;
 }
 
 // Update Order Status
 export async function updateOrderStatus(id, status) {
-  const url = `http://localhost:8080/orders/${id}/status`;
-  const res = await fetch(url, {
+  const res = await fetch(`${API_URL}/orders/${id}/status`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
@@ -109,7 +105,7 @@ export async function updateOrderStatus(id, status) {
 
 // Delete Order
 export async function deleteOrder(id) {
-  const url = `http://localhost:8080/orders/${id}`;
+  const url = `${API_URL}/orders/${id}`;
   const res = await fetch(url, {
     method: 'DELETE',
     credentials: 'include',
@@ -120,7 +116,7 @@ export async function deleteOrder(id) {
 
 export async function fetchTopProductsFromOrders() {
   try {
-    const res = await fetch(`http://localhost:8080/orders/top-products`);
+    const res = await fetch(`${API_URL}/orders/top-products`);
     if (!res.ok) {
       throw new Error(`Failed to fetch top products: ${res.status}`);
     }

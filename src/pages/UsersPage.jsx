@@ -6,6 +6,8 @@ import {
   readLocalAvatar, 
   onAuthEvent, 
   offAuthEvent,
+  fetchUsers,
+  updateRole,
 } from '../utils/auth';
 import '../styles/users-page.css';
 
@@ -158,8 +160,7 @@ export default function UsersPage() {
 
     async function loadUsers() {
       try {
-        const res = await fetch(`http://localhost:8080/users`);
-        const json = await res.json();
+        const json = await fetchUsers();
         setUser(json.data || []);
       } catch (err) {
         console.error("Failed to load users:", err);
@@ -212,15 +213,7 @@ export default function UsersPage() {
       };
 
       // call API update
-      const res = await fetch(`http://localhost:8080/users/permissions`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        throw new Error(`UpdatePermissions failed: ${res.status}`);
-      }
+      await updatePermissions(payload);
 
       // update local state after success
       setUser(prev =>
@@ -252,6 +245,7 @@ export default function UsersPage() {
     }
   }
 
+  // Update user role
   async function changeRole(userId, newRole) {
     setSaving(true);
     try {
@@ -266,15 +260,8 @@ export default function UsersPage() {
         role: newRole,
       };
 
-      const res = await fetch(`http://localhost:8080/users/role`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        throw new Error(`UpdateRole failed: ${res.status}`);
-      }
+      // call BE
+      await updateRole(payload);
 
       // update local state
       setUser(prev =>
