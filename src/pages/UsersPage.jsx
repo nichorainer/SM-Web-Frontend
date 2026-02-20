@@ -8,6 +8,7 @@ import {
   offAuthEvent,
   fetchUsers,
   updateRole,
+  updatePermissions
 } from '../utils/auth';
 import '../styles/users-page.css';
 
