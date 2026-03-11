@@ -11,7 +11,7 @@ export default function ProtectedRoute({ permission, children }) {
   }
 
   if (loading) {
-    // tampilkan spinner di tengah layar
+    // tampilan spinner di tengah layar
     return (
       <Center flex="1" minH="calc(100vh - 64px)">
         <Spinner size="xl" thickness="4px" speed="0.65s" color="purple.500" />
